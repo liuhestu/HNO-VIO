@@ -10,7 +10,7 @@
     <arg name="path_save"   default="/home/patrick/workspace/catkin_ws_init/src/open_vins/ov_data/" />
 
 
-    <!-- record the trajectory -->
+    <!-- record the trajectory (Tip: Use this to extract Ground Truth from bag files) -->
     <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen" required="true">
         <param name="topic"      type="str" value="/groundtruth/pose" />
         <param name="topic_type" type="str" value="PoseStamped" />

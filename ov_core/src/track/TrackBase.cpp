@@ -117,7 +117,7 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 }
 
 void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::vector<size_t> highlighted,
-                                std::string overlay) {
+                                std::string overlay, const std::unordered_set<size_t>* allowed_ids) {
 
   // Cache the images to prevent other threads from editing while we viz (which can be slow)
   std::map<size_t, cv::Mat> img_last_cache, img_mask_last_cache;
@@ -184,6 +184,8 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         continue;
       if (feat.uvs.empty() || feat.uvs[pair.first].empty() || feat.to_delete)
         continue;
+      if (allowed_ids && allowed_ids->find(ids_last_cache[pair.first].at(i)) == allowed_ids->end())
+        continue; // skip drawing trails for filtered-out ids
       // Draw the history of this point (start at the last inserted one)
       for (size_t z = feat.uvs[pair.first].size() - 1; z > 0; z--) {
         // Check if we have reached the max
