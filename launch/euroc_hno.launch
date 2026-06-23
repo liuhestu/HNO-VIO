@@ -9,12 +9,14 @@
   <arg name="bag_start" default="0" />
   <arg name="bag_rate" default="1" />
   <arg name="dobag" default="true" />
+  <arg name="use_gt_init" default="false" />
   <arg name="use_gt_mapping" default="false" />
   <arg name="rviz" default="true" />
 
   <node name="run_hno_vio" pkg="hno_vio" type="run_hno_vio" output="screen" clear_params="true" required="true">
     <param name="config_path" type="string" value="$(arg config_path)" />
     <param name="path_gt" type="string" value="$(arg path_gt)" />
+    <param name="use_gt_init" type="bool" value="$(arg use_gt_init)" />
     <param name="use_gt_mapping" type="bool" value="$(arg use_gt_mapping)" />
 
     <param name="topic_imu" value="/imu0" />

@@ -125,6 +125,8 @@ private:
     // 相机配置
     std::vector<std::shared_ptr<ov_core::CamBase>> cams;
     std::vector<Eigen::Matrix4d> cams_T_C2B; // 外参: Camera -> Body (IMU)
+    HNOFeature::Options feature_options;
+    HNOUpdater::Options updater_options;
     
     // Ground Truth (GT) 验证相关变量
     std::string path_gt;
@@ -137,6 +139,7 @@ private:
     Eigen::Matrix3d R_gt_viz_align = Eigen::Matrix3d::Identity();
 
     // --- Debug / Cheating Params ---
+    bool use_gt_init = false;      // true: overwrite initialization from GT; false: real initialization
     bool use_gt_mapping = false;   // true: use GT for mapping (Cheating); false: use State (Real VIO)
 };
 

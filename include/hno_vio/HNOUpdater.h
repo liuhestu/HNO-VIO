@@ -27,8 +27,27 @@ class HNOUpdater {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+    struct Options {
+        Options()
+            : pixel_noise(2.0),
+              focal_length(460.0),
+              chi2_gate(15.0),
+              max_delta_p(0.2),
+              max_delta_r(0.15),
+              enforce_structure_after_update(false) {}
+
+        double pixel_noise;
+        double focal_length;
+        double chi2_gate;
+        double max_delta_p;
+        double max_delta_r;
+        bool enforce_structure_after_update;
+    };
+
     // 构造函数，只在程序启动、创建这个类对象的时候运行一次
     HNOUpdater();
+
+    void setOptions(const Options& options);
 
     /**
      * @brief 设置相机外参 (Camera -> Body)
@@ -47,8 +66,7 @@ public:
 
 private:
     // 参数配置
-    double pixel_noise = 2.0;    // 重投影误差/像素噪声 (pixel)
-    double focal_length = 460.0; // 焦距 (pixel)
+    Options options_;
 
     // 计算投影算子 pi(x) = I - x*x^T
     Eigen::Matrix3d project_pi(const Eigen::Vector3d& x);
@@ -61,5 +79,3 @@ private:
 
 } 
 #endif
-
-

@@ -3,6 +3,9 @@
 #include <track/TrackKLT.h>
 #include <cv_bridge/cv_bridge.h>
 #include <utils/opencv_yaml_parse.h>
+#include <fstream>
+#include <sstream>
+#include <unordered_set>
 
 using namespace hno_vio;
 
@@ -21,7 +24,7 @@ HNOManager::HNOManager(ros::NodeHandle& nh, const std::string& config_path) : nh
     load_parameters(config_path);
 
     // 3. 将相机参数传递给前端
-    feature_handler = std::make_shared<HNOFeature>(cams, cams_T_C2B);
+    feature_handler = std::make_shared<HNOFeature>(cams, cams_T_C2B, feature_options);
     
     // 4. 将外参传递给更新器 (用于Updater中的几何计算)
     std::map<size_t, Eigen::Matrix4d> extrinsics_map;
@@ -29,6 +32,7 @@ HNOManager::HNOManager(ros::NodeHandle& nh, const std::string& config_path) : nh
         extrinsics_map[i] = cams_T_C2B[i];
     }
     updater->setExtrinsics(extrinsics_map);
+    updater->setOptions(updater_options);
     
     // 5. 初始化ROS发布器
     // 姿态 (EKF输出)
@@ -104,7 +108,61 @@ void HNOManager::load_parameters(const std::string& config_path) {
     noise_params.noise_gyro = gyro_sigma;
     propagator->setNoiseParams(noise_params);
     
-    // --- 3. Ground Truth ---
+    // --- 3. Candidate/runtime search parameters ---
+    parser.parse_config("feature_tracker_num_pts", feature_options.tracker_num_pts, false);
+    parser.parse_config("feature_tracker_fast_threshold", feature_options.tracker_fast_threshold, false);
+    parser.parse_config("feature_tracker_grid_x", feature_options.tracker_grid_x, false);
+    parser.parse_config("feature_tracker_grid_y", feature_options.tracker_grid_y, false);
+    parser.parse_config("feature_tracker_min_px_dist", feature_options.tracker_min_px_dist, false);
+    parser.parse_config("feature_min_stereo_depth", feature_options.min_stereo_depth, false);
+    parser.parse_config("feature_max_stereo_depth", feature_options.max_stereo_depth, false);
+    parser.parse_config("feature_stereo_reproj_thresh", feature_options.stereo_reproj_thresh, false);
+    parser.parse_config("feature_reproj_thresh", feature_options.reproj_thresh, false);
+    parser.parse_config("feature_reproj_thresh_low", feature_options.reproj_thresh_low, false);
+    parser.parse_config("feature_low_feature_pts", feature_options.low_feature_pts, false);
+    parser.parse_config("feature_low_feature_db", feature_options.low_feature_db, false);
+    parser.parse_config("feature_mature_thresh", feature_options.mature_thresh, false);
+    parser.parse_config("feature_mature_thresh_low", feature_options.mature_thresh_low, false);
+    parser.parse_config("feature_fail_limit", feature_options.fail_limit, false);
+    parser.parse_config("feature_fail_limit_low", feature_options.fail_limit_low, false);
+    parser.parse_config("feature_map_jump_thresh", feature_options.map_jump_thresh, false);
+    parser.parse_config("feature_active_mature_thresh", feature_options.active_mature_thresh, false);
+
+    parser.parse_config("update_pixel_noise", updater_options.pixel_noise, false);
+    parser.parse_config("update_focal_length", updater_options.focal_length, false);
+    parser.parse_config("update_chi2_gate", updater_options.chi2_gate, false);
+    parser.parse_config("update_max_delta_p", updater_options.max_delta_p, false);
+    parser.parse_config("update_max_delta_r", updater_options.max_delta_r, false);
+    parser.parse_config("update_enforce_structure", updater_options.enforce_structure_after_update, false);
+
+    // ROS params take priority over candidate YAML when supplied by a launch file.
+    nh_.param("feature_tracker_num_pts", feature_options.tracker_num_pts, feature_options.tracker_num_pts);
+    nh_.param("feature_tracker_fast_threshold", feature_options.tracker_fast_threshold, feature_options.tracker_fast_threshold);
+    nh_.param("feature_tracker_grid_x", feature_options.tracker_grid_x, feature_options.tracker_grid_x);
+    nh_.param("feature_tracker_grid_y", feature_options.tracker_grid_y, feature_options.tracker_grid_y);
+    nh_.param("feature_tracker_min_px_dist", feature_options.tracker_min_px_dist, feature_options.tracker_min_px_dist);
+    nh_.param("feature_min_stereo_depth", feature_options.min_stereo_depth, feature_options.min_stereo_depth);
+    nh_.param("feature_max_stereo_depth", feature_options.max_stereo_depth, feature_options.max_stereo_depth);
+    nh_.param("feature_stereo_reproj_thresh", feature_options.stereo_reproj_thresh, feature_options.stereo_reproj_thresh);
+    nh_.param("feature_reproj_thresh", feature_options.reproj_thresh, feature_options.reproj_thresh);
+    nh_.param("feature_reproj_thresh_low", feature_options.reproj_thresh_low, feature_options.reproj_thresh_low);
+    nh_.param("feature_low_feature_pts", feature_options.low_feature_pts, feature_options.low_feature_pts);
+    nh_.param("feature_low_feature_db", feature_options.low_feature_db, feature_options.low_feature_db);
+    nh_.param("feature_mature_thresh", feature_options.mature_thresh, feature_options.mature_thresh);
+    nh_.param("feature_mature_thresh_low", feature_options.mature_thresh_low, feature_options.mature_thresh_low);
+    nh_.param("feature_fail_limit", feature_options.fail_limit, feature_options.fail_limit);
+    nh_.param("feature_fail_limit_low", feature_options.fail_limit_low, feature_options.fail_limit_low);
+    nh_.param("feature_map_jump_thresh", feature_options.map_jump_thresh, feature_options.map_jump_thresh);
+    nh_.param("feature_active_mature_thresh", feature_options.active_mature_thresh, feature_options.active_mature_thresh);
+
+    nh_.param("update_pixel_noise", updater_options.pixel_noise, updater_options.pixel_noise);
+    nh_.param("update_focal_length", updater_options.focal_length, updater_options.focal_length);
+    nh_.param("update_chi2_gate", updater_options.chi2_gate, updater_options.chi2_gate);
+    nh_.param("update_max_delta_p", updater_options.max_delta_p, updater_options.max_delta_p);
+    nh_.param("update_max_delta_r", updater_options.max_delta_r, updater_options.max_delta_r);
+    nh_.param("update_enforce_structure", updater_options.enforce_structure_after_update, updater_options.enforce_structure_after_update);
+
+    // --- 4. Ground Truth ---
     // 尝试从ROS参数服务器获取GT路径，如果没有则尝试从配置文件或默认参数获取
     if (nh_.getParam("path_gt", path_gt)) {
         ROS_INFO("Found private param path_gt: %s", path_gt.c_str());
@@ -118,9 +176,14 @@ void HNOManager::load_parameters(const std::string& config_path) {
         ROS_WARN("No GT path provided in params.");
     }
     
-    // --- 4. 调试/Cheat 模式参数 ---
-    // 默认开启 GT 建图 (Cheating Mode) 用于调试算法
-    nh_.param<bool>("use_gt_mapping", use_gt_mapping, true);
+    // --- 5. 调试/Cheat 模式参数 ---
+    nh_.param<bool>("use_gt_init", use_gt_init, false);
+    nh_.param<bool>("use_gt_mapping", use_gt_mapping, false);
+    if(use_gt_init) {
+        ROS_WARN("[HNO] RUNNING IN CHEAT INIT MODE: Using GT for initialization!");
+    } else {
+        ROS_INFO("[HNO] RUNNING IN REAL INIT MODE: Not using GT initialization.");
+    }
     if(use_gt_mapping) {
         ROS_WARN("[HNO] RUNNING IN CHEAT MODE: Using GT for Mapping!");
     } else {
@@ -203,7 +266,7 @@ void HNOManager::feed_measurement(const ov_core::ImuData& msg) {
             // 强制使用 GT 覆盖初始状态，排除初始化算法的干扰！
             Eigen::Vector3d p_gt_init;
             Eigen::Matrix3d R_gt_init;
-            if(get_interpolated_gt(current_time, p_gt_init, R_gt_init)) {
+            if(use_gt_init && get_interpolated_gt(current_time, p_gt_init, R_gt_init)) {
                 ROS_WARN("[HNO] Force overwriting initialization with GT!");
                 state->p_hat = p_gt_init;
                 state->R_hat_B2I = R_gt_init;
@@ -603,12 +666,18 @@ void HNOManager::compute_and_print_error(double timestamp, const Eigen::Vector3d
     Eigen::Vector3d v = state->v_hat;
     Eigen::Vector3d bg = state->bg;
     Eigen::Vector3d ba = state->ba;
+    Eigen::Matrix3d E;
+    E.col(0) = state->e_hat[0];
+    E.col(1) = state->e_hat[1];
+    E.col(2) = state->e_hat[2];
+    double e_orth_frob = (E.transpose() * E - Eigen::Matrix3d::Identity()).norm();
     
     // [Time] [MapSize/ObsNum] [Pos] [Vel] [BiasG] [Err]
-    printf("[HNO] %.3f | Feat:%d/%d | Pos:%.2f %.2f %.2f | Vel:%.2f %.2f %.2f | %s\n",
+    printf("[HNO] %.3f | Feat:%d/%d | Pos:%.2f %.2f %.2f | Vel:%.2f %.2f %.2f | EOrth:%.6f | %s\n",
         timestamp, num_feats, num_obs,
         p_est.x(), p_est.y(), p_est.z(),
         v.x(), v.y(), v.z(),
+        e_orth_frob,
         err_str.c_str()
     );
 }

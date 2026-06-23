@@ -22,8 +22,50 @@ struct FeatureInfo {
 
 class HNOFeature {
 public:
+    struct Options {
+        Options()
+            : tracker_num_pts(200),
+              tracker_fast_threshold(20),
+              tracker_grid_x(5),
+              tracker_grid_y(5),
+              tracker_min_px_dist(15),
+              min_stereo_depth(0.5),
+              max_stereo_depth(5.0),
+              stereo_reproj_thresh(0.015),
+              reproj_thresh(0.08),
+              reproj_thresh_low(0.10),
+              low_feature_pts(80),
+              low_feature_db(60),
+              mature_thresh(3),
+              mature_thresh_low(2),
+              fail_limit(5),
+              fail_limit_low(8),
+              map_jump_thresh(0.5),
+              active_mature_thresh(3) {}
+
+        int tracker_num_pts;
+        int tracker_fast_threshold;
+        int tracker_grid_x;
+        int tracker_grid_y;
+        int tracker_min_px_dist;
+        double min_stereo_depth;
+        double max_stereo_depth;
+        double stereo_reproj_thresh;
+        double reproj_thresh;
+        double reproj_thresh_low;
+        int low_feature_pts;
+        int low_feature_db;
+        int mature_thresh;
+        int mature_thresh_low;
+        int fail_limit;
+        int fail_limit_low;
+        double map_jump_thresh;
+        int active_mature_thresh;
+    };
+
     HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
-               std::vector<Eigen::Matrix4d> T_C_B);
+               std::vector<Eigen::Matrix4d> T_C_B,
+               const Options& options = Options());
 
     // 核心处理函数
     void feed_measurement(const ov_core::CameraData& message, 
@@ -36,6 +78,7 @@ public:
 
 private:
     std::shared_ptr<ov_core::TrackKLT> tracker;
+    Options options_;
     std::vector<std::shared_ptr<ov_core::CamBase>> cameras;
     std::vector<Eigen::Matrix4d> T_C_B; // Cam to Body
 

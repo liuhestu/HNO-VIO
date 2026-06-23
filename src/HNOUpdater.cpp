@@ -14,6 +14,10 @@ HNOUpdater::HNOUpdater() {
     R_C2B_right.setIdentity(); pc_right.setZero();
 }
 
+void HNOUpdater::setOptions(const Options& options) {
+    options_ = options;
+}
+
 void HNOUpdater::setExtrinsics(const std::map<size_t, Eigen::Matrix4d>& T_C2B_map) {
     if(T_C2B_map.count(0)) {
         R_C2B_left = T_C2B_map.at(0).block<3,3>(0,0);
@@ -41,12 +45,8 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
     if(N == 0) return;
 
     // 归一化平面像素噪声标准差 Cov(ny)
-    double sigma_pix = 2.0 / focal_length; 
+    double sigma_pix = options_.pixel_noise / options_.focal_length; 
     double sigma_pix_sq = sigma_pix * sigma_pix;   
-
-    // 卡方检验阈值 (3自由度, 99%置信度)
-    const double chi2_threshold = 25; 
-    const double chi2_gate = 15.0; // 实际工作门限
 
     // 统计有效更新点数
     int update_valid = 0;
@@ -131,7 +131,7 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
            double chi2 = sigma_y_i.transpose() * llt.solve(sigma_y_i);
            if(chi2 > chi2_max) chi2_max = chi2;
 
-           if (std::isnan(chi2) || std::isinf(chi2) || chi2 > chi2_gate) {
+           if (std::isnan(chi2) || std::isinf(chi2) || chi2 > options_.chi2_gate) {
                reject_chi2++;
                if(chi2 > chi2_max_rej) chi2_max_rej = chi2;
                continue;
@@ -160,11 +160,11 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
            if(delta_p > delta_p_max) delta_p_max = delta_p;
            if(delta_r > delta_r_max) delta_r_max = delta_r;
 
-           if (delta_p > 0.2) { 
+           if (delta_p > options_.max_delta_p) { 
                reject_trunc_p++;
                continue;
            }
-           if (delta_r > 0.15) { // ~8 degree
+           if (delta_r > options_.max_delta_r) {
                reject_trunc_r++;
                continue;
            }
@@ -202,8 +202,9 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
     if (update_valid > 0) update_counter++;
     print_counter++;
     
-    // 每帧更新结束后，强制约束 R 和 e_hat 必须保持单位正交结构。
-    // state->enforce_structure();
+    if (options_.enforce_structure_after_update) {
+        state->enforce_structure();
+    }
 
     // 节流日志：每 30 次尝试更新打印一次统计
     if(print_counter % 30 == 0) {

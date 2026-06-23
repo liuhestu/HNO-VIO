@@ -6,21 +6,25 @@
 
 using namespace hno_vio;
 
-namespace {
-constexpr double kMinStereoDepth = 0.5;
-constexpr double kMaxStableStereoDepth = 5.0;
-}
-
 HNOFeature::HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
-                       std::vector<Eigen::Matrix4d> extrinsics) 
-    : cameras(cams), T_C_B(extrinsics) {
+                       std::vector<Eigen::Matrix4d> extrinsics,
+                       const Options& options) 
+    : cameras(cams), T_C_B(extrinsics), options_(options) {
     
     std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> cam_map;
     for(size_t i=0; i<cams.size(); ++i) cam_map[i] = cams[i];
     
     // 稍微增加一点点特征点上限，因为我们会扔掉很多不稳定的点
-    tracker = std::make_shared<ov_core::TrackKLT>(cam_map, 200, 0, true, 
-              ov_core::TrackBase::HistogramMethod::HISTOGRAM, 20, 5, 5, 15);
+    tracker = std::make_shared<ov_core::TrackKLT>(
+        cam_map,
+        options_.tracker_num_pts,
+        0,
+        true,
+        ov_core::TrackBase::HistogramMethod::HISTOGRAM,
+        options_.tracker_fast_threshold,
+        options_.tracker_grid_x,
+        options_.tracker_grid_y,
+        options_.tracker_min_px_dist);
 }
 
 void HNOFeature::feed_measurement(const ov_core::CameraData& message, 
@@ -90,9 +94,10 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
     // --- 遍历左目所有特征点 ---
     size_t num_pts = obs_raw[0].size();
-    if(num_pts < 80 || feature_db.size() < 60) low_feat_mode = true;
-    double reproj_thresh = low_feat_mode ? 0.10 : 0.08;
-    int mature_thresh = low_feat_mode ? 2 : 3;
+    if(num_pts < static_cast<size_t>(options_.low_feature_pts) ||
+       feature_db.size() < static_cast<size_t>(options_.low_feature_db)) low_feat_mode = true;
+    double reproj_thresh = low_feat_mode ? options_.reproj_thresh_low : options_.reproj_thresh;
+    int mature_thresh = low_feat_mode ? options_.mature_thresh_low : options_.mature_thresh;
     for(size_t i=0; i<num_pts; ++i) {
         size_t id = ids_raw[0][i];
         if(outlier_ids.count(id)) continue; // 跳过 2D RANSAC 外点
@@ -129,7 +134,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                 double stereo_err = 0.0;
                 if(triangulate_stereo(uv_l_vec, uv_r_vec, p_c_curr, &stereo_err)) {
                     double depth = p_c_curr.z();
-                    if(depth > kMinStereoDepth && depth < kMaxStableStereoDepth) {
+                    if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                         stereo_pass++;
                         if(stereo_err > stereo_err_max) stereo_err_max = stereo_err;
                         stereo_ok = true;
@@ -137,7 +142,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                         p_w_new = R_wb * p_body + p_wb;
 
                         double dist = (info.p_w - p_w_new).norm();
-                        if(dist > 0.5) {
+                        if(dist > options_.map_jump_thresh) {
                             // 大跳变当作误匹配，直接移除
                             feature_db.erase(id);
                             continue;
@@ -196,7 +201,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
             double stereo_err = 0.0;
             if(triangulate_stereo(uv_l_vec, uv_r_vec, p_c_left, &stereo_err)) {
                 double depth = p_c_left.z();
-                if(depth > kMinStereoDepth && depth < kMaxStableStereoDepth) {
+                if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                     stereo_pass++;
                     if(stereo_err > stereo_err_max) stereo_err_max = stereo_err;
                     FeatureInfo info;
@@ -221,7 +226,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
         for(size_t id : ids_raw[0]) klt_alive_ids.insert(id);
     }
     
-    int fail_limit = low_feat_mode ? 8 : 5;
+    int fail_limit = low_feat_mode ? options_.fail_limit_low : options_.fail_limit;
 
     for (auto it = feature_db.begin(); it != feature_db.end(); ) {
         bool alive = klt_alive_ids.find(it->first) != klt_alive_ids.end();
@@ -306,7 +311,7 @@ bool HNOFeature::triangulate_stereo(const Eigen::Vector3d& uv_left,
     double d1 = x(0);
 
     // 严格检查
-    if(d1 < kMinStereoDepth || d1 > kMaxStableStereoDepth) return false;
+    if(d1 < options_.min_stereo_depth || d1 > options_.max_stereo_depth) return false;
     
     p_c_left = uv_left * d1;
     
@@ -316,7 +321,7 @@ bool HNOFeature::triangulate_stereo(const Eigen::Vector3d& uv_left,
     double err = (uv_r_proj - uv_right.head<2>()).norm();
     if(reproj_err_right) *reproj_err_right = err;
     
-    if(err > 0.015) return false; // 略收紧双目匹配误差，提升深度质量
+    if(err > options_.stereo_reproj_thresh) return false; // 略收紧双目匹配误差，提升深度质量
 
     return true;
 }
@@ -325,7 +330,7 @@ const std::map<size_t, Eigen::Vector3d> HNOFeature::get_active_map() const {
     std::map<size_t, Eigen::Vector3d> out;
     for(const auto& pair : feature_db) {
         const FeatureInfo& info = pair.second;
-        if(info.track_count >= 3) {
+        if(info.track_count >= options_.active_mature_thresh) {
             out[pair.first] = info.p_w;
         }
     }
