@@ -11,6 +11,7 @@ source_ros2_local
 hno_export_optimized_tf \
   --bag "${OUTPUT_BAG}" \
   --out-dir "${OUT_DIR}" \
+  --tf-match-time "${TF_MATCH_TIME:-bag}" \
   2>&1 | tee "${OUT_DIR}/logs/05_export.log"
 
 ros2 run hno_rtabmap_replay hno_analyze_rtabmap_bag \

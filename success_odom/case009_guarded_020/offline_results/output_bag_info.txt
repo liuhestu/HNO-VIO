@@ -2,16 +2,16 @@
 Files:             hno_case009_rtabmap_output_bag_0.db3
 Bag size:          1.8 GiB
 Storage id:        sqlite3
-Duration:          156.049974494s
-Start:             Jun 24 2026 14:45:28.129799103 (1782283528.129799103)
-End:               Jun 24 2026 14:48:04.179773597 (1782283684.179773597)
-Messages:          11147
+Duration:          156.999960476s
+Start:             Jun 24 2026 15:18:13.482550992 (1782285493.482550992)
+End:               Jun 24 2026 15:20:50.482511468 (1782285650.482511468)
+Messages:          11241
 Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
                    Topic: /rtabmap/global_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
-                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 119 | Serialization Format: cdr
+                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 121 | Serialization Format: cdr
                    Topic: /rtabmap/local_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
-                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 119 | Serialization Format: cdr
-                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2548 | Serialization Format: cdr
+                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 121 | Serialization Format: cdr
+                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2619 | Serialization Format: cdr
                    Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2619 | Serialization Format: cdr
-                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5741 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5760 | Serialization Format: cdr
 

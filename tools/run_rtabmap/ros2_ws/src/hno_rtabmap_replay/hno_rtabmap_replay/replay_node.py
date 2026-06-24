@@ -97,15 +97,12 @@ class ReplayNode(Node):
         image_size = (width, height)
         T_B_L = l["T_BS"]
         T_B_R = r["T_BS"]
-        T_L_B = np.linalg.inv(T_B_L)
-        T_L_R = T_L_B @ T_B_R
-        R = T_L_R[:3, :3]
-        t = T_L_R[:3, 3]
+        T_R_L = np.linalg.inv(T_B_R) @ T_B_L
+        R = T_R_L[:3, :3]
+        t = T_R_L[:3, 3]
         R1, R2, P1, P2, _Q, _roi1, _roi2 = cv2.stereoRectify(
             l["K"], l["D"], r["K"], r["D"], image_size, R, t, flags=cv2.CALIB_ZERO_DISPARITY, alpha=0
         )
-        if P2[0, 3] > 0:
-            P2[0, 3] = -P2[0, 3]
         self.map_l = cv2.initUndistortRectifyMap(l["K"], l["D"], R1, P1[:3, :3], image_size, cv2.CV_16SC2)
         self.map_r = cv2.initUndistortRectifyMap(r["K"], r["D"], R2, P2[:3, :3], image_size, cv2.CV_16SC2)
         self.P1, self.P2 = P1, P2

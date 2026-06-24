@@ -5,9 +5,9 @@ APE w.r.t. translation part (m)
 
        max	0.808263
       mean	0.375884
-    median	0.334093
+    median	0.334094
        min	0.071975
       rmse	0.424819
-       sse	469.225961
+       sse	469.225958
        std	0.197946
 

@@ -12,10 +12,15 @@ def generate_launch_description():
         executable="stereo_sync",
         namespace="rtabmap",
         output="screen",
+        emulate_tty=True,
         parameters=[{
-            "use_sim_time": True,
+            "use_sim_time": False,
             "approx_sync": True,
-            "approx_sync_max_interval": 0.02,
+            "approx_sync_max_interval": 0.0,
+            "topic_queue_size": 100,
+            "sync_queue_size": 100,
+            "qos": 1,
+            "qos_camera_info": 1,
         }],
         remappings=[
             ("left/image_rect", "/cam0/image_rect"),
@@ -31,18 +36,24 @@ def generate_launch_description():
         executable="rtabmap",
         namespace="rtabmap",
         output="screen",
+        emulate_tty=True,
         parameters=[{
-            "use_sim_time": True,
+            "use_sim_time": False,
             "frame_id": "base_link",
             "odom_frame_id": "odom",
             "map_frame_id": "map",
             "subscribe_rgbd": True,
+            "subscribe_stereo": False,
+            "subscribe_rgb": False,
+            "subscribe_depth": False,
             "subscribe_odom_info": False,
             "approx_sync": True,
             "publish_tf": True,
             "publish_tf_map": True,
             "database_path": database_path,
-            "wait_for_transform": 0.2,
+            "wait_for_transform": 1.0,
+            "Mem/IncrementalMemory": "true",
+            "Mem/InitWMWithAllNodes": "false",
             "Reg/Force3DoF": "false",
             "RGBD/OptimizeFromGraphEnd": "true",
             "RGBD/NeighborLinkRefining": "true",
@@ -52,7 +63,7 @@ def generate_launch_description():
         remappings=[
             ("rgbd_image", "rgbd_image"),
         ],
-        arguments=["--delete_db_on_start"],
+        arguments=["--delete_db_on_start", "--ros-args", "--log-level", "rtabmap.rtabmap:=info"],
     )
 
     return LaunchDescription([stereo_sync, rtabmap])

@@ -1,1 +1,2 @@
+Matplotlib created a temporary config/cache directory at /tmp/matplotlib-8i55pxl5 because the default path (/home/sharpa/.config/matplotlib) is not a writable directory; it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
 /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/summary.md

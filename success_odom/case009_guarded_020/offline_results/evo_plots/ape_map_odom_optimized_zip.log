@@ -1,0 +1,2 @@
+$ /home/sharpa/.local/bin/evo_ape tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/gt.tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/rtabmap_optimized.tum --align --correct_scale --save_results /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/evo_plots/ape_map_odom_optimized.zip --silent --no_warnings
+

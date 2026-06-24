@@ -1,0 +1,17 @@
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782285493.428350591] [rosbag2_recorder]: Press SPACE for pausing/resuming
+[INFO] [1782285493.430561322] [rosbag2_storage]: Opened database '/tmp/hno_case009_rtabmap_output_bag/hno_case009_rtabmap_output_bag_0.db3' for READ_WRITE.
+[INFO] [1782285493.431580806] [rosbag2_recorder]: Listening for topics...
+[INFO] [1782285493.431605472] [rosbag2_recorder]: Event publisher thread: Starting
+[INFO] [1782285493.436145211] [rosbag2_recorder]: Subscribed to topic '/tf'
+[INFO] [1782285493.439046078] [rosbag2_recorder]: Subscribed to topic '/rtabmap/rgbd_image'
+[INFO] [1782285493.440938886] [rosbag2_recorder]: Subscribed to topic '/rtabmap/mapData'
+[INFO] [1782285493.442291458] [rosbag2_recorder]: Subscribed to topic '/rtabmap/local_path'
+[INFO] [1782285493.443140765] [rosbag2_recorder]: Subscribed to topic '/rtabmap/info'
+[INFO] [1782285493.443722020] [rosbag2_recorder]: Subscribed to topic '/rtabmap/global_path'
+[INFO] [1782285493.443788536] [rosbag2_recorder]: Recording...
+[INFO] [1782285496.493644952] [rosbag2_recorder]: Subscribed to topic '/hno_vio/odom'
+[INFO] [1782285496.494520783] [rosbag2_recorder]: Subscribed to topic '/tf_static'
+[INFO] [1782285496.494552890] [rosbag2_recorder]: All requested topics are subscribed. Stopping discovery...
+[INFO] [1782285650.523904308] [rosbag2_cpp]: Writing remaining messages from cache to the bag. It may take a while
+[INFO] [1782285650.531166609] [rosbag2_recorder]: Event publisher thread: Exiting
+[INFO] [1782285650.531269786] [rosbag2_recorder]: Recording stopped

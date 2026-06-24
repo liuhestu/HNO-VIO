@@ -6,6 +6,7 @@ import rosbag2_py
 from nav_msgs.msg import Odometry
 from rclpy.serialization import deserialize_message
 from rosidl_runtime_py.utilities import get_message
+from rtabmap_msgs.msg import MapData
 from tf2_msgs.msg import TFMessage
 
 from .odom_utils import OdomPose, write_tum
@@ -64,8 +65,12 @@ def read_bag(bag_dir):
     reader = open_reader(bag_dir)
     topic_types = {topic.name: topic.type for topic in reader.get_all_topics_and_types()}
     raw = []
-    map_odom = []
-    map_base = []
+    map_odom_header = []
+    map_odom_bag = []
+    map_base_header = []
+    map_base_bag = []
+    node_stamps = {}
+    final_map_data = None
     topic_counts = {}
 
     while reader.has_next():
@@ -90,7 +95,7 @@ def read_bag(bag_dir):
                 msg.pose.pose.orientation.z,
                 msg.pose.pose.orientation.w,
             ], dtype=float)
-            raw.append((stamp_ns, pose_to_matrix(p, q)))
+            raw.append((stamp_ns, int(bag_stamp), pose_to_matrix(p, q)))
         elif topic in ("/tf", "/tf_static") and isinstance(msg, TFMessage):
             for transform in msg.transforms:
                 stamp_ns = stamp_to_ns(transform.header.stamp)
@@ -98,18 +103,43 @@ def read_bag(bag_dir):
                 child = transform.child_frame_id.strip("/")
                 T = transform_to_matrix(transform.transform)
                 if parent == "map" and child == "odom":
-                    map_odom.append((stamp_ns, T))
+                    map_odom_header.append((stamp_ns, T))
+                    map_odom_bag.append((int(bag_stamp), T))
                 elif parent == "odom" and child == "map":
-                    map_odom.append((stamp_ns, invert_transform(T)))
+                    T_inv = invert_transform(T)
+                    map_odom_header.append((stamp_ns, T_inv))
+                    map_odom_bag.append((int(bag_stamp), T_inv))
                 elif parent == "map" and child == "base_link":
-                    map_base.append((stamp_ns, T))
+                    map_base_header.append((stamp_ns, T))
+                    map_base_bag.append((int(bag_stamp), T))
                 elif parent == "base_link" and child == "map":
-                    map_base.append((stamp_ns, invert_transform(T)))
+                    T_inv = invert_transform(T)
+                    map_base_header.append((stamp_ns, T_inv))
+                    map_base_bag.append((int(bag_stamp), T_inv))
+        elif topic == "/rtabmap/mapData" and isinstance(msg, MapData):
+            final_map_data = msg
+            for node in msg.nodes:
+                if float(node.stamp) > 0:
+                    node_stamps[int(node.id)] = int(round(float(node.stamp) * 1e9))
 
     raw.sort(key=lambda item: item[0])
-    map_odom.sort(key=lambda item: item[0])
-    map_base.sort(key=lambda item: item[0])
-    return raw, map_odom, map_base, topic_counts
+    map_odom_header.sort(key=lambda item: item[0])
+    map_odom_bag.sort(key=lambda item: item[0])
+    map_base_header.sort(key=lambda item: item[0])
+    map_base_bag.sort(key=lambda item: item[0])
+    graph_final = []
+    missing_graph_stamps = 0
+    if final_map_data is not None:
+        for node_id, pose in zip(final_map_data.graph.poses_id, final_map_data.graph.poses):
+            stamp_ns = node_stamps.get(int(node_id))
+            if stamp_ns is None:
+                missing_graph_stamps += 1
+                continue
+            p = np.array([pose.position.x, pose.position.y, pose.position.z], dtype=float)
+            q = np.array([pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w], dtype=float)
+            graph_final.append((stamp_ns, pose_to_matrix(p, q)))
+    graph_final.sort(key=lambda item: item[0])
+    return raw, map_odom_header, map_odom_bag, map_base_header, map_base_bag, graph_final, missing_graph_stamps, topic_counts
 
 
 def matrices_to_poses(items):
@@ -124,6 +154,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bag", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument("--tf-match-time", choices=["bag", "header"], default="bag")
     parser.add_argument("--max-tf-diff-sec", type=float, default=0.2)
     args = parser.parse_args()
 
@@ -133,26 +164,30 @@ def main():
     if not bag_dir.exists():
         raise RuntimeError(f"output bag not found: {bag_dir}")
 
-    raw, map_odom, map_base, topic_counts = read_bag(bag_dir)
+    raw, map_odom_header, map_odom_bag, map_base_header, map_base_bag, graph_final, missing_graph_stamps, topic_counts = read_bag(bag_dir)
     if not raw:
         raise RuntimeError("no /hno_vio/odom messages found in output bag")
 
     max_tf_diff_ns = int(args.max_tf_diff_sec * 1e9)
     optimized = []
+    map_odom = map_odom_bag if args.tf_match_time == "bag" else map_odom_header
+    map_base = map_base_bag if args.tf_match_time == "bag" else map_base_header
     if map_odom:
-        for stamp_ns, T_odom_base in raw:
-            T_map_odom = nearest_by_stamp(map_odom, stamp_ns, max_tf_diff_ns)
+        for stamp_ns, bag_stamp_ns, T_odom_base in raw:
+            match_stamp = bag_stamp_ns if args.tf_match_time == "bag" else stamp_ns
+            T_map_odom = nearest_by_stamp(map_odom, match_stamp, max_tf_diff_ns)
             if T_map_odom is None:
                 continue
             optimized.append((stamp_ns, T_map_odom @ T_odom_base))
-        source = "map->odom composed with odom->base_link"
+        source = f"map->odom composed with odom->base_link using {args.tf_match_time} stamps"
     elif map_base:
-        for stamp_ns, _T_odom_base in raw:
-            T_map_base = nearest_by_stamp(map_base, stamp_ns, max_tf_diff_ns)
+        for stamp_ns, bag_stamp_ns, _T_odom_base in raw:
+            match_stamp = bag_stamp_ns if args.tf_match_time == "bag" else stamp_ns
+            T_map_base = nearest_by_stamp(map_base, match_stamp, max_tf_diff_ns)
             if T_map_base is None:
                 continue
             optimized.append((stamp_ns, T_map_base))
-        source = "direct map->base_link"
+        source = f"direct map->base_link using {args.tf_match_time} stamps"
     else:
         raise RuntimeError("no RTAB-Map map->odom or map->base_link TF found in output bag")
 
@@ -161,16 +196,24 @@ def main():
 
     raw_tum = out_dir / "hno_vio_raw.tum"
     opt_tum = out_dir / "rtabmap_optimized.tum"
-    write_tum(raw_tum, matrices_to_poses(raw))
+    graph_tum = out_dir / "rtabmap_graph_final.tum"
+    write_tum(raw_tum, matrices_to_poses([(stamp_ns, T) for stamp_ns, _bag_stamp_ns, T in raw]))
     write_tum(opt_tum, matrices_to_poses(optimized))
+    if graph_final:
+        write_tum(graph_tum, matrices_to_poses(graph_final))
 
     report = out_dir / "export_report.txt"
     report.write_text(
         "\n".join([
             f"raw_pose_count: {len(raw)}",
             f"optimized_pose_count: {len(optimized)}",
-            f"map_odom_tf_count: {len(map_odom)}",
-            f"map_base_tf_count: {len(map_base)}",
+            f"tf_match_time: {args.tf_match_time}",
+            f"map_odom_header_tf_count: {len(map_odom_header)}",
+            f"map_odom_bag_tf_count: {len(map_odom_bag)}",
+            f"map_base_header_tf_count: {len(map_base_header)}",
+            f"map_base_bag_tf_count: {len(map_base_bag)}",
+            f"graph_final_pose_count: {len(graph_final)}",
+            f"graph_final_missing_stamp_count: {missing_graph_stamps}",
             f"optimized_source: {source}",
             "topic_counts:",
             *[f"  {name}: {count}" for name, count in sorted(topic_counts.items())],

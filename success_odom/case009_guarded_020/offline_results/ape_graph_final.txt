@@ -1,0 +1,13 @@
+$ /home/sharpa/.local/bin/evo_ape tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/gt.tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/rtabmap_graph_final.tum --align --correct_scale
+
+APE w.r.t. translation part (m)
+(with Sim(3) Umeyama alignment)
+
+       max	0.146250
+      mean	0.089102
+    median	0.093145
+       min	0.015731
+      rmse	0.094988
+       sse	1.064672
+       std	0.032917
+

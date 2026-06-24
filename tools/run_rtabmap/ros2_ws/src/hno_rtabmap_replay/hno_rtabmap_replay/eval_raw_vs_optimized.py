@@ -25,6 +25,51 @@ def run_cmd(cmd, output_path):
     return proc.stdout
 
 
+def write_evo_ape_plots(evo_ape, gt_tum, trajectories, out_dir):
+    plot_dir = out_dir / "evo_plots"
+    plot_dir.mkdir(parents=True, exist_ok=True)
+    config_path = plot_dir / "evo_agg.json"
+    config_path.write_text('{\n  "plot_backend": "Agg"\n}\n', encoding="utf-8")
+
+    for name, tum_path in trajectories:
+        for suffix in ("pdf", "png"):
+            run_cmd(
+                [
+                    evo_ape,
+                    "tum",
+                    str(gt_tum),
+                    str(tum_path),
+                    "--align",
+                    "--correct_scale",
+                    "--plot",
+                    "--plot_mode",
+                    "xy",
+                    "--save_plot",
+                    str(plot_dir / f"ape_{name}_xy.{suffix}"),
+                    "--silent",
+                    "--no_warnings",
+                    "-c",
+                    str(config_path),
+                ],
+                plot_dir / f"ape_{name}_xy_{suffix}.log",
+            )
+        run_cmd(
+            [
+                evo_ape,
+                "tum",
+                str(gt_tum),
+                str(tum_path),
+                "--align",
+                "--correct_scale",
+                "--save_results",
+                str(plot_dir / f"ape_{name}.zip"),
+                "--silent",
+                "--no_warnings",
+            ],
+            plot_dir / f"ape_{name}_zip.log",
+        )
+
+
 def parse_metric(text, name):
     match = re.search(rf"^\s*{re.escape(name)}\s+([-+0-9.eE]+)", text, re.MULTILINE)
     return float(match.group(1)) if match else math.nan
@@ -216,15 +261,20 @@ def main():
     out_dir = Path(args.out_dir)
     raw_tum = out_dir / "hno_vio_raw.tum"
     opt_tum = out_dir / "rtabmap_optimized.tum"
+    graph_tum = out_dir / "rtabmap_graph_final.tum"
     gt_tum = out_dir / "gt.tum"
     gt_csv = Path(args.euroc_mav0) / "state_groundtruth_estimate0" / "data.csv"
 
     gt = write_gt_tum(gt_csv, gt_tum)
     raw = load_tum(raw_tum)
     opt = load_tum(opt_tum)
+    graph = load_tum(graph_tum) if graph_tum.exists() else []
 
     ape_raw = run_cmd([args.evo_ape, "tum", str(gt_tum), str(raw_tum), "--align", "--correct_scale"], out_dir / "ape_raw.txt")
     ape_opt = run_cmd([args.evo_ape, "tum", str(gt_tum), str(opt_tum), "--align", "--correct_scale"], out_dir / "ape_optimized.txt")
+    ape_graph = None
+    if len(graph) >= 3:
+        ape_graph = run_cmd([args.evo_ape, "tum", str(gt_tum), str(graph_tum), "--align", "--correct_scale"], out_dir / "ape_graph_final.txt")
 
     rpe_raw_trans = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "trans_part", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_raw_trans.txt")
     rpe_raw_rot = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "angle_deg", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_raw_rot.txt")
@@ -242,6 +292,13 @@ def main():
 
     plot_traj(raw, opt, gt, out_dir / "traj_raw_vs_optimized.pdf")
     plot_rpy(raw, opt, gt, out_dir / "rpy_raw_vs_optimized.csv", out_dir / "rpy_raw_vs_optimized.pdf")
+    evo_plot_trajectories = [
+        ("raw", raw_tum),
+        ("map_odom_optimized", opt_tum),
+    ]
+    if len(graph) >= 3:
+        evo_plot_trajectories.append(("graph_final", graph_tum))
+    write_evo_ape_plots(args.evo_ape, gt_tum, evo_plot_trajectories, out_dir)
 
     raw_len = path_length(raw)
     opt_len = path_length(opt)
@@ -268,14 +325,29 @@ def main():
         f"| final raw-vs-optimized position delta [m] | {final_position_error:.6f} | {final_position_error:.6f} |",
         f"| raw-vs-optimized mean position delta [m] | {delta_stats['translation_mean']:.9f} | {delta_stats['translation_mean']:.9f} |",
         f"| raw-vs-optimized max position delta [m] | {delta_stats['translation_max']:.9f} | {delta_stats['translation_max']:.9f} |",
+    ]
+    if ape_graph is not None:
+        lines.extend([
+            "",
+            "Graph-final trajectory from `mapData.graph.poses`:",
+            "",
+            "| metric | graph_final |",
+            "| --- | ---: |",
+            f"| ATE RMSE [m] | {parse_metric(ape_graph, 'rmse'):.6f} |",
+            f"| ATE mean [m] | {parse_metric(ape_graph, 'mean'):.6f} |",
+            f"| ATE median [m] | {parse_metric(ape_graph, 'median'):.6f} |",
+            f"| pose count | {len(graph)} |",
+        ])
+    lines.extend([
         "",
         "Notes:",
         "- Evaluation uses `evo_ape/evo_rpe --align --correct_scale` for shape comparison.",
         "- The trajectory PDF applies the same kind of Sim(3) alignment before plotting against GT.",
-        "- In this run, RTAB-Map did not produce a meaningful global correction; optimized is effectively identical to raw.",
+        "- `rtabmap_optimized.tum` is exported through `map->odom`; `rtabmap_graph_final.tum` is exported directly from the optimized RTAB-Map graph.",
+        "- In this run, RTAB-Map did not publish a meaningful `map->odom` correction, but the final optimized graph trajectory is non-identity.",
         "- The primary RTAB-Map odometry input is TF `odom -> base_link`; `/hno_vio/odom` is recorded for export/debugging.",
         "- RPY plot and CSV apply +-180 degree unwrap correction before visualization.",
-    ]
+    ])
     summary = out_dir / "summary.md"
     summary.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(summary)

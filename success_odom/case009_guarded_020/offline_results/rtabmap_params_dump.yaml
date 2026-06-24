@@ -468,12 +468,6 @@
     qos_imu: 0
     qos_odom: 0
     qos_overrides:
-      /clock:
-        subscription:
-          depth: 1
-          durability: volatile
-          history: keep_last
-          reliability: best_effort
       /parameter_events:
         publisher:
           depth: 1000
@@ -495,10 +489,10 @@
     scan_cloud_max_points: 0
     staleness_factor: 0.0
     stereo_to_depth: false
-    subscribe_depth: true
+    subscribe_depth: false
     subscribe_odom: true
     subscribe_odom_info: false
-    subscribe_rgb: true
+    subscribe_rgb: false
     subscribe_rgbd: true
     subscribe_scan: false
     subscribe_scan_cloud: false
@@ -512,6 +506,6 @@
     topic_queue_size: 10
     use_action_for_goal: false
     use_saved_map: true
-    use_sim_time: true
-    wait_for_transform: 0.2
+    use_sim_time: false
+    wait_for_transform: 1.0
 
