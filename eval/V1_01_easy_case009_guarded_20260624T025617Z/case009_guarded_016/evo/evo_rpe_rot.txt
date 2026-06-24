@@ -1,0 +1,12 @@
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 1 (frames) using consecutive pairs
+(with SE(3) Umeyama alignment)
+
+       max	1.327785
+      mean	0.110190
+    median	0.037110
+       min	0.001981
+      rmse	0.189577
+       sse	99.156608
+       std	0.154264
+

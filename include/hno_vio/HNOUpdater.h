@@ -34,6 +34,9 @@ public:
               chi2_gate(15.0),
               max_delta_p(0.2),
               max_delta_r(0.15),
+              min_observations(20),
+              low_observation_hold_frames(3),
+              warn_delta_ratio(0.8),
               enforce_structure_after_update(false) {}
 
         double pixel_noise;
@@ -41,6 +44,9 @@ public:
         double chi2_gate;
         double max_delta_p;
         double max_delta_r;
+        int min_observations;
+        int low_observation_hold_frames;
+        double warn_delta_ratio;
         bool enforce_structure_after_update;
     };
 

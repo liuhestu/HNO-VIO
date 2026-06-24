@@ -40,9 +40,35 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
                         const std::vector<HNOObservation>& observations) {
     static int update_counter = 0; // Warm-up counter
     static int print_counter = 0;
+    static int low_observation_streak = 0;
+    static bool first_low_obs_logged = false;
+    static bool first_large_delta_logged = false;
 
     int N = observations.size();
     if(N == 0) return;
+
+    if(N < options_.min_observations) {
+        low_observation_streak++;
+        if(!first_low_obs_logged) {
+            first_low_obs_logged = true;
+            std::cout << "[HNOUpdaterGuard] first_low_observations obs " << N
+                      << " min " << options_.min_observations
+                      << " streak " << low_observation_streak
+                      << std::endl;
+        }
+        if(low_observation_streak >= options_.low_observation_hold_frames) {
+            print_counter++;
+            if(print_counter % 30 == 0) {
+                std::cout << "[HNOUpdaterGuard] skip_low_observations obs " << N
+                          << " min " << options_.min_observations
+                          << " streak " << low_observation_streak
+                          << std::endl;
+            }
+            return;
+        }
+    } else {
+        low_observation_streak = 0;
+    }
 
     // 归一化平面像素噪声标准差 Cov(ny)
     double sigma_pix = options_.pixel_noise / options_.focal_length; 
@@ -160,11 +186,31 @@ void HNOUpdater::update(std::shared_ptr<HNOState> state,
            if(delta_p > delta_p_max) delta_p_max = delta_p;
            if(delta_r > delta_r_max) delta_r_max = delta_r;
 
-           if (delta_p > options_.max_delta_p) { 
+           double effective_max_delta_p = options_.max_delta_p;
+           double effective_max_delta_r = options_.max_delta_r;
+           if(N < 2 * options_.min_observations) {
+               effective_max_delta_p *= 0.5;
+               effective_max_delta_r *= 0.5;
+           }
+
+           if(!first_large_delta_logged &&
+              (delta_p > options_.warn_delta_ratio * effective_max_delta_p ||
+               delta_r > options_.warn_delta_ratio * effective_max_delta_r)) {
+               first_large_delta_logged = true;
+               std::cout << std::fixed << std::setprecision(3)
+                         << "[HNOUpdaterGuard] first_large_delta obs " << N
+                         << " dP " << delta_p
+                         << " maxP " << effective_max_delta_p
+                         << " dR " << delta_r
+                         << " maxR " << effective_max_delta_r
+                         << std::endl;
+           }
+
+           if (delta_p > effective_max_delta_p) { 
                reject_trunc_p++;
                continue;
            }
-           if (delta_r > options_.max_delta_r) {
+           if (delta_r > effective_max_delta_r) {
                reject_trunc_r++;
                continue;
            }

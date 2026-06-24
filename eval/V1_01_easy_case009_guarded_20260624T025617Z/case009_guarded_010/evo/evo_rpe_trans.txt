@@ -1,0 +1,12 @@
+RPE w.r.t. translation part (m)
+for delta = 1 (frames) using consecutive pairs
+(with SE(3) Umeyama alignment)
+
+       max	8.771202
+      mean	0.633320
+    median	0.009646
+       min	0.000061
+      rmse	1.374659
+       sse	5143.730641
+       std	1.220079
+

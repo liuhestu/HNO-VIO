@@ -32,7 +32,11 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                                   Eigen::Matrix3d R_gt,  Eigen::Vector3d p_gt,
                                   std::vector<HNOObservation>& observations) {
     static int frame_counter = 0;
+    static int unhealthy_streak = 0;
+    static bool first_low_stable_logged = false;
+    static bool first_zero_stable_logged = false;
     frame_counter++;
+    observations.clear();
 
     tracker->feed_new_camera(message);
 
@@ -65,7 +69,6 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     }
 
     // --- 准备数据 ---
-    observations.clear();
     std::vector<size_t> current_frame_ids;
     std::map<size_t, cv::Point2f> next_history_obs;
 
@@ -240,6 +243,44 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     }
     
     history_obs = next_history_obs;
+
+    bool health_guard_active = frame_counter >= options_.health_start_frame;
+    bool low_stable = count_stable < options_.health_min_stable;
+    bool low_db = static_cast<int>(feature_db.size()) < options_.health_min_db;
+    if(health_guard_active && (low_stable || low_db)) {
+        unhealthy_streak++;
+        if(!first_low_stable_logged) {
+            first_low_stable_logged = true;
+            std::cout << "[HNOFeatureHealth] first_low_map frame " << frame_counter
+                      << " stable " << count_stable
+                      << " min_stable " << options_.health_min_stable
+                      << " db " << feature_db.size()
+                      << " min_db " << options_.health_min_db
+                      << std::endl;
+        }
+        if(count_stable == 0 && !first_zero_stable_logged) {
+            first_zero_stable_logged = true;
+            std::cout << "[HNOFeatureHealth] first_zero_stable frame " << frame_counter
+                      << " db " << feature_db.size()
+                      << " pts " << num_pts
+                      << std::endl;
+        }
+    } else if(!low_stable && !low_db) {
+        unhealthy_streak = 0;
+    }
+
+    if(health_guard_active && unhealthy_streak >= options_.health_hold_frames) {
+        if(!observations.empty()) {
+            observations.clear();
+        }
+        if(frame_counter % 30 == 0) {
+            std::cout << "[HNOFeatureHealth] suppress_untrusted_map frame " << frame_counter
+                      << " stable " << count_stable
+                      << " db " << feature_db.size()
+                      << " streak " << unhealthy_streak
+                      << std::endl;
+        }
+    }
 
     // 节流日志：每 30 帧输出一次前端健康度
     if(frame_counter % 30 == 0) {

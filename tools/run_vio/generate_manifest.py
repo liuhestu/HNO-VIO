@@ -41,6 +41,13 @@ def candidate(case_id, rng):
         "feature_fail_limit_low": rng.choice([5, 8, 10]),
         "feature_map_jump_thresh": rng.choice([0.25, 0.40, 0.50, 0.75, 1.00]),
         "feature_active_mature_thresh": rng.choice([2, 3, 4]),
+        "feature_health_min_stable": rng.choice([15, 20, 25]),
+        "feature_health_min_db": rng.choice([15, 20, 25]),
+        "feature_health_hold_frames": rng.choice([3, 5]),
+        "feature_health_start_frame": rng.choice([60, 90]),
+        "update_min_observations": rng.choice([15, 20, 25]),
+        "update_low_observation_hold_frames": rng.choice([3, 5]),
+        "update_warn_delta_ratio": 0.8,
     }
 
     if case_id == 1:
@@ -65,12 +72,20 @@ def candidate(case_id, rng):
             "feature_fail_limit_low": 8,
             "feature_map_jump_thresh": 0.50,
             "feature_active_mature_thresh": 3,
+            "feature_health_min_stable": 20,
+            "feature_health_min_db": 20,
+            "feature_health_hold_frames": 3,
+            "feature_health_start_frame": 60,
+            "update_min_observations": 20,
+            "update_low_observation_hold_frames": 3,
+            "update_warn_delta_ratio": 0.8,
         })
 
     if stage >= 2:
         params["feature_max_stereo_depth"] = rng.choice([5.0, 8.0, 12.0, 15.0])
         params["feature_active_mature_thresh"] = rng.choice([1, 2, 3])
         params["feature_map_jump_thresh"] = rng.choice([0.40, 0.75, 1.25, 1.75])
+        params["feature_health_hold_frames"] = rng.choice([3, 5, 8])
 
     if stage >= 3:
         params["update_enforce_structure"] = True

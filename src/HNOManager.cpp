@@ -127,12 +127,19 @@ void HNOManager::load_parameters(const std::string& config_path) {
     parser.parse_config("feature_fail_limit_low", feature_options.fail_limit_low, false);
     parser.parse_config("feature_map_jump_thresh", feature_options.map_jump_thresh, false);
     parser.parse_config("feature_active_mature_thresh", feature_options.active_mature_thresh, false);
+    parser.parse_config("feature_health_min_stable", feature_options.health_min_stable, false);
+    parser.parse_config("feature_health_min_db", feature_options.health_min_db, false);
+    parser.parse_config("feature_health_hold_frames", feature_options.health_hold_frames, false);
+    parser.parse_config("feature_health_start_frame", feature_options.health_start_frame, false);
 
     parser.parse_config("update_pixel_noise", updater_options.pixel_noise, false);
     parser.parse_config("update_focal_length", updater_options.focal_length, false);
     parser.parse_config("update_chi2_gate", updater_options.chi2_gate, false);
     parser.parse_config("update_max_delta_p", updater_options.max_delta_p, false);
     parser.parse_config("update_max_delta_r", updater_options.max_delta_r, false);
+    parser.parse_config("update_min_observations", updater_options.min_observations, false);
+    parser.parse_config("update_low_observation_hold_frames", updater_options.low_observation_hold_frames, false);
+    parser.parse_config("update_warn_delta_ratio", updater_options.warn_delta_ratio, false);
     parser.parse_config("update_enforce_structure", updater_options.enforce_structure_after_update, false);
 
     // ROS params take priority over candidate YAML when supplied by a launch file.
@@ -154,12 +161,19 @@ void HNOManager::load_parameters(const std::string& config_path) {
     nh_.param("feature_fail_limit_low", feature_options.fail_limit_low, feature_options.fail_limit_low);
     nh_.param("feature_map_jump_thresh", feature_options.map_jump_thresh, feature_options.map_jump_thresh);
     nh_.param("feature_active_mature_thresh", feature_options.active_mature_thresh, feature_options.active_mature_thresh);
+    nh_.param("feature_health_min_stable", feature_options.health_min_stable, feature_options.health_min_stable);
+    nh_.param("feature_health_min_db", feature_options.health_min_db, feature_options.health_min_db);
+    nh_.param("feature_health_hold_frames", feature_options.health_hold_frames, feature_options.health_hold_frames);
+    nh_.param("feature_health_start_frame", feature_options.health_start_frame, feature_options.health_start_frame);
 
     nh_.param("update_pixel_noise", updater_options.pixel_noise, updater_options.pixel_noise);
     nh_.param("update_focal_length", updater_options.focal_length, updater_options.focal_length);
     nh_.param("update_chi2_gate", updater_options.chi2_gate, updater_options.chi2_gate);
     nh_.param("update_max_delta_p", updater_options.max_delta_p, updater_options.max_delta_p);
     nh_.param("update_max_delta_r", updater_options.max_delta_r, updater_options.max_delta_r);
+    nh_.param("update_min_observations", updater_options.min_observations, updater_options.min_observations);
+    nh_.param("update_low_observation_hold_frames", updater_options.low_observation_hold_frames, updater_options.low_observation_hold_frames);
+    nh_.param("update_warn_delta_ratio", updater_options.warn_delta_ratio, updater_options.warn_delta_ratio);
     nh_.param("update_enforce_structure", updater_options.enforce_structure_after_update, updater_options.enforce_structure_after_update);
 
     // --- 4. Ground Truth ---

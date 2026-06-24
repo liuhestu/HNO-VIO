@@ -109,6 +109,14 @@ def parse_log(log_path):
         "active_landmarks_tail": None,
         "update_accept_ratio": None,
         "last10_update_accept_ratio": None,
+        "first_low_map_frame": None,
+        "first_zero_stable_frame": None,
+        "first_large_delta_frame": None,
+        "first_divergence_sec": None,
+        "min_active_landmarks_tail10": None,
+        "max_delta_p_seen": None,
+        "max_delta_r_seen": None,
+        "updater_guard_skips": 0,
         "ros_crash": False,
     }
     if not log_path.exists():
@@ -121,12 +129,21 @@ def parse_log(log_path):
     if e_values:
         stats["tail_E_orth_frob"] = e_values[-1]
 
-    feature_matches = re.findall(r"\[HNOFeature\].*?pts (\d+).*?db (\d+)", text)
+    feature_matches = re.findall(r"\[HNOFeature\].*?frame (\d+).*?pts (\d+).*?stable (\d+).*?db (\d+)", text)
     if feature_matches:
-        pts = [int(m[0]) for m in feature_matches]
-        db = [int(m[1]) for m in feature_matches]
+        pts = [int(m[1]) for m in feature_matches]
+        db = [int(m[3]) for m in feature_matches]
         stats["mean_num_features"] = sum(pts) / float(len(pts))
         stats["active_landmarks_tail"] = db[-1]
+        stats["min_active_landmarks_tail10"] = min(db[-10:])
+
+    low_map = re.search(r"\[HNOFeatureHealth\] first_low_map frame (\d+)", text)
+    if low_map:
+        stats["first_low_map_frame"] = int(low_map.group(1))
+
+    zero_stable = re.search(r"\[HNOFeatureHealth\] first_zero_stable frame (\d+)", text)
+    if zero_stable:
+        stats["first_zero_stable_frame"] = int(zero_stable.group(1))
 
     updater_matches = re.findall(r"\[HNOUpdater\] obs (\d+) accepted (\d+)", text)
     if updater_matches:
@@ -136,6 +153,30 @@ def parse_log(log_path):
         stats["update_accept_ratio"] = sum(accepted) / float(total_obs) if total_obs else 0.0
         last_obs = sum(obs[-10:])
         stats["last10_update_accept_ratio"] = sum(accepted[-10:]) / float(last_obs) if last_obs else 0.0
+
+    delta_matches = re.findall(r"\[HNOUpdater\].*?dP_max ([0-9.eE+-]+).*?dR_max ([0-9.eE+-]+)", text)
+    if delta_matches:
+        stats["max_delta_p_seen"] = max(float(m[0]) for m in delta_matches)
+        stats["max_delta_r_seen"] = max(float(m[1]) for m in delta_matches)
+
+    large_delta = re.search(r"\[HNOUpdaterGuard\] first_large_delta obs \d+ dP ([0-9.eE+-]+).*?dR ([0-9.eE+-]+)", text)
+    if large_delta:
+        stats["first_large_delta_frame"] = -1
+        stats["max_delta_p_seen"] = max(stats["max_delta_p_seen"] or 0.0, float(large_delta.group(1)))
+        stats["max_delta_r_seen"] = max(stats["max_delta_r_seen"] or 0.0, float(large_delta.group(2)))
+
+    stats["updater_guard_skips"] = len(re.findall(r"\[HNOUpdaterGuard\] skip_low_observations", text))
+
+    divergence_frames = [
+        value for value in (
+            stats["first_low_map_frame"],
+            stats["first_zero_stable_frame"],
+            stats["first_large_delta_frame"],
+        )
+        if value is not None and value >= 0
+    ]
+    if divergence_frames:
+        stats["first_divergence_sec"] = min(divergence_frames) / 20.0
 
     return stats
 
@@ -256,6 +297,14 @@ def main():
         "tail_E_orth_frob": log_stats.get("tail_E_orth_frob"),
         "mean_num_features": log_stats.get("mean_num_features", collector.get("mean_num_features")),
         "active_landmarks_tail": log_stats.get("active_landmarks_tail", collector.get("active_landmarks_tail")),
+        "first_low_map_frame": log_stats.get("first_low_map_frame"),
+        "first_zero_stable_frame": log_stats.get("first_zero_stable_frame"),
+        "first_large_delta_frame": log_stats.get("first_large_delta_frame"),
+        "first_divergence_sec": log_stats.get("first_divergence_sec"),
+        "min_active_landmarks_tail10": log_stats.get("min_active_landmarks_tail10"),
+        "max_delta_p_seen": log_stats.get("max_delta_p_seen"),
+        "max_delta_r_seen": log_stats.get("max_delta_r_seen"),
+        "updater_guard_skips": log_stats.get("updater_guard_skips"),
         "launch_exit": args.launch_exit,
         "timed_out": args.timed_out,
         "ros_crash": log_stats.get("ros_crash", False),
@@ -282,6 +331,10 @@ def main():
         f"- rpe1_rot_rmse_deg: {summary['rpe1_rot_rmse_deg']}",
         f"- path_length_ratio: {summary['path_length_ratio']}",
         f"- duration_sec: {summary['duration_sec']}",
+        f"- first_divergence_sec: {summary['first_divergence_sec']}",
+        f"- min_active_landmarks_tail10: {summary['min_active_landmarks_tail10']}",
+        f"- max_delta_p_seen: {summary['max_delta_p_seen']}",
+        f"- max_delta_r_seen: {summary['max_delta_r_seen']}",
     ]
     (case_dir / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 

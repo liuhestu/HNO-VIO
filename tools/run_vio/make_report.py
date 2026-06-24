@@ -6,7 +6,7 @@ from pathlib import Path
 
 def load_summaries(exp_dir):
     summaries = []
-    for path in sorted(Path(exp_dir).glob("case_*/summary.json")):
+    for path in sorted(Path(exp_dir).glob("case*/summary.json")):
         summaries.append(json.loads(path.read_text(encoding="utf-8")))
     return summaries
 
@@ -32,6 +32,7 @@ def table_row(summary):
         "case_id", "failure_reason", "usable", "se3_ate_rmse", "se3_ate_median",
         "rpe1_trans_rmse", "rpe1_rot_rmse_deg", "path_length_ratio", "duration_sec",
         "update_accept_ratio", "tail_E_orth_frob", "mean_num_features", "active_landmarks_tail",
+        "first_divergence_sec", "min_active_landmarks_tail10", "max_delta_p_seen", "max_delta_r_seen",
     ]
     values = []
     for key in keys:
@@ -78,8 +79,8 @@ def write_report(exp_dir, dataset, output, final=False):
         "",
         "## Cases",
         "",
-        "| case_id | failure_reason | usable | ate_rmse | ate_median | rpe_t_rmse | rpe_r_deg | path_ratio | duration | accept | EOrth | mean_feat | active_tail |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| case_id | failure_reason | usable | ate_rmse | ate_median | rpe_t_rmse | rpe_r_deg | path_ratio | duration | accept | EOrth | mean_feat | active_tail | div_sec | min_tail10 | max_dP | max_dR |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
     for summary in sorted(summaries, key=lambda s: s.get("case_id", "")):
         lines.append(table_row(summary))

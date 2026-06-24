@@ -41,7 +41,11 @@ public:
               fail_limit(5),
               fail_limit_low(8),
               map_jump_thresh(0.5),
-              active_mature_thresh(3) {}
+              active_mature_thresh(3),
+              health_min_stable(20),
+              health_min_db(20),
+              health_hold_frames(3),
+              health_start_frame(60) {}
 
         int tracker_num_pts;
         int tracker_fast_threshold;
@@ -61,6 +65,10 @@ public:
         int fail_limit_low;
         double map_jump_thresh;
         int active_mature_thresh;
+        int health_min_stable;
+        int health_min_db;
+        int health_hold_frames;
+        int health_start_frame;
     };
 
     HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
