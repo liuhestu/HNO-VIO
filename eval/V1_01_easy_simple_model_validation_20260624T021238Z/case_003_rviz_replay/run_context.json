@@ -1,0 +1,7 @@
+{
+  "dataset": "V1_01_easy",
+  "bag_path": "/home/sharpa/datasets/euroc/ROSbag/V1_01_easy.bag",
+  "gt_path": "/home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt",
+  "rviz": true,
+  "timeout_sec": 190
+}

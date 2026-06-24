@@ -1,0 +1,9 @@
+{
+  "active_landmarks_tail": 31,
+  "duration_sec": 142.90499997138977,
+  "first_timestamp": 1403715275.952143,
+  "last_timestamp": 1403715418.857143,
+  "mean_num_features": 86.52555978031263,
+  "path_length_m": 63.92989416061872,
+  "pose_count": 11528
+}

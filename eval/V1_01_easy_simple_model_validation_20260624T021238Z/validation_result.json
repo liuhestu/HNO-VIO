@@ -1,0 +1,257 @@
+{
+  "cases": {
+    "case_003": {
+      "duplicate_key_check": {
+        "feature_map_jump_thresh": [
+          "1.0"
+        ],
+        "feature_reproj_thresh": [
+          "0.07"
+        ],
+        "feature_tracker_grid_y": [
+          "4"
+        ],
+        "update_chi2_gate": [
+          "8.0"
+        ],
+        "update_max_delta_p": [
+          "0.08"
+        ]
+      },
+      "headless_repeats": [
+        {
+          "active_landmarks_tail": 11,
+          "case_id": "case_003_repeat_1",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "FEATURE_STARVATION",
+          "last10_update_accept_ratio": 0.7464387464387464,
+          "launch_exit": 124,
+          "mean_num_features": 115.23255813953489,
+          "path_length_m": 1787.639689960264,
+          "path_length_ratio": 30.64028538591942,
+          "pose_count": 19108,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.179059,
+          "rpe1_trans_rmse": 1.068165,
+          "se3_ate_median": 243.580474,
+          "se3_ate_rmse": 428.1138,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.7790583619421285,
+          "usable": false
+        },
+        {
+          "active_landmarks_tail": 17,
+          "case_id": "case_003_repeat_2",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "FEATURE_STARVATION",
+          "last10_update_accept_ratio": 0.390625,
+          "launch_exit": 124,
+          "mean_num_features": 114.225,
+          "path_length_m": 186.07732131644565,
+          "path_length_ratio": 3.1894574186751017,
+          "pose_count": 12672,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.235115,
+          "rpe1_trans_rmse": 0.146523,
+          "se3_ate_median": 4.039894,
+          "se3_ate_rmse": 15.004371,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.8007531106745253,
+          "usable": false
+        },
+        {
+          "active_landmarks_tail": 7,
+          "case_id": "case_003_repeat_3",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "FEATURE_STARVATION",
+          "last10_update_accept_ratio": 0.7690721649484537,
+          "launch_exit": 124,
+          "mean_num_features": 112.90123456790124,
+          "path_length_m": 253.20901779032295,
+          "path_length_ratio": 4.340085335771849,
+          "pose_count": 13822,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.218041,
+          "rpe1_trans_rmse": 0.212232,
+          "se3_ate_median": 6.998272,
+          "se3_ate_rmse": 25.952952,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.8127793411686807,
+          "usable": false
+        }
+      ],
+      "promotion": "rejected",
+      "rviz_replay": {
+        "active_landmarks_tail": 11,
+        "case_id": "case_003_rviz_replay",
+        "duration_sec": 142.90499997138977,
+        "evo_failed": false,
+        "failure_reason": "FEATURE_STARVATION",
+        "last10_update_accept_ratio": 0.2733333333333333,
+        "launch_exit": 124,
+        "mean_num_features": 111.82608695652173,
+        "path_length_m": 6003.107258339537,
+        "path_length_ratio": 102.97618982343548,
+        "pose_count": 6578,
+        "ros_crash": false,
+        "rpe1_rot_rmse_deg": 0.641117,
+        "rpe1_trans_rmse": 3.500559,
+        "se3_ate_median": 1226.115009,
+        "se3_ate_rmse": 1606.345059,
+        "stage": 1,
+        "status": "FAILED",
+        "strong_baseline": false,
+        "tail_E_orth_frob": 0.0,
+        "timed_out": true,
+        "update_accept_ratio": 0.2782071097372488,
+        "usable": false
+      },
+      "strong_repeats": 0,
+      "usable_repeats": 0
+    },
+    "case_009": {
+      "duplicate_key_check": {
+        "feature_map_jump_thresh": [
+          "0.4"
+        ],
+        "feature_reproj_thresh": [
+          "0.05"
+        ],
+        "feature_tracker_grid_y": [
+          "6"
+        ],
+        "update_chi2_gate": [
+          "26.0"
+        ],
+        "update_max_delta_p": [
+          "0.3"
+        ]
+      },
+      "headless_repeats": [
+        {
+          "active_landmarks_tail": 20,
+          "case_id": "case_009_repeat_1",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "ATE_DIVERGED",
+          "last10_update_accept_ratio": 0.7901591895803184,
+          "launch_exit": 124,
+          "mean_num_features": 119.53658536585365,
+          "path_length_m": 3490.2485506655407,
+          "path_length_ratio": 59.8255490478262,
+          "pose_count": 16066,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.220045,
+          "rpe1_trans_rmse": 2.428193,
+          "se3_ate_median": 358.914937,
+          "se3_ate_rmse": 764.173357,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.9294970349220294,
+          "usable": false
+        },
+        {
+          "active_landmarks_tail": 20,
+          "case_id": "case_009_repeat_2",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "PATH_LENGTH_BAD",
+          "last10_update_accept_ratio": 0.8648148148148148,
+          "launch_exit": 124,
+          "mean_num_features": 118.24,
+          "path_length_m": 72.99843590412974,
+          "path_length_ratio": 1.251293960089967,
+          "pose_count": 9705,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.30428,
+          "rpe1_trans_rmse": 0.015329,
+          "se3_ate_median": 0.840394,
+          "se3_ate_rmse": 1.144752,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.9438602167933992,
+          "usable": false
+        },
+        {
+          "active_landmarks_tail": 11,
+          "case_id": "case_009_repeat_3",
+          "duration_sec": 142.90499997138977,
+          "evo_failed": false,
+          "failure_reason": "FEATURE_STARVATION",
+          "last10_update_accept_ratio": 0.8132716049382716,
+          "launch_exit": 124,
+          "mean_num_features": 117.0,
+          "path_length_m": 168.82943030958006,
+          "path_length_ratio": 2.893828655972648,
+          "pose_count": 12305,
+          "ros_crash": false,
+          "rpe1_rot_rmse_deg": 0.243622,
+          "rpe1_trans_rmse": 0.127481,
+          "se3_ate_median": 2.271403,
+          "se3_ate_rmse": 9.951779,
+          "stage": 1,
+          "status": "FAILED",
+          "strong_baseline": false,
+          "tail_E_orth_frob": 0.0,
+          "timed_out": true,
+          "update_accept_ratio": 0.9339853300733496,
+          "usable": false
+        }
+      ],
+      "promotion": "rejected",
+      "rviz_replay": {
+        "active_landmarks_tail": 1,
+        "case_id": "case_009_rviz_replay",
+        "duration_sec": 142.90499997138977,
+        "evo_failed": false,
+        "failure_reason": "FEATURE_STARVATION",
+        "last10_update_accept_ratio": 0.2457627118644068,
+        "launch_exit": 124,
+        "mean_num_features": 116.92647058823529,
+        "path_length_m": 15692.109608568036,
+        "path_length_ratio": 269.1701450200902,
+        "pose_count": 6177,
+        "ros_crash": false,
+        "rpe1_rot_rmse_deg": 0.629306,
+        "rpe1_trans_rmse": 14.910262,
+        "se3_ate_median": 3240.262379,
+        "se3_ate_rmse": 4162.788797,
+        "stage": 1,
+        "status": "FAILED",
+        "strong_baseline": false,
+        "tail_E_orth_frob": 0.0,
+        "timed_out": true,
+        "update_accept_ratio": 0.43651452282157677,
+        "usable": false
+      },
+      "strong_repeats": 0,
+      "usable_repeats": 0
+    }
+  },
+  "dataset": "V1_01_easy",
+  "simple_model_restored": true,
+  "use_gt_init": false,
+  "use_gt_mapping": false,
+  "validation_dir": "/home/sharpa/hno_vio_clean/src/hno_vio/eval/V1_01_easy_simple_model_validation_20260624T021238Z"
+}
