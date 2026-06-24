@@ -51,3 +51,6 @@
 - best_case: `case009_guarded_020`
 - best_case_usable_repeats: 0/3
 - best_case_validation_dir: `src/hno_vio/eval/V1_01_easy_case009_guarded_20260624T025617Z/validation_case009_guarded_020`
+
+## Conclusion
+前50轮次测试结果表明，继续单纯收紧 update gate/低特征保护已经不能解决稳定性问题。case009 附近仍然是“单次可用、重复不稳定”。下一步应该进入 51-100 轮结构调整，重点放在 landmark/map policy，而不是继续围绕 gate 小调参。当前新日志已经能支撑后续结构搜索定位首次失控点。
