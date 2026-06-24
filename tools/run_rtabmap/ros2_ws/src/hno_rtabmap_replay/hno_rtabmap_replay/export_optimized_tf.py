@@ -1,0 +1,186 @@
+import argparse
+from pathlib import Path
+
+import numpy as np
+import rosbag2_py
+from nav_msgs.msg import Odometry
+from rclpy.serialization import deserialize_message
+from rosidl_runtime_py.utilities import get_message
+from tf2_msgs.msg import TFMessage
+
+from .odom_utils import OdomPose, write_tum
+from .tf_utils import invert_transform, matrix_to_pose, pose_to_matrix
+
+
+def stamp_to_ns(stamp):
+    return int(stamp.sec) * 1_000_000_000 + int(stamp.nanosec)
+
+
+def transform_to_matrix(transform):
+    p = np.array([
+        transform.translation.x,
+        transform.translation.y,
+        transform.translation.z,
+    ], dtype=float)
+    q = np.array([
+        transform.rotation.x,
+        transform.rotation.y,
+        transform.rotation.z,
+        transform.rotation.w,
+    ], dtype=float)
+    return pose_to_matrix(p, q)
+
+
+def nearest_by_stamp(items, stamp_ns, max_diff_ns=200_000_000):
+    if not items:
+        return None
+    lo, hi = 0, len(items)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if items[mid][0] < stamp_ns:
+            lo = mid + 1
+        else:
+            hi = mid
+    candidates = []
+    if lo < len(items):
+        candidates.append(items[lo])
+    if lo > 0:
+        candidates.append(items[lo - 1])
+    best = min(candidates, key=lambda item: abs(item[0] - stamp_ns))
+    if abs(best[0] - stamp_ns) > max_diff_ns:
+        return None
+    return best[1]
+
+
+def open_reader(bag_dir):
+    reader = rosbag2_py.SequentialReader()
+    storage_options = rosbag2_py.StorageOptions(uri=str(bag_dir), storage_id="sqlite3")
+    converter_options = rosbag2_py.ConverterOptions(input_serialization_format="cdr", output_serialization_format="cdr")
+    reader.open(storage_options, converter_options)
+    return reader
+
+
+def read_bag(bag_dir):
+    reader = open_reader(bag_dir)
+    topic_types = {topic.name: topic.type for topic in reader.get_all_topics_and_types()}
+    raw = []
+    map_odom = []
+    map_base = []
+    topic_counts = {}
+
+    while reader.has_next():
+        topic, data, bag_stamp = reader.read_next()
+        topic_counts[topic] = topic_counts.get(topic, 0) + 1
+        msg_type_name = topic_types.get(topic)
+        if msg_type_name is None:
+            continue
+        msg_type = get_message(msg_type_name)
+        msg = deserialize_message(data, msg_type)
+
+        if topic == "/hno_vio/odom" and isinstance(msg, Odometry):
+            stamp_ns = stamp_to_ns(msg.header.stamp)
+            p = np.array([
+                msg.pose.pose.position.x,
+                msg.pose.pose.position.y,
+                msg.pose.pose.position.z,
+            ], dtype=float)
+            q = np.array([
+                msg.pose.pose.orientation.x,
+                msg.pose.pose.orientation.y,
+                msg.pose.pose.orientation.z,
+                msg.pose.pose.orientation.w,
+            ], dtype=float)
+            raw.append((stamp_ns, pose_to_matrix(p, q)))
+        elif topic in ("/tf", "/tf_static") and isinstance(msg, TFMessage):
+            for transform in msg.transforms:
+                stamp_ns = stamp_to_ns(transform.header.stamp)
+                parent = transform.header.frame_id.strip("/")
+                child = transform.child_frame_id.strip("/")
+                T = transform_to_matrix(transform.transform)
+                if parent == "map" and child == "odom":
+                    map_odom.append((stamp_ns, T))
+                elif parent == "odom" and child == "map":
+                    map_odom.append((stamp_ns, invert_transform(T)))
+                elif parent == "map" and child == "base_link":
+                    map_base.append((stamp_ns, T))
+                elif parent == "base_link" and child == "map":
+                    map_base.append((stamp_ns, invert_transform(T)))
+
+    raw.sort(key=lambda item: item[0])
+    map_odom.sort(key=lambda item: item[0])
+    map_base.sort(key=lambda item: item[0])
+    return raw, map_odom, map_base, topic_counts
+
+
+def matrices_to_poses(items):
+    poses = []
+    for stamp_ns, T in items:
+        p, q = matrix_to_pose(T)
+        poses.append(OdomPose(stamp_ns, p, q))
+    return poses
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--bag", required=True)
+    parser.add_argument("--out-dir", required=True)
+    parser.add_argument("--max-tf-diff-sec", type=float, default=0.2)
+    args = parser.parse_args()
+
+    bag_dir = Path(args.bag)
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if not bag_dir.exists():
+        raise RuntimeError(f"output bag not found: {bag_dir}")
+
+    raw, map_odom, map_base, topic_counts = read_bag(bag_dir)
+    if not raw:
+        raise RuntimeError("no /hno_vio/odom messages found in output bag")
+
+    max_tf_diff_ns = int(args.max_tf_diff_sec * 1e9)
+    optimized = []
+    if map_odom:
+        for stamp_ns, T_odom_base in raw:
+            T_map_odom = nearest_by_stamp(map_odom, stamp_ns, max_tf_diff_ns)
+            if T_map_odom is None:
+                continue
+            optimized.append((stamp_ns, T_map_odom @ T_odom_base))
+        source = "map->odom composed with odom->base_link"
+    elif map_base:
+        for stamp_ns, _T_odom_base in raw:
+            T_map_base = nearest_by_stamp(map_base, stamp_ns, max_tf_diff_ns)
+            if T_map_base is None:
+                continue
+            optimized.append((stamp_ns, T_map_base))
+        source = "direct map->base_link"
+    else:
+        raise RuntimeError("no RTAB-Map map->odom or map->base_link TF found in output bag")
+
+    if len(optimized) < 100:
+        raise RuntimeError(f"too few optimized poses exported: {len(optimized)}")
+
+    raw_tum = out_dir / "hno_vio_raw.tum"
+    opt_tum = out_dir / "rtabmap_optimized.tum"
+    write_tum(raw_tum, matrices_to_poses(raw))
+    write_tum(opt_tum, matrices_to_poses(optimized))
+
+    report = out_dir / "export_report.txt"
+    report.write_text(
+        "\n".join([
+            f"raw_pose_count: {len(raw)}",
+            f"optimized_pose_count: {len(optimized)}",
+            f"map_odom_tf_count: {len(map_odom)}",
+            f"map_base_tf_count: {len(map_base)}",
+            f"optimized_source: {source}",
+            "topic_counts:",
+            *[f"  {name}: {count}" for name, count in sorted(topic_counts.items())],
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    print(f"raw_tum: {raw_tum}")
+    print(f"optimized_tum: {opt_tum}")
+    print(f"report: {report}")
+
+
+if __name__ == "__main__":
+    main()

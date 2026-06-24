@@ -1,0 +1,26 @@
+rtabmap:
+  use_sim_time: true
+  frame_id: base_link
+  map_frame_id: map
+  odom_frame_id: odom
+  publish_tf: true
+  publish_tf_map: true
+
+sync:
+  approx_sync: true
+  approx_sync_max_interval: 0.02
+
+stereo:
+  left_image_topic: /cam0/image_rect
+  right_image_topic: /cam1/image_rect
+  left_camera_info_topic: /cam0/camera_info
+  right_camera_info_topic: /cam1/camera_info
+
+record_topics:
+  - /tf
+  - /tf_static
+  - /hno_vio/odom
+  - /rtabmap/mapData
+  - /rtabmap/info
+  - /rtabmap/global_path
+  - /rtabmap/local_path

@@ -1,0 +1,21 @@
+source_bag: /tmp/hno_case009_rtabmap_output_bag
+info_count: 119
+mapData_count: 119
+global_path_msg_count: 0
+global_path_last_pose_count: 0
+local_path_msg_count: 0
+local_path_last_pose_count: 0
+loop_closure_id_nonzero_count: 33
+proximity_detection_id_nonzero_count: 35
+loop_closure_ids_sample: [15, 15, 14, 15, 14, 35, 21, 21, 22, 22, 6, 8, 8, 16, 58, 58, 33, 33, 61, 62]
+proximity_detection_ids_sample: [15, 15, 14, 15, 14, 35, 21, 21, 22, 8, 8, 6, 16, 58, 58, 33, 33, 60, 61, 62]
+final_graph_pose_count: 114
+final_graph_link_count: 162
+final_adjacent_link_count: 111
+final_non_adjacent_link_count: 51
+max_graph_link_count: 162
+max_non_adjacent_link_count: 51
+final_link_type_counts:
+  type_0: 115
+  type_1: 33
+  type_2: 14

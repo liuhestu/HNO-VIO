@@ -1,0 +1,29 @@
+/rtabmap/stereo_sync:
+  ros__parameters:
+    approx_sync: true
+    approx_sync_max_interval: 0.02
+    compressed_rate: 0.0
+    diagnostic_updater:
+      period: 2.0
+      use_fqn: false
+    image_transport: raw
+    qos: 0
+    qos_camera_info: 0
+    qos_overrides:
+      /clock:
+        subscription:
+          depth: 1
+          durability: volatile
+          history: keep_last
+          reliability: best_effort
+      /parameter_events:
+        publisher:
+          depth: 1000
+          durability: volatile
+          history: keep_last
+          reliability: reliable
+    queue_size: -1
+    sync_queue_size: 10
+    topic_queue_size: 10
+    use_sim_time: true
+

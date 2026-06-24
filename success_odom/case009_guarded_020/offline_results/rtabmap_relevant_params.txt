@@ -1,0 +1,28 @@
+node list:
+/rtabmap/rtabmap
+/rtabmap/stereo_sync
+/rtabmap/transform_listener_impl_5c7525dba5f0
+
+rtabmap relevant params:
+use_sim_time: Boolean value is: True
+frame_id: String value is: base_link
+odom_frame_id: String value is: odom
+map_frame_id: String value is: map
+subscribe_rgbd: Boolean value is: True
+subscribe_odom: Boolean value is: True
+approx_sync: Boolean value is: True
+publish_tf: Boolean value is: True
+publish_tf_map: database_path: String value is: /tmp/hno_case009_rtabmap.db
+Mem/IncrementalMemory: String value is: true
+RGBD/ProximityBySpace: String value is: true
+RGBD/OptimizeFromGraphEnd: String value is: true
+RGBD/NeighborLinkRefining: String value is: true
+RGBD/LoopClosureReextractFeatures: String value is: false
+Vis/MinInliers: String value is: 12
+Kp/MaxFeatures: String value is: 800
+Rtabmap/DetectionRate: String value is: 1
+
+stereo_sync relevant params:
+use_sim_time: Boolean value is: True
+approx_sync: Boolean value is: True
+approx_sync_max_interval: Double value is: 0.02

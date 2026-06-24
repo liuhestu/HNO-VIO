@@ -1,0 +1,12 @@
+raw_pose_count: 2619
+optimized_pose_count: 2619
+map_odom_tf_count: 3122
+map_base_tf_count: 0
+optimized_source: map->odom composed with odom->base_link
+topic_counts:
+  /hno_vio/odom: 2619
+  /rtabmap/info: 119
+  /rtabmap/mapData: 119
+  /rtabmap/rgbd_image: 2548
+  /tf: 5741
+  /tf_static: 1

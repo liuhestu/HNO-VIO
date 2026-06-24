@@ -1,0 +1,36 @@
+dataset_name: V1_01_easy
+
+paths:
+  hno_pkg: /home/sharpa/hno_vio_clean/src/hno_vio
+  case_dir: /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020
+  output_dir: /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results
+  euroc_mav0: /home/sharpa/datasets/euroc/ASL/V1_01_easy/mav0
+  input_odom_csv: /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/odom.csv
+  input_odom_tum: /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/odom.tum
+  standard_odom_csv: /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/hno_vio_odom.csv
+  input_bag: /tmp/hno_case009_rtabmap_input_bag
+  output_bag: /tmp/hno_case009_rtabmap_output_bag
+  rtabmap_db: /tmp/hno_case009_rtabmap.db
+  rtabmap_ws: /home/sharpa/ros2_ws/install
+  ros2_ws: /home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap/ros2_ws
+
+frames:
+  map_frame: map
+  odom_frame: odom
+  base_frame: base_link
+  left_camera_frame: cam0_rect
+  right_camera_frame: cam1_rect
+
+sync:
+  max_odom_time_diff_sec: 0.03
+  replay_rate_hz: 20.0
+  allow_camera_start_before_odom_sec: 3.0
+  max_odom_step_translation_m: 0.50
+  max_odom_step_rotation_deg: 30.0
+
+odom_semantic:
+  input_csv_format: timestamp,tx,ty,tz,qx,qy,qz,qw
+  input_timestamp_unit: sec
+  input_quaternion_order: qx,qy,qz,qw
+  output_csv_format: timestamp_ns,px,py,pz,qx,qy,qz,qw
+  pose_semantic: T_odom_base

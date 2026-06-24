@@ -1,0 +1,16 @@
+row_count: 9021
+start_timestamp_ns: 1403715275952142848
+end_timestamp_ns: 1403715418857143040
+duration_sec: 142.90500019200002
+mean_hz: 63.118855098710185
+first_cam0_timestamp_ns: 1403715273262142976
+last_cam0_timestamp_ns: 1403715418812143104
+odom_vs_cam0_start_diff_sec: 2.689999872
+odom_vs_cam0_end_diff_sec: 0.044999936000000004
+quaternion_norm_bad_count: 0
+nan_count: 0
+max_step_translation_m: 0.11010157284077968
+max_step_rotation_deg: 7.3591089280843
+max_step_time_sec: 0.150000128
+large_step_count: 0
+cam0_range_ns: 1403715273262142976 1403715418812143104

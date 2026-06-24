@@ -1,0 +1,17 @@
+
+Files:             hno_case009_rtabmap_input_bag_0.db3
+Bag size:          1.8 GiB
+Storage id:        sqlite3
+Duration:          145.612650399s
+Start:             Jun 24 2026 14:17:30.755051078 (1782281850.755051078)
+End:               Jun 24 2026 14:19:56.367701477 (1782281996.367701477)
+Messages:          18334
+Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 2619 | Serialization Format: cdr
+                   Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2619 | Serialization Format: cdr
+                   Topic: /clock | Type: rosgraph_msgs/msg/Clock | Count: 2619 | Serialization Format: cdr
+                   Topic: /cam1/image_rect | Type: sensor_msgs/msg/Image | Count: 2619 | Serialization Format: cdr
+                   Topic: /cam1/camera_info | Type: sensor_msgs/msg/CameraInfo | Count: 2619 | Serialization Format: cdr
+                   Topic: /cam0/image_rect | Type: sensor_msgs/msg/Image | Count: 2619 | Serialization Format: cdr
+                   Topic: /cam0/camera_info | Type: sensor_msgs/msg/CameraInfo | Count: 2619 | Serialization Format: cdr
+

@@ -1,0 +1,251 @@
+[INFO] [launch]: All log files can be found below /tmp/ros2_logs/2026-06-24-14-44-51-477075-IT26000351-304784
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [stereo_sync-1]: process started with pid [304789]
+[INFO] [rtabmap-2]: process started with pid [304791]
+[stereo_sync-1] [INFO] [1782283491.881893081] [rtabmap.stereo_sync]: stereo_sync: approx_sync = true
+[stereo_sync-1] [INFO] [1782283491.882204226] [rtabmap.stereo_sync]: stereo_sync: approx_sync_max_interval = 0.020000
+[stereo_sync-1] [INFO] [1782283491.882245122] [rtabmap.stereo_sync]: stereo_sync: topic_queue_size  = 10
+[stereo_sync-1] [INFO] [1782283491.882259762] [rtabmap.stereo_sync]: stereo_sync: sync_queue_size   = 10
+[stereo_sync-1] [INFO] [1782283491.882274333] [rtabmap.stereo_sync]: stereo_sync: qos             = 0
+[stereo_sync-1] [INFO] [1782283491.882286251] [rtabmap.stereo_sync]: stereo_sync: qos_camera_info = 0
+[stereo_sync-1] [INFO] [1782283491.882297052] [rtabmap.stereo_sync]: stereo_sync: compressed_rate = 0.000000
+[stereo_sync-1] [INFO] [1782283491.882310449] [rtabmap.stereo_sync]: stereo_sync: image_transport = raw
+[stereo_sync-1] [INFO] [1782283491.907816379] [rtabmap.stereo_sync]: 
+[stereo_sync-1] stereo_sync subscribed to (approx sync, max interval=0.020000s):
+[stereo_sync-1]    /cam0/image_rect,
+[stereo_sync-1]    /cam1/image_rect,
+[stereo_sync-1]    /cam0/camera_info,
+[stereo_sync-1]    /cam1/camera_info
+[rtabmap-2] [INFO] [1782283491.973407951] [rtabmap.rtabmap]: rtabmap(maps): latch                      = true
+[rtabmap-2] [INFO] [1782283491.973786010] [rtabmap.rtabmap]: rtabmap(maps): map_filter_radius          = 0.000000
+[rtabmap-2] [INFO] [1782283491.973835530] [rtabmap.rtabmap]: rtabmap(maps): map_filter_angle           = 30.000000
+[rtabmap-2] [INFO] [1782283491.973861308] [rtabmap.rtabmap]: rtabmap(maps): map_cleanup                = true
+[rtabmap-2] [INFO] [1782283491.973880124] [rtabmap.rtabmap]: rtabmap(maps): map_always_update          = false
+[rtabmap-2] [INFO] [1782283491.973897900] [rtabmap.rtabmap]: rtabmap(maps): map_empty_ray_tracing      = true
+[rtabmap-2] [INFO] [1782283491.973915525] [rtabmap.rtabmap]: rtabmap(maps): map_cache_loaded_on_init   = true
+[rtabmap-2] [INFO] [1782283491.973932701] [rtabmap.rtabmap]: rtabmap(maps): cloud_output_voxelized     = true
+[rtabmap-2] [INFO] [1782283491.973955051] [rtabmap.rtabmap]: rtabmap(maps): cloud_subtract_filtering   = false
+[rtabmap-2] [INFO] [1782283491.973973029] [rtabmap.rtabmap]: rtabmap(maps): cloud_subtract_filtering_min_neighbors = 2
+[rtabmap-2] [INFO] [1782283491.974039471] [rtabmap.rtabmap]: rtabmap(maps): octomap_tree_depth         = 16
+[rtabmap-2] [INFO] [1782283492.036883703] [rtabmap.rtabmap]: rtabmap: frame_id      = "base_link"
+[rtabmap-2] [INFO] [1782283492.036964753] [rtabmap.rtabmap]: rtabmap: odom_frame_id = "odom"
+[rtabmap-2] [INFO] [1782283492.036982373] [rtabmap.rtabmap]: rtabmap: ground_truth_frame_id = "" -> ground_truth_base_frame_id = "base_link"
+[rtabmap-2] [INFO] [1782283492.036998390] [rtabmap.rtabmap]: rtabmap: map_frame_id  = "map"
+[rtabmap-2] [INFO] [1782283492.037012909] [rtabmap.rtabmap]: rtabmap: log_to_rosout_level  = 4
+[rtabmap-2] [INFO] [1782283492.037028238] [rtabmap.rtabmap]: rtabmap: initial_pose  = ""
+[rtabmap-2] [INFO] [1782283492.037042829] [rtabmap.rtabmap]: rtabmap: use_action_for_goal  = false
+[rtabmap-2] [INFO] [1782283492.037056966] [rtabmap.rtabmap]: rtabmap: tf_delay      = 0.050000
+[rtabmap-2] [INFO] [1782283492.037089570] [rtabmap.rtabmap]: rtabmap: tf_tolerance  = 0.100000
+[rtabmap-2] [INFO] [1782283492.037105420] [rtabmap.rtabmap]: rtabmap: odom_sensor_sync   = false
+[rtabmap-2] [INFO] [1782283492.037119084] [rtabmap.rtabmap]: rtabmap: pub_loc_pose_only_when_localizing = false
+[rtabmap-2] [INFO] [1782283492.037132946] [rtabmap.rtabmap]: rtabmap: wait_for_transform = 0.200000
+[rtabmap-2] [INFO] [1782283492.037147842] [rtabmap.rtabmap]: rtabmap: staleness_factor = 0.000000
+[rtabmap-2] [INFO] [1782283492.037165658] [rtabmap.rtabmap]: rtabmap: gen_scan  = false
+[rtabmap-2] [INFO] [1782283492.037179032] [rtabmap.rtabmap]: rtabmap: gen_depth  = false
+[rtabmap-2] [INFO] [1782283492.073322387] [rtabmap.rtabmap]: Setting RTAB-Map parameter "Kp/MaxFeatures"="800" (rosparam)
+[rtabmap-2] [INFO] [1782283492.076939040] [rtabmap.rtabmap]: Setting RTAB-Map parameter "RGBD/NeighborLinkRefining"="true" (rosparam)
+[rtabmap-2] [INFO] [1782283492.077020258] [rtabmap.rtabmap]: Setting RTAB-Map parameter "RGBD/OptimizeFromGraphEnd"="true" (rosparam)
+[rtabmap-2] [INFO] [1782283492.077634028] [rtabmap.rtabmap]: Setting RTAB-Map parameter "Reg/Force3DoF"="false" (rosparam)
+[rtabmap-2] [INFO] [1782283492.082083162] [rtabmap.rtabmap]: Setting RTAB-Map parameter "Vis/MinInliers"="12" (rosparam)
+[rtabmap-2] [INFO] [1782283492.083843103] [rtabmap.rtabmap]: RTAB-Map detection rate = 1.000000 Hz
+[rtabmap-2] [INFO] [1782283492.083944179] [rtabmap.rtabmap]: rtabmap: Using database from "/tmp/hno_case009_rtabmap.db" (0 MB).
+[rtabmap-2] [INFO] [1782283492.156162486] [rtabmap.rtabmap]: rtabmap: Database version = "0.23.7".
+[rtabmap-2] [INFO] [1782283492.156247203] [rtabmap.rtabmap]: rtabmap: SLAM mode (Mem/IncrementalMemory=true)
+[rtabmap-2] [INFO] [1782283492.179297658] [rtabmap.rtabmap]: Setup callbacks
+[rtabmap-2] [WARN] [1782283492.179396326] [rtabmap.rtabmap]: rtabmap: Parameters subscribe_depth and subscribe_rgbd cannot be true at the same time. Parameter subscribe_depth is set to false.
+[rtabmap-2] [INFO] [1782283492.179478980] [rtabmap.rtabmap]: rtabmap: subscribe_depth = false
+[rtabmap-2] [INFO] [1782283492.179491102] [rtabmap.rtabmap]: rtabmap: subscribe_rgb = false
+[rtabmap-2] [INFO] [1782283492.179499782] [rtabmap.rtabmap]: rtabmap: subscribe_stereo = false
+[rtabmap-2] [INFO] [1782283492.179507756] [rtabmap.rtabmap]: rtabmap: subscribe_rgbd = true (rgbd_cameras=1)
+[rtabmap-2] [INFO] [1782283492.179516862] [rtabmap.rtabmap]: rtabmap: subscribe_sensor_data = false
+[rtabmap-2] [INFO] [1782283492.179527114] [rtabmap.rtabmap]: rtabmap: subscribe_odom = false ("odom_frame_id" is set)
+[rtabmap-2] [INFO] [1782283492.179567530] [rtabmap.rtabmap]: rtabmap: subscribe_odom_info = false
+[rtabmap-2] [INFO] [1782283492.179575528] [rtabmap.rtabmap]: rtabmap: subscribe_user_data = false
+[rtabmap-2] [INFO] [1782283492.179583064] [rtabmap.rtabmap]: rtabmap: subscribe_scan = false
+[rtabmap-2] [INFO] [1782283492.179590920] [rtabmap.rtabmap]: rtabmap: subscribe_scan_cloud = false
+[rtabmap-2] [INFO] [1782283492.179598719] [rtabmap.rtabmap]: rtabmap: subscribe_scan_descriptor = false
+[rtabmap-2] [INFO] [1782283492.179606247] [rtabmap.rtabmap]: rtabmap: topic_queue_size = 10
+[rtabmap-2] [INFO] [1782283492.179614775] [rtabmap.rtabmap]: rtabmap: sync_queue_size  = 10
+[rtabmap-2] [INFO] [1782283492.179622278] [rtabmap.rtabmap]: rtabmap: qos_image       = 0
+[rtabmap-2] [INFO] [1782283492.179629926] [rtabmap.rtabmap]: rtabmap: qos_camera_info = 0
+[rtabmap-2] [INFO] [1782283492.179637163] [rtabmap.rtabmap]: rtabmap: qos_scan        = 0
+[rtabmap-2] [INFO] [1782283492.179644332] [rtabmap.rtabmap]: rtabmap: qos_odom        = 0
+[rtabmap-2] [INFO] [1782283492.179651519] [rtabmap.rtabmap]: rtabmap: qos_user_data   = 0
+[rtabmap-2] [INFO] [1782283492.179658637] [rtabmap.rtabmap]: rtabmap: approx_sync     = true
+[rtabmap-2] [INFO] [1782283492.179666194] [rtabmap.rtabmap]: rtabmap: image_transport = raw
+[rtabmap-2] [INFO] [1782283492.179673614] [rtabmap.rtabmap]: rtabmap: depth_transport = raw
+[rtabmap-2] [INFO] [1782283492.179698680] [rtabmap.rtabmap]: Setup rgbd callback
+[rtabmap-2] [INFO] [1782283492.182150643] [rtabmap.rtabmap]: 
+[rtabmap-2] rtabmap subscribed to:
+[rtabmap-2]    /rtabmap/rgbd_image
+[rtabmap-2] [WARN] [1782283506.879868424] [rclcpp]: Failed to get parameters: publish_tf_map
+[rtabmap-2] [INFO] [1782283533.541034560] [rtabmap.rtabmap]: rtabmap (1): Rate=1.00s, Limit=0.000s, Conversion=0.0017s, RTAB-Map=0.0985s, Maps update=0.0002s pub=0.0041s delay=0.1000s (local map=1, WM=1)
+[rtabmap-2] [INFO] [1782283534.524547334] [rtabmap.rtabmap]: rtabmap (2): Rate=1.00s, Limit=0.000s, Conversion=0.0010s, RTAB-Map=0.0855s, Maps update=0.0002s pub=0.0024s delay=0.0500s (local map=1, WM=1)
+[rtabmap-2] [INFO] [1782283535.519469205] [rtabmap.rtabmap]: rtabmap (3): Rate=1.00s, Limit=0.000s, Conversion=0.0007s, RTAB-Map=0.0837s, Maps update=0.0001s pub=0.0022s delay=0.0500s (local map=1, WM=1)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:45:33.465) Features2d.cpp:999::generateKeypoints3D() A large number (664/901) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:45:34.463) Features2d.cpp:999::generateKeypoints3D() A large number (664/909) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:45:35.458) Features2d.cpp:999::generateKeypoints3D() A large number (630/899) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [INFO] [1782283537.110460467] [rtabmap.rtabmap]: rtabmap (4): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1223s, Maps update=0.0001s pub=0.0022s delay=0.1000s (local map=2, WM=2)
+[rtabmap-2] [INFO] [1782283538.273774660] [rtabmap.rtabmap]: rtabmap (5): Rate=1.00s, Limit=0.000s, Conversion=0.0008s, RTAB-Map=0.1241s, Maps update=0.0001s pub=0.0023s delay=0.1000s (local map=3, WM=3)
+[rtabmap-2] [INFO] [1782283540.815804235] [rtabmap.rtabmap]: rtabmap (6): Rate=1.00s, Limit=0.000s, Conversion=0.0010s, RTAB-Map=0.1298s, Maps update=0.0001s pub=0.0021s delay=0.1000s (local map=4, WM=4)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:45:37.013) Features2d.cpp:999::generateKeypoints3D() A large number (495/894) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:45:38.172) Features2d.cpp:999::generateKeypoints3D() A large number (497/904) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [INFO] [1782283542.831158197] [rtabmap.rtabmap]: rtabmap (7): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1425s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=5, WM=5)
+[rtabmap-2] [INFO] [1782283543.916276269] [rtabmap.rtabmap]: rtabmap (8): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1282s, Maps update=0.0001s pub=0.0023s delay=0.1000s (local map=6, WM=6)
+[rtabmap-2] [INFO] [1782283545.121742592] [rtabmap.rtabmap]: rtabmap (9): Rate=1.00s, Limit=0.000s, Conversion=0.0009s, RTAB-Map=0.1318s, Maps update=0.0001s pub=0.0020s delay=0.1000s (local map=7, WM=7)
+[rtabmap-2] [INFO] [1782283546.124992806] [rtabmap.rtabmap]: rtabmap (10): Rate=1.00s, Limit=0.000s, Conversion=0.0007s, RTAB-Map=0.1363s, Maps update=0.0001s pub=0.0020s delay=0.1000s (local map=8, WM=8)
+[rtabmap-2] [INFO] [1782283547.175014316] [rtabmap.rtabmap]: rtabmap (11): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1386s, Maps update=0.0001s pub=0.0021s delay=0.1000s (local map=9, WM=9)
+[rtabmap-2] [INFO] [1782283548.167674585] [rtabmap.rtabmap]: rtabmap (12): Rate=1.00s, Limit=0.000s, Conversion=0.0007s, RTAB-Map=0.1231s, Maps update=0.0001s pub=0.0022s delay=0.0500s (local map=10, WM=10)
+[rtabmap-2] [INFO] [1782283549.248618459] [rtabmap.rtabmap]: rtabmap (13): Rate=1.00s, Limit=0.000s, Conversion=0.0009s, RTAB-Map=0.1600s, Maps update=0.0001s pub=0.0020s delay=0.1500s (local map=11, WM=11)
+[rtabmap-2] [INFO] [1782283550.237886989] [rtabmap.rtabmap]: rtabmap (14): Rate=1.00s, Limit=0.000s, Conversion=0.0011s, RTAB-Map=0.1432s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=12, WM=12)
+[rtabmap-2] [INFO] [1782283551.219216877] [rtabmap.rtabmap]: rtabmap (15): Rate=1.00s, Limit=0.000s, Conversion=0.0009s, RTAB-Map=0.1302s, Maps update=0.0001s pub=0.0021s delay=0.0500s (local map=13, WM=13)
+[rtabmap-2] [INFO] [1782283552.291946933] [rtabmap.rtabmap]: rtabmap (16): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1549s, Maps update=0.0001s pub=0.0023s delay=0.1000s (local map=14, WM=14)
+[rtabmap-2] [INFO] [1782283553.296502135] [rtabmap.rtabmap]: rtabmap (17): Rate=1.00s, Limit=0.000s, Conversion=0.0007s, RTAB-Map=0.1568s, Maps update=0.0001s pub=0.0021s delay=0.1000s (local map=15, WM=15)
+[rtabmap-2] [INFO] [1782283554.298410023] [rtabmap.rtabmap]: rtabmap (18): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1590s, Maps update=0.0001s pub=0.0024s delay=0.1500s (local map=16, WM=16)
+[rtabmap-2] [INFO] [1782283555.296402199] [rtabmap.rtabmap]: rtabmap (19): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1587s, Maps update=0.0001s pub=0.0022s delay=0.1500s (local map=17, WM=17)
+[rtabmap-2] [INFO] [1782283556.300457356] [rtabmap.rtabmap]: rtabmap (20): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1607s, Maps update=0.0001s pub=0.0025s delay=0.1500s (local map=18, WM=18)
+[rtabmap-2] [INFO] [1782283557.347374573] [rtabmap.rtabmap]: rtabmap (21): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2101s, Maps update=0.0001s pub=0.0019s delay=0.2000s (local map=19, WM=19)
+[rtabmap-2] [INFO] [1782283558.477999036] [rtabmap.rtabmap]: rtabmap (22): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1424s, Maps update=0.0001s pub=0.0025s delay=0.1000s (local map=20, WM=20)
+[rtabmap-2] [INFO] [1782283559.784045622] [rtabmap.rtabmap]: rtabmap (23): Rate=1.00s, Limit=0.000s, Conversion=0.0008s, RTAB-Map=0.1452s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=21, WM=21)
+[rtabmap-2] [INFO] [1782283560.848243754] [rtabmap.rtabmap]: rtabmap (24): Rate=1.00s, Limit=0.000s, Conversion=0.0009s, RTAB-Map=0.1582s, Maps update=0.0001s pub=0.0022s delay=0.1500s (local map=22, WM=22)
+[rtabmap-2] [INFO] [1782283562.171873071] [rtabmap.rtabmap]: rtabmap (25): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1352s, Maps update=0.0001s pub=0.0024s delay=0.1000s (local map=23, WM=23)
+[rtabmap-2] [INFO] [1782283563.155958909] [rtabmap.rtabmap]: rtabmap (26): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1185s, Maps update=0.0002s pub=0.0028s delay=0.1000s (local map=23, WM=23)
+[rtabmap-2] [INFO] [1782283564.171799768] [rtabmap.rtabmap]: rtabmap (27): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1355s, Maps update=0.0001s pub=0.0022s delay=0.1000s (local map=24, WM=24)
+[rtabmap-2] [INFO] [1782283565.330716138] [rtabmap.rtabmap]: rtabmap (28): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1831s, Maps update=0.0001s pub=0.0020s delay=0.1500s (local map=25, WM=25)
+[rtabmap-2] [INFO] [1782283566.297032725] [rtabmap.rtabmap]: rtabmap (29): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1592s, Maps update=0.0001s pub=0.0023s delay=0.1500s (local map=26, WM=26)
+[rtabmap-2] [INFO] [1782283567.282909809] [rtabmap.rtabmap]: rtabmap (30): Rate=1.00s, Limit=0.000s, Conversion=0.0006s, RTAB-Map=0.1433s, Maps update=0.0001s pub=0.0025s delay=0.1000s (local map=27, WM=27)
+[rtabmap-2] [INFO] [1782283568.891356175] [rtabmap.rtabmap]: rtabmap (31): Rate=1.00s, Limit=0.000s, Conversion=0.0006s, RTAB-Map=0.1529s, Maps update=0.0001s pub=0.0021s delay=0.1000s (local map=28, WM=28)
+[rtabmap-2] [INFO] [1782283569.877963890] [rtabmap.rtabmap]: rtabmap (32): Rate=1.00s, Limit=0.000s, Conversion=0.0008s, RTAB-Map=0.1389s, Maps update=0.0001s pub=0.0022s delay=0.1000s (local map=29, WM=29)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:09.762) Features2d.cpp:999::generateKeypoints3D() A large number (448/847) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [INFO] [1782283572.513305030] [rtabmap.rtabmap]: rtabmap (33): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1757s, Maps update=0.0001s pub=0.0031s delay=0.1500s (local map=30, WM=30)
+[rtabmap-2] [INFO] [1782283573.491297932] [rtabmap.rtabmap]: rtabmap (34): Rate=1.00s, Limit=0.000s, Conversion=0.0008s, RTAB-Map=0.1530s, Maps update=0.0001s pub=0.0028s delay=0.1500s (local map=31, WM=31)
+[rtabmap-2] [INFO] [1782283574.497097378] [rtabmap.rtabmap]: rtabmap (35): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1591s, Maps update=0.0001s pub=0.0025s delay=0.1500s (local map=32, WM=32)
+[rtabmap-2] [INFO] [1782283576.143325989] [rtabmap.rtabmap]: rtabmap (36): Rate=1.00s, Limit=0.000s, Conversion=0.0009s, RTAB-Map=0.2053s, Maps update=0.0001s pub=0.0024s delay=0.2000s (local map=33, WM=33)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:12.371) Features2d.cpp:999::generateKeypoints3D() A large number (469/888) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:16.139) Rtabmap.cpp:3143::process() Rejected loop closure 16 -> 36: Not enough inliers 0/12 (matches=62) between 16 and 36[0m
+[rtabmap-2] [INFO] [1782283577.442271066] [rtabmap.rtabmap]: rtabmap (37): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1561s, Maps update=0.0001s pub=0.0023s delay=0.1500s (local map=34, WM=34)
+[rtabmap-2] [INFO] [1782283579.199335620] [rtabmap.rtabmap]: rtabmap (38): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1615s, Maps update=0.0001s pub=0.0022s delay=0.1500s (local map=35, WM=35)
+[rtabmap-2] [INFO] [1782283580.495235686] [rtabmap.rtabmap]: rtabmap (39): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.3085s, Maps update=0.0001s pub=0.0023s delay=0.2500s (local map=36, WM=36)
+[rtabmap-2] [INFO] [1782283581.999184218] [rtabmap.rtabmap]: rtabmap (40): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1628s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=37, WM=37)
+[rtabmap-2] [INFO] [1782283583.748890784] [rtabmap.rtabmap]: rtabmap (41): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1572s, Maps update=0.0001s pub=0.0023s delay=0.1500s (local map=38, WM=38)
+[rtabmap-2] [INFO] [1782283584.742989051] [rtabmap.rtabmap]: rtabmap (42): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1535s, Maps update=0.0001s pub=0.0027s delay=0.1500s (local map=39, WM=39)
+[rtabmap-2] [INFO] [1782283585.784999941] [rtabmap.rtabmap]: rtabmap (43): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1974s, Maps update=0.0001s pub=0.0022s delay=0.2000s (local map=40, WM=40)
+[rtabmap-2] [INFO] [1782283586.790188860] [rtabmap.rtabmap]: rtabmap (44): Rate=1.00s, Limit=0.000s, Conversion=0.0008s, RTAB-Map=0.1505s, Maps update=0.0001s pub=0.0022s delay=0.1500s (local map=41, WM=41)
+[rtabmap-2] [INFO] [1782283587.818714838] [rtabmap.rtabmap]: rtabmap (45): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1800s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=42, WM=42)
+[rtabmap-2] [INFO] [1782283589.329230571] [rtabmap.rtabmap]: rtabmap (46): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2405s, Maps update=0.0001s pub=0.0027s delay=0.2000s (local map=43, WM=43)
+[rtabmap-2] [INFO] [1782283590.449051952] [rtabmap.rtabmap]: rtabmap (47): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2495s, Maps update=0.0001s pub=0.0025s delay=0.2500s (local map=44, WM=44)
+[rtabmap-2] [INFO] [1782283591.417658725] [rtabmap.rtabmap]: rtabmap (48): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2183s, Maps update=0.0001s pub=0.0024s delay=0.2000s (local map=45, WM=45)
+[rtabmap-2] [INFO] [1782283592.511802832] [rtabmap.rtabmap]: rtabmap (49): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2630s, Maps update=0.0001s pub=0.0026s delay=0.2500s (local map=46, WM=46)
+[rtabmap-2] [INFO] [1782283593.625059440] [rtabmap.rtabmap]: rtabmap (50): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2366s, Maps update=0.0001s pub=0.0025s delay=0.2000s (local map=47, WM=47)
+[rtabmap-2] [INFO] [1782283594.689436783] [rtabmap.rtabmap]: rtabmap (51): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2502s, Maps update=0.0001s pub=0.0023s delay=0.2500s (local map=48, WM=48)
+[rtabmap-2] [INFO] [1782283595.777994073] [rtabmap.rtabmap]: rtabmap (52): Rate=1.00s, Limit=0.000s, Conversion=0.0006s, RTAB-Map=0.1893s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=49, WM=49)
+[rtabmap-2] [INFO] [1782283596.732373624] [rtabmap.rtabmap]: rtabmap (53): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1443s, Maps update=0.0001s pub=0.0024s delay=0.1500s (local map=50, WM=50)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:34.684) Rtabmap.cpp:3143::process() Rejected loop closure 14 -> 51: Not enough inliers 9/12 (matches=81) between 14 and 51[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:35.773) Rtabmap.cpp:3143::process() Rejected loop closure 14 -> 52: Not enough inliers 0/12 (matches=61) between 14 and 52[0m
+[rtabmap-2] [INFO] [1782283598.257564354] [rtabmap.rtabmap]: rtabmap (54): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1686s, Maps update=0.0001s pub=0.0027s delay=0.1500s (local map=51, WM=51)
+[rtabmap-2] [INFO] [1782283599.680961125] [rtabmap.rtabmap]: rtabmap (55): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1455s, Maps update=0.0001s pub=0.0022s delay=0.1500s (local map=52, WM=52)
+[rtabmap-2] [INFO] [1782283600.997492520] [rtabmap.rtabmap]: rtabmap (56): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.1537s, Maps update=0.0001s pub=0.0024s delay=0.1500s (local map=53, WM=53)
+[rtabmap-2] [INFO] [1782283601.998522335] [rtabmap.rtabmap]: rtabmap (57): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1593s, Maps update=0.0001s pub=0.0024s delay=0.1500s (local map=54, WM=54)
+[rtabmap-2] [INFO] [1782283603.064159216] [rtabmap.rtabmap]: rtabmap (58): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2272s, Maps update=0.0002s pub=0.0024s delay=0.2000s (local map=55, WM=55)
+[rtabmap-2] [INFO] [1782283604.070096158] [rtabmap.rtabmap]: rtabmap (59): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2323s, Maps update=0.0001s pub=0.0028s delay=0.2000s (local map=56, WM=56)
+[rtabmap-2] [INFO] [1782283605.023890539] [rtabmap.rtabmap]: rtabmap (60): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1854s, Maps update=0.0001s pub=0.0021s delay=0.1500s (local map=57, WM=57)
+[rtabmap-2] [INFO] [1782283606.033496677] [rtabmap.rtabmap]: rtabmap (61): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1953s, Maps update=0.0001s pub=0.0023s delay=0.2000s (local map=58, WM=58)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:43.059) Rtabmap.cpp:3143::process() Rejected loop closure 34 -> 58: Not enough inliers 6/12 (matches=44) between 34 and 58[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:45.019) Rtabmap.cpp:3143::process() Rejected loop closure 18 -> 60: Not enough inliers after bundle adjustment 10/12 (matches=15) between 18 and 60[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:46.029) Rtabmap.cpp:3143::process() Rejected loop closure 34 -> 61: Not enough inliers 0/12 (matches=24) between 34 and 61[0m
+[rtabmap-2] [INFO] [1782283607.058808528] [rtabmap.rtabmap]: rtabmap (62): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2213s, Maps update=0.0001s pub=0.0025s delay=0.2000s (local map=59, WM=59)
+[rtabmap-2] [INFO] [1782283608.072502318] [rtabmap.rtabmap]: rtabmap (63): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2341s, Maps update=0.0001s pub=0.0025s delay=0.2000s (local map=60, WM=60)
+[rtabmap-2] [INFO] [1782283609.124228408] [rtabmap.rtabmap]: rtabmap (64): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2355s, Maps update=0.0002s pub=0.0029s delay=0.2000s (local map=61, WM=61)
+[rtabmap-2] [INFO] [1782283610.168108130] [rtabmap.rtabmap]: rtabmap (65): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2302s, Maps update=0.0001s pub=0.0027s delay=0.2000s (local map=62, WM=62)
+[rtabmap-2] [INFO] [1782283611.144584342] [rtabmap.rtabmap]: rtabmap (66): Rate=1.00s, Limit=0.000s, Conversion=0.0007s, RTAB-Map=0.2084s, Maps update=0.0001s pub=0.0023s delay=0.2000s (local map=63, WM=63)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:51.140) Rtabmap.cpp:3143::process() Rejected loop closure 22 -> 66: Not enough inliers 0/12 (matches=78) between 22 and 66[0m
+[rtabmap-2] [INFO] [1782283612.545539242] [rtabmap.rtabmap]: rtabmap (67): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2079s, Maps update=0.0001s pub=0.0024s delay=0.2000s (local map=64, WM=64)
+[rtabmap-2] [INFO] [1782283614.034548007] [rtabmap.rtabmap]: rtabmap (68): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1974s, Maps update=0.0001s pub=0.0023s delay=0.2000s (local map=65, WM=65)
+[rtabmap-2] [INFO] [1782283615.239215419] [rtabmap.rtabmap]: rtabmap (69): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2023s, Maps update=0.0001s pub=0.0026s delay=0.2000s (local map=66, WM=66)
+[rtabmap-2] [INFO] [1782283616.691945097] [rtabmap.rtabmap]: rtabmap (70): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2060s, Maps update=0.0002s pub=0.0029s delay=0.2000s (local map=67, WM=67)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:52.541) Rtabmap.cpp:3143::process() Rejected loop closure 4 -> 67: Not enough inliers 0/12 (matches=37) between 4 and 67[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:54.030) Rtabmap.cpp:3143::process() Rejected loop closure 22 -> 68: Not enough inliers 0/12 (matches=46) between 22 and 68[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:55.234) Rtabmap.cpp:3143::process() Rejected loop closure 22 -> 69: Not enough inliers 0/12 (matches=38) between 22 and 69[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:56.686) Rtabmap.cpp:3143::process() Rejected loop closure 33 -> 70: Not enough inliers 0/12 (matches=29) between 33 and 70[0m
+[rtabmap-2] [INFO] [1782283618.139770961] [rtabmap.rtabmap]: rtabmap (71): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2050s, Maps update=0.0002s pub=0.0029s delay=0.2000s (local map=68, WM=68)
+[rtabmap-2] [INFO] [1782283620.005011106] [rtabmap.rtabmap]: rtabmap (72): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.5193s, Maps update=0.0001s pub=0.0025s delay=0.5000s (local map=69, WM=69)
+[rtabmap-2] [INFO] [1782283621.540389290] [rtabmap.rtabmap]: rtabmap (73): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2039s, Maps update=0.0002s pub=0.0027s delay=0.2000s (local map=70, WM=70)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:46:58.134) Rtabmap.cpp:3143::process() Rejected loop closure 34 -> 71: Not enough inliers 0/12 (matches=25) between 34 and 71[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:00.000) Rtabmap.cpp:3143::process() Rejected loop closure 34 -> 72: Not enough inliers 0/12 (matches=25) between 34 and 72[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:01.535) Rtabmap.cpp:3143::process() Rejected loop closure 34 -> 73: Not enough inliers 0/12 (matches=32) between 34 and 73[0m
+[rtabmap-2] [INFO] [1782283622.552836510] [rtabmap.rtabmap]: rtabmap (74): Rate=1.00s, Limit=0.000s, Conversion=0.0006s, RTAB-Map=0.2147s, Maps update=0.0001s pub=0.0026s delay=0.2000s (local map=71, WM=71)
+[rtabmap-2] [INFO] [1782283623.602715775] [rtabmap.rtabmap]: rtabmap (75): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2647s, Maps update=0.0001s pub=0.0031s delay=0.2500s (local map=72, WM=72)
+[rtabmap-2] [INFO] [1782283624.583346894] [rtabmap.rtabmap]: rtabmap (76): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2452s, Maps update=0.0001s pub=0.0031s delay=0.2500s (local map=73, WM=73)
+[rtabmap-2] [INFO] [1782283625.717823882] [rtabmap.rtabmap]: rtabmap (77): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2283s, Maps update=0.0001s pub=0.0029s delay=0.2000s (local map=74, WM=74)
+[rtabmap-2] [INFO] [1782283626.882930025] [rtabmap.rtabmap]: rtabmap (78): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2348s, Maps update=0.0001s pub=0.0026s delay=0.2500s (local map=75, WM=75)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:02.548) Rtabmap.cpp:3143::process() Rejected loop closure 60 -> 74: Not enough inliers 0/12 (matches=42) between 60 and 74[0m
+[rtabmap-2] [INFO] [1782283629.039226928] [rtabmap.rtabmap]: rtabmap (79): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2408s, Maps update=0.0001s pub=0.0023s delay=0.2500s (local map=76, WM=76)
+[rtabmap-2] [INFO] [1782283630.037051916] [rtabmap.rtabmap]: rtabmap (80): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2498s, Maps update=0.0001s pub=0.0028s delay=0.2500s (local map=77, WM=77)
+[rtabmap-2] [INFO] [1782283631.163467454] [rtabmap.rtabmap]: rtabmap (81): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2652s, Maps update=0.0001s pub=0.0034s delay=0.2500s (local map=78, WM=78)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:09.035) Rtabmap.cpp:3143::process() Rejected loop closure 8 -> 79: Not enough inliers 7/12 (matches=74) between 8 and 79[0m
+[rtabmap-2] [INFO] [1782283632.177983604] [rtabmap.rtabmap]: rtabmap (82): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2398s, Maps update=0.0001s pub=0.0030s delay=0.2500s (local map=79, WM=79)
+[rtabmap-2] [INFO] [1782283633.213434195] [rtabmap.rtabmap]: rtabmap (83): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2254s, Maps update=0.0002s pub=0.0032s delay=0.2000s (local map=80, WM=80)
+[rtabmap-2] [INFO] [1782283634.220579126] [rtabmap.rtabmap]: rtabmap (84): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2325s, Maps update=0.0002s pub=0.0038s delay=0.2000s (local map=81, WM=81)
+[rtabmap-2] [INFO] [1782283635.513901674] [rtabmap.rtabmap]: rtabmap (85): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2263s, Maps update=0.0001s pub=0.0032s delay=0.2000s (local map=82, WM=82)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:15.310) Features2d.cpp:999::generateKeypoints3D() A large number (618/878) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [INFO] [1782283637.230383101] [rtabmap.rtabmap]: rtabmap (86): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2432s, Maps update=0.0001s pub=0.0030s delay=0.2500s (local map=83, WM=83)
+[rtabmap-2] [INFO] [1782283638.213930385] [rtabmap.rtabmap]: rtabmap (87): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2269s, Maps update=0.0001s pub=0.0032s delay=0.2000s (local map=84, WM=84)
+[rtabmap-2] [INFO] [1782283639.336570608] [rtabmap.rtabmap]: rtabmap (88): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2474s, Maps update=0.0002s pub=0.0032s delay=0.2500s (local map=85, WM=85)
+[rtabmap-2] [INFO] [1782283640.623653305] [rtabmap.rtabmap]: rtabmap (89): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2847s, Maps update=0.0002s pub=0.0034s delay=0.2500s (local map=86, WM=86)
+[rtabmap-2] [INFO] [1782283641.682370174] [rtabmap.rtabmap]: rtabmap (90): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1937s, Maps update=0.0002s pub=0.0026s delay=0.2000s (local map=87, WM=87)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:19.331) Rtabmap.cpp:3989::process() Rejecting all added loop closures (1, first is 88 <-> 62) in this iteration because a wrong loop closure has been detected after graph optimization, resulting in a maximum graph error ratio of 3.844802 (edge 87->88, type=0, abs error=0.417906 m, stddev=0.108694). The maximum error ratio parameter "RGBD/OptimizeMaxError" is 3.000000 of std deviation.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:19.331) Rtabmap.cpp:4071::process() Loop closure 88->62 rejected![0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:20.617) Rtabmap.cpp:3989::process() Rejecting all added loop closures (1, first is 89 <-> 62) in this iteration because a wrong loop closure has been detected after graph optimization, resulting in a maximum graph error ratio of 4.074820 (edge 88->89, type=0, abs error=0.893208 m, stddev=0.219202). The maximum error ratio parameter "RGBD/OptimizeMaxError" is 3.000000 of std deviation.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:20.617) Rtabmap.cpp:4071::process() Loop closure 89->62 rejected![0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:21.677) Rtabmap.cpp:3143::process() Rejected loop closure 63 -> 90: Not enough inliers 0/12 (matches=40) between 63 and 90[0m
+[rtabmap-2] [INFO] [1782283642.827554651] [rtabmap.rtabmap]: rtabmap (91): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2390s, Maps update=0.0001s pub=0.0029s delay=0.1500s (local map=88, WM=88)
+[rtabmap-2] [INFO] [1782283644.447363801] [rtabmap.rtabmap]: rtabmap (92): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.3097s, Maps update=0.0002s pub=0.0032s delay=0.3000s (local map=89, WM=89)
+[rtabmap-2] [INFO] [1782283645.615317453] [rtabmap.rtabmap]: rtabmap (93): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.3263s, Maps update=0.0001s pub=0.0030s delay=0.3000s (local map=90, WM=90)
+[rtabmap-2] [INFO] [1782283646.618291254] [rtabmap.rtabmap]: rtabmap (94): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.3294s, Maps update=0.0002s pub=0.0034s delay=0.2500s (local map=91, WM=91)
+[rtabmap-2] [INFO] [1782283647.692720459] [rtabmap.rtabmap]: rtabmap (95): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.3524s, Maps update=0.0002s pub=0.0031s delay=0.3500s (local map=92, WM=92)
+[rtabmap-2] [INFO] [1782283648.876383919] [rtabmap.rtabmap]: rtabmap (96): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.3372s, Maps update=0.0002s pub=0.0031s delay=0.3000s (local map=93, WM=93)
+[rtabmap-2] [INFO] [1782283650.320353476] [rtabmap.rtabmap]: rtabmap (97): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2815s, Maps update=0.0002s pub=0.0031s delay=0.2500s (local map=94, WM=94)
+[rtabmap-2] [INFO] [1782283651.646210045] [rtabmap.rtabmap]: rtabmap (98): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.3466s, Maps update=0.0002s pub=0.0031s delay=0.3500s (local map=95, WM=95)
+[rtabmap-2] [INFO] [1782283652.547554784] [rtabmap.rtabmap]: rtabmap (99): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2594s, Maps update=0.0002s pub=0.0027s delay=0.2500s (local map=96, WM=96)
+[rtabmap-2] [INFO] [1782283653.478465783] [rtabmap.rtabmap]: rtabmap (100): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1904s, Maps update=0.0001s pub=0.0028s delay=0.1500s (local map=97, WM=97)
+[rtabmap-2] [INFO] [1782283654.497126377] [rtabmap.rtabmap]: rtabmap (101): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2094s, Maps update=0.0002s pub=0.0027s delay=0.2000s (local map=98, WM=98)
+[rtabmap-2] [INFO] [1782283655.912713356] [rtabmap.rtabmap]: rtabmap (102): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2734s, Maps update=0.0002s pub=0.0031s delay=0.2500s (local map=99, WM=99)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:32.542) Rtabmap.cpp:3143::process() Rejected loop closure 33 -> 99: Not enough inliers 0/12 (matches=13) between 33 and 99[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:33.473) Rtabmap.cpp:3143::process() Rejected loop closure 27 -> 100: Not enough inliers 0/12 (matches=65) between 27 and 100[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:34.492) Rtabmap.cpp:3143::process() Rejected loop closure 27 -> 101: Not enough inliers 0/12 (matches=46) between 27 and 101[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:35.907) Rtabmap.cpp:3143::process() Rejected loop closure 25 -> 102: Not enough inliers 9/12 (matches=84) between 25 and 102[0m
+[rtabmap-2] [INFO] [1782283657.849360374] [rtabmap.rtabmap]: rtabmap (103): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2529s, Maps update=0.0001s pub=0.0027s delay=0.2500s (local map=100, WM=100)
+[rtabmap-2] [INFO] [1782283658.841390029] [rtabmap.rtabmap]: rtabmap (104): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2537s, Maps update=0.0002s pub=0.0034s delay=0.2500s (local map=101, WM=101)
+[rtabmap-2] [INFO] [1782283660.979539485] [rtabmap.rtabmap]: rtabmap (105): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2943s, Maps update=0.0001s pub=0.0028s delay=0.3000s (local map=102, WM=102)
+[rtabmap-2] [INFO] [1782283661.891173418] [rtabmap.rtabmap]: rtabmap (106): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2039s, Maps update=0.0002s pub=0.0031s delay=0.2000s (local map=103, WM=103)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:37.844) Rtabmap.cpp:3143::process() Rejected loop closure 25 -> 103: Not enough inliers 0/12 (matches=75) between 25 and 103[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:40.974) Rtabmap.cpp:3143::process() Rejected loop closure 27 -> 105: Not enough inliers 7/12 (matches=47) between 27 and 105[0m
+[rtabmap-2] [INFO] [1782283663.001900222] [rtabmap.rtabmap]: rtabmap (107): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2154s, Maps update=0.0001s pub=0.0028s delay=0.2000s (local map=104, WM=104)
+[rtabmap-2] [INFO] [1782283664.202629022] [rtabmap.rtabmap]: rtabmap (108): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.3145s, Maps update=0.0002s pub=0.0039s delay=0.3000s (local map=105, WM=105)
+[rtabmap-2] [INFO] [1782283665.320649753] [rtabmap.rtabmap]: rtabmap (109): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2840s, Maps update=0.0002s pub=0.0036s delay=0.2500s (local map=106, WM=106)
+[rtabmap-2] [INFO] [1782283666.330558155] [rtabmap.rtabmap]: rtabmap (110): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2927s, Maps update=0.0002s pub=0.0033s delay=0.3000s (local map=107, WM=107)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:46.059) Features2d.cpp:999::generateKeypoints3D() A large number (443/884) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [INFO] [1782283667.464025319] [rtabmap.rtabmap]: rtabmap (111): Rate=1.00s, Limit=0.000s, Conversion=0.0006s, RTAB-Map=0.2737s, Maps update=0.0002s pub=0.0034s delay=0.2500s (local map=108, WM=108)
+[rtabmap-2] [INFO] [1782283668.469666698] [rtabmap.rtabmap]: rtabmap (112): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2809s, Maps update=0.0002s pub=0.0033s delay=0.2500s (local map=109, WM=109)
+[rtabmap-2] [INFO] [1782283669.534666760] [rtabmap.rtabmap]: rtabmap (113): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.2858s, Maps update=0.0002s pub=0.0032s delay=0.3000s (local map=110, WM=110)
+[rtabmap-2] [INFO] [1782283670.778920619] [rtabmap.rtabmap]: rtabmap (114): Rate=1.00s, Limit=0.000s, Conversion=0.0003s, RTAB-Map=0.2418s, Maps update=0.0002s pub=0.0034s delay=0.2500s (local map=111, WM=111)
+[rtabmap-2] [INFO] [1782283671.842892936] [rtabmap.rtabmap]: rtabmap (115): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2972s, Maps update=0.0001s pub=0.0026s delay=0.3000s (local map=112, WM=112)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:47.210) Features2d.cpp:999::generateKeypoints3D() A large number (456/889) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:51.571) Features2d.cpp:999::generateKeypoints3D() A large number (597/895) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:51.838) Rtabmap.cpp:3143::process() Rejected loop closure 89 -> 115: Not enough inliers 6/12 (matches=40) between 89 and 115[0m
+[rtabmap-2] [INFO] [1782283672.984601731] [rtabmap.rtabmap]: rtabmap (116): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1990s, Maps update=0.0002s pub=0.0025s delay=0.2000s (local map=113, WM=113)
+[rtabmap-2] [INFO] [1782283673.993360294] [rtabmap.rtabmap]: rtabmap (117): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.1957s, Maps update=0.0003s pub=0.0025s delay=0.2000s (local map=113, WM=113)
+[rtabmap-2] [INFO] [1782283675.053270549] [rtabmap.rtabmap]: rtabmap (118): Rate=1.00s, Limit=0.000s, Conversion=0.0004s, RTAB-Map=0.2062s, Maps update=0.0003s pub=0.0026s delay=0.2000s (local map=113, WM=113)
+[rtabmap-2] [INFO] [1782283676.026693585] [rtabmap.rtabmap]: rtabmap (119): Rate=1.00s, Limit=0.000s, Conversion=0.0005s, RTAB-Map=0.1376s, Maps update=0.0003s pub=0.0029s delay=0.1000s (local map=113, WM=113)
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:52.811) Features2d.cpp:999::generateKeypoints3D() A large number (760/950) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:52.980) Rtabmap.cpp:3143::process() Rejected loop closure 62 -> 116: Not enough inliers 8/12 (matches=21) between 62 and 116[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:53.832) Features2d.cpp:999::generateKeypoints3D() A large number (744/975) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:54.872) Features2d.cpp:999::generateKeypoints3D() A large number (716/980) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[rtabmap-2] [33m[ WARN] (2026-06-24 14:47:55.914) Features2d.cpp:999::generateKeypoints3D() A large number (803/973) of stereo correspondences are rejected! Optical flow may have failed because images are not calibrated, the background is too far (no disparity between the images), maximum disparity may be too small (128.000000) or that exposure between left and right images is too different.[0m
+[stereo_sync-1] [INFO] [1782283875.557717587] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rtabmap-2] [INFO] [1782283875.557773490] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[rtabmap-2] [INFO] [1782283875.608386149] [rtabmap.rtabmap]: Parameters are not saved (No configuration file provided...)
+[INFO] [stereo_sync-1]: process has finished cleanly [pid 304789]
+[rtabmap-2] rtabmap: Saving database/long-term memory... (located at /tmp/hno_case009_rtabmap.db)
+[rtabmap-2] double free or corruption (!prev)
+[ERROR] [rtabmap-2]: process has died [pid 304791, exit code -6, cmd '/home/sharpa/ros2_ws/install/rtabmap_slam/lib/rtabmap_slam/rtabmap --delete_db_on_start --ros-args -r __ns:=/rtabmap --params-file /tmp/launch_params_hypk3_ke -r rgbd_image:=rgbd_image'].

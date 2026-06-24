@@ -1,0 +1,14 @@
+input_bag: /tmp/hno_case009_rtabmap_input_bag
+output_bag: /tmp/hno_case009_rtabmap_output_bag
+topics:
+  /cam0/camera_info: count=2619 hz=18.32691632939555
+  /cam0/image_rect: count=2619 hz=18.32691632939555
+  /cam1/camera_info: count=2619 hz=18.32691632939555
+  /cam1/image_rect: count=2619 hz=18.32691632939555
+  /hno_vio/odom: count=2619 hz=18.32691632939555
+  /tf: count=2619 hz=18.32691632939555
+  /rtabmap/global_path: count=0 hz=n/a recorded=False
+  /rtabmap/info: count=119 hz=0.828360829105161 recorded=True
+  /rtabmap/local_path: count=0 hz=n/a recorded=False
+  /rtabmap/mapData: count=119 hz=0.828360829105161 recorded=True
+  /rtabmap/rgbd_image: count=2548 hz=17.829891478598345 recorded=True
