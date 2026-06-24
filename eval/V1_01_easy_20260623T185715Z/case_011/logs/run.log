@@ -3087,3 +3087,61 @@
 [0m[ INFO] [1782243139.964731301]: [Phase 2] Using ESTIMATE for Mapping (Real Mode)[0m
 [HNO] 1403715418.262 | Feat:0/0 | Pos:-2368.32 -3303.46 410.60 | Vel:-72.68 -86.19 7.99 | EOrth:0.099784 | 
 [HNOFeature] frame 2520 pts 157 stable 0 new 14 db 14 stereo 25/80 err_max 0.026 reproj 0/0 err_mean 0.000 err_max 0.000
+[HNO] 1403715418.312 | Feat:0/0 | Pos:-2371.95 -3307.77 411.00 | Vel:-72.75 -86.25 8.00 | EOrth:0.099784 | 
+[HNO] 1403715418.362 | Feat:0/0 | Pos:-2375.59 -3312.08 411.40 | Vel:-72.82 -86.31 8.00 | EOrth:0.099784 | 
+[HNO] 1403715418.412 | Feat:0/0 | Pos:-2379.23 -3316.40 411.80 | Vel:-72.89 -86.36 8.00 | EOrth:0.099784 | 
+[HNO] 1403715418.462 | Feat:0/0 | Pos:-2382.88 -3320.72 412.20 | Vel:-72.96 -86.42 8.01 | EOrth:0.099784 | 
+[HNO] 1403715418.512 | Feat:0/0 | Pos:-2386.53 -3325.04 412.60 | Vel:-73.02 -86.48 8.01 | EOrth:0.099784 | 
+[HNO] 1403715418.562 | Feat:0/0 | Pos:-2390.18 -3329.37 413.00 | Vel:-73.10 -86.54 8.01 | EOrth:0.099784 | 
+[HNO] 1403715418.612 | Feat:0/0 | Pos:-2393.84 -3333.69 413.40 | Vel:-73.17 -86.60 8.02 | EOrth:0.099784 | 
+[HNO] 1403715418.662 | Feat:0/0 | Pos:-2397.50 -3338.03 413.80 | Vel:-73.24 -86.65 8.02 | EOrth:0.099784 | 
+[HNO] 1403715418.712 | Feat:0/0 | Pos:-2401.16 -3342.36 414.21 | Vel:-73.31 -86.71 8.02 | EOrth:0.099784 | 
+[HNO] 1403715418.762 | Feat:0/0 | Pos:-2404.83 -3346.70 414.61 | Vel:-73.38 -86.77 8.03 | EOrth:0.099784 | 
+[HNO] 1403715418.812 | Feat:0/0 | Pos:-2408.50 -3351.04 415.01 | Vel:-73.45 -86.83 8.03 | EOrth:0.099784 | 
+... logging to /root/.ros/log/e7b1bbd2-6f39-11f1-a3fc-70089472153f/roslaunch-IT26000351-7034.log
+Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+Done checking log file disk usage. Usage is <1GB.
+]2;/home/sharpa/hno_vio_clean/src/hno_vio/launch/euroc_hno.launch
+[1mstarted roslaunch server http://IT26000351:44913/[0m
+
+SUMMARY
+========
+
+CLEAR PARAMETERS
+ * /run_hno_vio/
+
+PARAMETERS
+ * /rosdistro: noetic
+ * /rosversion: 1.15.14
+ * /run_hno_vio/config_path: /home/sharpa/hno_...
+ * /run_hno_vio/num_cams: 2
+ * /run_hno_vio/path_gt: /home/sharpa/hno_...
+ * /run_hno_vio/topic_cam0: /cam0/image_raw
+ * /run_hno_vio/topic_cam1: /cam1/image_raw
+ * /run_hno_vio/topic_imu: /imu0
+ * /run_hno_vio/use_gt_init: False
+ * /run_hno_vio/use_gt_mapping: False
+
+NODES
+  /
+    rosbag (rosbag/play)
+    run_hno_vio (hno_vio/run_hno_vio)
+
+auto-starting new master
+[1mprocess[master]: started with pid [7042][0m
+[1mROS_MASTER_URI=http://localhost:11311[0m
+]2;/home/sharpa/hno_vio_clean/src/hno_vio/launch/euroc_hno.launch http://localhost:11311
+[1msetting /run_id to e7b1bbd2-6f39-11f1-a3fc-70089472153f[0m
+[1mprocess[rosout-1]: started with pid [7052][0m
+started core service [/rosout]
+[1mprocess[run_hno_vio-2]: started with pid [7060][0m
+[1mprocess[rosbag-3]: started with pid [7061][0m
+[1m[rosbag-3] process has finished cleanly
+log file: /root/.ros/log/e7b1bbd2-6f39-11f1-a3fc-70089472153f/rosbag-3*.log[0m
+[run_hno_vio-2] killing on exit
+[rosout-1] killing on exit
+[master] killing on exit
+shutting down processing monitor...
+... shutting down processing monitor complete
+[1mdone[0m

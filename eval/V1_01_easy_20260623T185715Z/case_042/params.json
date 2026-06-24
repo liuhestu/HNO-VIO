@@ -1,0 +1,31 @@
+{
+  "case_id": "case_042",
+  "code_variant": "param_switch_search",
+  "dataset": "V1_01_easy",
+  "params": {
+    "feature_active_mature_thresh": 3,
+    "feature_fail_limit": 3,
+    "feature_fail_limit_low": 10,
+    "feature_low_feature_db": 100,
+    "feature_low_feature_pts": 81,
+    "feature_map_jump_thresh": 0.75,
+    "feature_mature_thresh": 3,
+    "feature_mature_thresh_low": 1,
+    "feature_max_stereo_depth": 4.0,
+    "feature_reproj_thresh": 0.1,
+    "feature_reproj_thresh_low": 0.1,
+    "feature_stereo_reproj_thresh": 0.015,
+    "feature_tracker_fast_threshold": 15,
+    "feature_tracker_grid_x": 5,
+    "feature_tracker_grid_y": 5,
+    "feature_tracker_min_px_dist": 18,
+    "feature_tracker_num_pts": 240,
+    "update_chi2_gate": 26.0,
+    "update_enforce_structure": false,
+    "update_max_delta_p": 0.08,
+    "update_max_delta_r": 0.15,
+    "update_pixel_noise": 2.5
+  },
+  "seed": 314266294,
+  "stage": 1
+}
