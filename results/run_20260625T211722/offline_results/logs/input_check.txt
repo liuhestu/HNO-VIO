@@ -1,0 +1,33 @@
+HNO_PKG=/home/sharpa/hno_vio_clean/src/hno_vio
+RUN_RTABMAP_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap
+ROS2_WS=/home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap/ros2_ws
+RTABMAP_WS=/home/sharpa/ros2_ws/install
+RUN_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722
+VIO_RESULTS_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/vio_results
+RUN_CONTEXT_JSON=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/run_context.json
+EUROC_MAV0=/home/sharpa/datasets/euroc/ASL/V1_01_easy/mav0
+GROUND_TRUTH_TUM=/home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt
+ODOM_FRAME=odom
+BASE_FRAME=base_link
+OUT_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results
+LOG_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs
+INPUT_ODOM_CSV=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/vio_results/odom_raw.csv
+INPUT_ODOM_TXT=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/vio_results/odom_raw.txt
+INPUT_BAG=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag
+OUTPUT_BAG=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag
+RTABMAP_DB=/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap.db
+
+checks:
+run_context.json: ok
+odom_raw.csv/txt: ok
+EuRoC ASL images/calibration: ok
+ground truth TUM: ok
+ROS2/RTAB-Map paths: ok
+/home/sharpa/.local/bin/evo_ape
+/home/sharpa/.local/bin/evo_rpe
+/home/sharpa/.local/bin/evo_traj
+/usr/bin/colcon
+host commands: ok
+/home/sharpa/ros2_ws/install/rtabmap_slam
+/home/sharpa/ros2_ws/install/rtabmap_sync
+python imports: ok

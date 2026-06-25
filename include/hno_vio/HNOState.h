@@ -79,6 +79,7 @@ public:
         Eigen::JacobiSVD<Eigen::Matrix3d> svd_R(R_hat_B2I, Eigen::ComputeFullU | Eigen::ComputeFullV);
         R_hat_B2I = svd_R.matrixU() * svd_R.matrixV().transpose();
 
+
         // 2. 强制 e_hat 正交化
         Eigen::Matrix3d E;
         E.col(0) = e_hat[0];

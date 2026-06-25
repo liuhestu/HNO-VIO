@@ -18,10 +18,12 @@ def generate_launch_description():
     odom_csv = DeclareLaunchArgument(
         "odom_csv",
         default_value=env_default(
-            "HNO_VIO_ODOM_CSV",
-            "/home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_guarded_020/offline_results/hno_vio_odom.csv",
+            "INPUT_ODOM_CSV",
+            "/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/vio_results/odom_raw.csv",
         ),
     )
+    odom_frame = DeclareLaunchArgument("odom_frame", default_value=env_default("ODOM_FRAME", "odom"))
+    base_frame = DeclareLaunchArgument("base_frame", default_value=env_default("BASE_FRAME", "base_link"))
     max_duration_sec = DeclareLaunchArgument("max_duration_sec", default_value=env_default("MAX_DURATION_SEC", "0.0"))
     max_odom_time_diff_sec = DeclareLaunchArgument("max_odom_time_diff_sec", default_value="0.03")
     replay_rate_hz = DeclareLaunchArgument("replay_rate_hz", default_value="20.0")
@@ -37,10 +39,19 @@ def generate_launch_description():
             "max_odom_time_diff_sec": LaunchConfiguration("max_odom_time_diff_sec"),
             "replay_rate_hz": LaunchConfiguration("replay_rate_hz"),
             "max_duration_sec": LaunchConfiguration("max_duration_sec"),
-            "odom_frame": "odom",
-            "base_frame": "base_link",
+            "odom_frame": LaunchConfiguration("odom_frame"),
+            "base_frame": LaunchConfiguration("base_frame"),
             "left_camera_frame": "cam0_rect",
             "right_camera_frame": "cam1_rect",
         }],
     )
-    return LaunchDescription([euroc_mav0, odom_csv, max_duration_sec, max_odom_time_diff_sec, replay_rate_hz, replay])
+    return LaunchDescription([
+        euroc_mav0,
+        odom_csv,
+        odom_frame,
+        base_frame,
+        max_duration_sec,
+        max_odom_time_diff_sec,
+        replay_rate_hz,
+        replay,
+    ])

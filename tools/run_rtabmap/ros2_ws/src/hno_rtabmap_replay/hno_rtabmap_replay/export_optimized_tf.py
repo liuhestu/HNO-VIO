@@ -1,3 +1,19 @@
+"""Export optimized RTAB-Map graph odometry from a recorded ROS 2 bag.
+
+Usage:
+    hno_export_optimized_tf --bag RTABMAP_OUTPUT_BAG --out-dir OUT_DIR
+
+Inputs:
+    --bag: ROS 2 bag recorded from the RTAB-Map run.
+    --out-dir: Offline results directory.
+    Optional: --tf-match-time, --max-tf-diff-sec, --min-graph-poses,
+    --warn-graph-poses.
+
+Outputs:
+    OUT_DIR/odom_optimized.txt
+    OUT_DIR/logs/export_report.txt
+"""
+
 import argparse
 from pathlib import Path
 
@@ -156,11 +172,15 @@ def main():
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--tf-match-time", choices=["bag", "header"], default="bag")
     parser.add_argument("--max-tf-diff-sec", type=float, default=0.2)
+    parser.add_argument("--min-graph-poses", type=int, default=20)
+    parser.add_argument("--warn-graph-poses", type=int, default=50)
     args = parser.parse_args()
 
     bag_dir = Path(args.bag)
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = out_dir / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
     if not bag_dir.exists():
         raise RuntimeError(f"output bag not found: {bag_dir}")
 
@@ -169,7 +189,7 @@ def main():
         raise RuntimeError("no /hno_vio/odom messages found in output bag")
 
     max_tf_diff_ns = int(args.max_tf_diff_sec * 1e9)
-    optimized = []
+    map_odom_optimized_count = 0
     map_odom = map_odom_bag if args.tf_match_time == "bag" else map_odom_header
     map_base = map_base_bag if args.tf_match_time == "bag" else map_base_header
     if map_odom:
@@ -178,35 +198,36 @@ def main():
             T_map_odom = nearest_by_stamp(map_odom, match_stamp, max_tf_diff_ns)
             if T_map_odom is None:
                 continue
-            optimized.append((stamp_ns, T_map_odom @ T_odom_base))
-        source = f"map->odom composed with odom->base_link using {args.tf_match_time} stamps"
+            _T_map_base = T_map_odom @ T_odom_base
+            map_odom_optimized_count += 1
+        diagnostic_source = f"map->odom composed with odom->base_link using {args.tf_match_time} stamps"
     elif map_base:
         for stamp_ns, bag_stamp_ns, _T_odom_base in raw:
             match_stamp = bag_stamp_ns if args.tf_match_time == "bag" else stamp_ns
             T_map_base = nearest_by_stamp(map_base, match_stamp, max_tf_diff_ns)
             if T_map_base is None:
                 continue
-            optimized.append((stamp_ns, T_map_base))
-        source = f"direct map->base_link using {args.tf_match_time} stamps"
+            _T_map_base = T_map_base
+            map_odom_optimized_count += 1
+        diagnostic_source = f"direct map->base_link using {args.tf_match_time} stamps"
     else:
-        raise RuntimeError("no RTAB-Map map->odom or map->base_link TF found in output bag")
+        diagnostic_source = "no RTAB-Map map->odom or map->base_link TF found in output bag"
 
-    if len(optimized) < 100:
-        raise RuntimeError(f"too few optimized poses exported: {len(optimized)}")
+    if len(graph_final) < args.min_graph_poses:
+        raise RuntimeError(f"too few graph poses exported from mapData.graph.poses: {len(graph_final)} < {args.min_graph_poses}")
 
-    raw_tum = out_dir / "hno_vio_raw.tum"
-    opt_tum = out_dir / "rtabmap_optimized.tum"
-    graph_tum = out_dir / "rtabmap_graph_final.tum"
-    write_tum(raw_tum, matrices_to_poses([(stamp_ns, T) for stamp_ns, _bag_stamp_ns, T in raw]))
-    write_tum(opt_tum, matrices_to_poses(optimized))
-    if graph_final:
-        write_tum(graph_tum, matrices_to_poses(graph_final))
+    optimized_tum = out_dir / "odom_optimized.txt"
+    write_tum(optimized_tum, matrices_to_poses(graph_final))
 
-    report = out_dir / "export_report.txt"
+    warning = ""
+    if len(graph_final) < args.warn_graph_poses:
+        warning = f"WARNING: graph pose count {len(graph_final)} < {args.warn_graph_poses}"
+
+    report = log_dir / "export_report.txt"
     report.write_text(
         "\n".join([
             f"raw_pose_count: {len(raw)}",
-            f"optimized_pose_count: {len(optimized)}",
+            f"map_odom_diagnostic_pose_count: {map_odom_optimized_count}",
             f"tf_match_time: {args.tf_match_time}",
             f"map_odom_header_tf_count: {len(map_odom_header)}",
             f"map_odom_bag_tf_count: {len(map_odom_bag)}",
@@ -214,14 +235,17 @@ def main():
             f"map_base_bag_tf_count: {len(map_base_bag)}",
             f"graph_final_pose_count: {len(graph_final)}",
             f"graph_final_missing_stamp_count: {missing_graph_stamps}",
-            f"optimized_source: {source}",
+            f"optimized_source: mapData.graph.poses",
+            f"diagnostic_tf_source: {diagnostic_source}",
+            f"warning: {warning or 'none'}",
             "topic_counts:",
             *[f"  {name}: {count}" for name, count in sorted(topic_counts.items())],
         ]) + "\n",
         encoding="utf-8",
     )
-    print(f"raw_tum: {raw_tum}")
-    print(f"optimized_tum: {opt_tum}")
+    if warning:
+        print(warning)
+    print(f"optimized_tum: {optimized_tum}")
     print(f"report: {report}")
 
 

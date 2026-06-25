@@ -6,6 +6,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     database_path = os.environ.get("RTABMAP_DB", "/tmp/hno_case009_rtabmap.db")
+    odom_frame = os.environ.get("ODOM_FRAME", "odom")
+    base_frame = os.environ.get("BASE_FRAME", "base_link")
 
     stereo_sync = Node(
         package="rtabmap_sync",
@@ -39,8 +41,8 @@ def generate_launch_description():
         emulate_tty=True,
         parameters=[{
             "use_sim_time": False,
-            "frame_id": "base_link",
-            "odom_frame_id": "odom",
+            "frame_id": base_frame,
+            "odom_frame_id": odom_frame,
             "map_frame_id": "map",
             "subscribe_rgbd": True,
             "subscribe_stereo": False,

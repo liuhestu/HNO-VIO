@@ -108,6 +108,10 @@ def unwrap_degrees(values):
     return values
 
 
+def angle_diff_degrees(value, reference):
+    return (float(value) - float(reference) + 180.0) % 360.0 - 180.0
+
+
 def make_transform_msg(parent, child, stamp, T):
     from geometry_msgs.msg import TransformStamped
 

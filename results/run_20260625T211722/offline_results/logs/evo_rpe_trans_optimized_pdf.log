@@ -1,0 +1,4 @@
+$ /home/sharpa/.local/bin/evo_rpe tum /home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/odom_optimized.txt -r trans_part -d 20 -u f --align --correct_scale --plot --plot_mode xyz --save_plot /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/evo_rpe_trans_optimized.pdf --silent --no_warnings -c /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/evo_agg.json
+
+/home/sharpa/.local/lib/python3.13/site-packages/evo/tools/plot.py:250: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()

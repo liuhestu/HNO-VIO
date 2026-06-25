@@ -75,6 +75,10 @@ private:
 
     // 导出相机帧频率 odom 轨迹给离线 RTAB-Map 后端
     void export_odom_state(double timestamp, const std::shared_ptr<HNOState>& state_to_export);
+    std::string make_run_id_beijing_time() const;
+    std::string infer_dataset_from_bag_path() const;
+    std::string json_escape(const std::string& value) const;
+    void write_run_context(const std::string& run_dir) const;
     
     // 发布特征点云、追踪图像
     void publish_visualization(double timestamp, const ov_core::CameraData& msg);
@@ -136,6 +140,9 @@ private:
     
     // Ground Truth (GT) 验证相关变量
     std::string path_gt;
+    std::string dataset;
+    std::string bag_path;
+    std::string euroc_mav0;
     std::map<double, Eigen::VectorXd> gt_states;
     bool has_align = false;
     Eigen::Vector3d t_align = Eigen::Vector3d::Zero();
@@ -151,9 +158,9 @@ private:
     // --- Offline backend export ---
     bool export_odom = false;
     std::string odom_output_path;
-    std::string odom_tum_output_path;
+    std::string odom_txt_output_path;
     std::ofstream odom_output_file;
-    std::ofstream odom_tum_output_file;
+    std::ofstream odom_txt_output_file;
 };
 
 } // namespace hno_vio

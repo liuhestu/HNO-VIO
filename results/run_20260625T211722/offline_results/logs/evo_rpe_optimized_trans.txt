@@ -1,0 +1,14 @@
+$ /home/sharpa/.local/bin/evo_rpe tum /home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/odom_optimized.txt -r trans_part -d 20 -u f --align --correct_scale
+
+RPE w.r.t. translation part (m)
+for delta = 20 (frames) using consecutive pairs
+(with Sim(3) Umeyama alignment)
+
+       max	0.175819
+      mean	0.090404
+    median	0.082106
+       min	0.045672
+      rmse	0.100897
+       sse	0.050901
+       std	0.044802
+

@@ -1,0 +1,17 @@
+
+Files:             rtabmap_output.bag_0.db3
+Bag size:          1.6 GiB
+Storage id:        sqlite3
+Duration:          155.649906573s
+Start:             Jun 25 2026 21:33:27.487423391 (1782394407.487423391)
+End:               Jun 25 2026 21:36:03.137329964 (1782394563.137329964)
+Messages:          10439
+Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
+                   Topic: /rtabmap/global_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
+                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 119 | Serialization Format: cdr
+                   Topic: /rtabmap/local_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
+                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 119 | Serialization Format: cdr
+                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2362 | Serialization Format: cdr
+                   Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2362 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5476 | Serialization Format: cdr
+

@@ -1,0 +1,14 @@
+input_bag: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag
+output_bag: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag
+topics:
+  /cam0/camera_info: count=2362 hz=16.53361344537815
+  /cam0/image_rect: count=2362 hz=16.53361344537815
+  /cam1/camera_info: count=2362 hz=16.53361344537815
+  /cam1/image_rect: count=2362 hz=16.53361344537815
+  /hno_vio/odom: count=2362 hz=16.53361344537815
+  /tf: count=2362 hz=16.53361344537815
+  /rtabmap/global_path: count=0 hz=n/a recorded=False
+  /rtabmap/info: count=119 hz=0.8309859154929577 recorded=True
+  /rtabmap/local_path: count=0 hz=n/a recorded=False
+  /rtabmap/mapData: count=119 hz=0.8309859154929577 recorded=True
+  /rtabmap/rgbd_image: count=2362 hz=16.53361344537815 recorded=True

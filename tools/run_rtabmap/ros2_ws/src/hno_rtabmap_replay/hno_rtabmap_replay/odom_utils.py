@@ -23,12 +23,18 @@ def read_hno_odom_csv(path):
     poses = []
     with Path(path).open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
-        required = ["timestamp", "tx", "ty", "tz", "qx", "qy", "qz", "qw"]
-        if reader.fieldnames is None or any(k not in reader.fieldnames for k in required):
-            raise RuntimeError(f"missing required columns in {path}: {required}")
+        required_pose = ["tx", "ty", "tz", "qx", "qy", "qz", "qw"]
+        if reader.fieldnames is None or any(k not in reader.fieldnames for k in required_pose):
+            raise RuntimeError(f"missing required columns in {path}: timestamp/timestamp_ns plus {required_pose}")
+        has_timestamp_ns = "timestamp_ns" in reader.fieldnames
+        has_timestamp_sec = "timestamp" in reader.fieldnames
+        if not has_timestamp_ns and not has_timestamp_sec:
+            raise RuntimeError(f"missing timestamp or timestamp_ns column in {path}")
         for row in reader:
-            t = float(row["timestamp"])
-            stamp_ns = int(round(t * 1e9))
+            if has_timestamp_ns:
+                stamp_ns = int(row["timestamp_ns"])
+            else:
+                stamp_ns = int(round(float(row["timestamp"]) * 1e9))
             p = np.array([float(row["tx"]), float(row["ty"]), float(row["tz"])], dtype=float)
             q = normalize_quat([float(row["qx"]), float(row["qy"]), float(row["qz"]), float(row["qw"])])
             poses.append(OdomPose(stamp_ns, p, q))

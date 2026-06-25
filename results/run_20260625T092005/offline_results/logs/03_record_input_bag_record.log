@@ -1,0 +1,17 @@
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782387630.512783510] [rosbag2_recorder]: Press SPACE for pausing/resuming
+[INFO] [1782387630.513737803] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_WRITE.
+[INFO] [1782387630.514119202] [rosbag2_recorder]: Listening for topics...
+[INFO] [1782387630.514148950] [rosbag2_recorder]: Event publisher thread: Starting
+[INFO] [1782387630.514201451] [rosbag2_recorder]: Recording...
+[INFO] [1782387634.027776453] [rosbag2_recorder]: Subscribed to topic '/cam0/camera_info'
+[INFO] [1782387634.028748308] [rosbag2_recorder]: Subscribed to topic '/cam0/image_rect'
+[INFO] [1782387634.029478756] [rosbag2_recorder]: Subscribed to topic '/cam1/camera_info'
+[INFO] [1782387634.030185249] [rosbag2_recorder]: Subscribed to topic '/cam1/image_rect'
+[INFO] [1782387634.036949855] [rosbag2_recorder]: Subscribed to topic '/clock'
+[INFO] [1782387634.039009109] [rosbag2_recorder]: Subscribed to topic '/hno_vio/odom'
+[INFO] [1782387634.041079857] [rosbag2_recorder]: Subscribed to topic '/tf'
+[INFO] [1782387634.041876338] [rosbag2_recorder]: Subscribed to topic '/tf_static'
+[INFO] [1782387634.041902790] [rosbag2_recorder]: All requested topics are subscribed. Stopping discovery...
+[INFO] [1782387780.901668988] [rosbag2_cpp]: Writing remaining messages from cache to the bag. It may take a while
+[INFO] [1782387780.904168117] [rosbag2_recorder]: Event publisher thread: Exiting
+[INFO] [1782387780.904292901] [rosbag2_recorder]: Recording stopped

@@ -1,3 +1,21 @@
+"""Prepare and validate HNO-VIO odometry for ROS 2 replay.
+
+Usage:
+    hno_prepare_odom --input-csv ODOM_RAW_CSV --input-tum ODOM_RAW_TXT \
+        --euroc-mav0 EUROC_MAV0 --output-csv OUT_CSV --output-tum OUT_TUM \
+        --report REPORT_TXT
+
+Inputs:
+    --input-csv: HNO-VIO odometry CSV, usually vio_results/odom_raw.csv.
+    --input-tum: HNO-VIO odometry TUM/TXT, usually vio_results/odom_raw.txt.
+    --euroc-mav0: EuRoC ASL mav0 directory containing cam0/data.csv.
+
+Outputs:
+    --output-csv: Normalized odometry CSV.
+    --output-tum: Normalized odometry TUM/TXT.
+    --report: Text report with pose count, time range, rate, and validation stats.
+"""
+
 import argparse
 from pathlib import Path
 

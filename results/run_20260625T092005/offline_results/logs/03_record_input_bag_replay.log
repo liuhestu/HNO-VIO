@@ -1,0 +1,28 @@
+[INFO] [launch]: All log files can be found below /tmp/ros2_logs/2026-06-25-19-40-32-531143-IT26000351-137671
+[INFO] [launch]: Default logging verbosity is set to INFO
+[INFO] [hno_replay_node-1]: process started with pid [137673]
+[hno_replay_node-1] [INFO] [1782387633.046994716] [hno_rtabmap_replay]: T_base_cam0_rect:
+[hno_replay_node-1] [[ 0.01632106 -0.99980559  0.01106332 -0.02164015]
+[hno_replay_node-1]  [ 0.99971009  0.0165134   0.01752279 -0.06467699]
+[hno_replay_node-1]  [-0.01770207  0.01077413  0.99978525  0.00981073]
+[hno_replay_node-1]  [ 0.          0.          0.          1.        ]]
+[hno_replay_node-1] [INFO] [1782387633.047596016] [hno_rtabmap_replay]: T_base_cam1_rect:
+[hno_replay_node-1] [[ 0.01632106 -0.99980559  0.01106332 -0.01984356]
+[hno_replay_node-1]  [ 0.99971009  0.0165134   0.01752279  0.04536894]
+[hno_replay_node-1]  [-0.01770207  0.01077413  0.99978525  0.00786212]
+[hno_replay_node-1]  [ 0.          0.          0.          1.        ]]
+[hno_replay_node-1] [INFO] [1782387633.047947690] [hno_rtabmap_replay]: baseline_tf 0.110078 baseline_from_P 0.110078
+[hno_replay_node-1] [INFO] [1782387633.048513994] [hno_rtabmap_replay]: Replay ready: 2912 stereo frames, 2290 odom poses
+[hno_replay_node-1] [WARN] [1782387633.099437821] [hno_rtabmap_replay]: skip frame 1403715273262142976: nearest odom diff ns=2700000000
+[hno_replay_node-1] [WARN] [1782387633.149717485] [hno_rtabmap_replay]: skip frame 1403715273312143104: nearest odom diff ns=2649999872
+[hno_replay_node-1] [WARN] [1782387633.199449130] [hno_rtabmap_replay]: skip frame 1403715273362142976: nearest odom diff ns=2600000000
+[hno_replay_node-1] [WARN] [1782387633.249670181] [hno_rtabmap_replay]: skip frame 1403715273412143104: nearest odom diff ns=2549999872
+[hno_replay_node-1] [WARN] [1782387633.299387857] [hno_rtabmap_replay]: skip frame 1403715273462142976: nearest odom diff ns=2500000000
+[hno_replay_node-1] [WARN] [1782387649.349375738] [hno_rtabmap_replay]: skip frame 1403715289512143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782387678.049289746] [hno_rtabmap_replay]: skip frame 1403715318212143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782387697.149817962] [hno_rtabmap_replay]: skip frame 1403715337312143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782387722.899434571] [hno_rtabmap_replay]: skip frame 1403715363062142976: nearest odom diff ns=50000128
+[hno_replay_node-1] [WARN] [1782387745.654539991] [hno_rtabmap_replay]: skip frame 1403715385812143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782387770.149674327] [hno_rtabmap_replay]: skip frame 1403715410312143104: nearest odom diff ns=100000000
+[hno_replay_node-1] [INFO] [1782387778.698797639] [hno_rtabmap_replay]: Replay finished: published=2290 skipped=622
+[INFO] [hno_replay_node-1]: process has finished cleanly [pid 137673]

@@ -1,4 +1,25 @@
 #!/usr/bin/env bash
+#
+# Usage:
+#   scripts/04_run_rtabmap_live.sh
+#
+# Inputs:
+#   Environment prepared by scripts/run_rtabmap.sh and common_env.sh:
+#   INPUT_ODOM_CSV, INPUT_ODOM_TXT, EUROC_MAV0, OUTPUT_BAG, RTABMAP_DB,
+#   OUT_DIR.
+#   Optional: MAX_DURATION_SEC.
+#
+# Outputs:
+#   Runs live replay and RTAB-Map in one pass, then records:
+#   ${OUTPUT_BAG}
+#   ${RTABMAP_DB}
+#   ${OUT_DIR}/output_bag_info.txt
+#   ${OUT_DIR}/rtabmap_db_path.txt
+#   ${OUT_DIR}/logs/04_live_*.log
+#
+# Notes:
+#   This is an alternate live-style runner and is not part of the default
+#   scripts/run_rtabmap.sh pipeline.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

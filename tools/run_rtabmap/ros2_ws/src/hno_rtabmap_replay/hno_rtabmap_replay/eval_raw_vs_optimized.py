@@ -1,3 +1,25 @@
+"""Evaluate raw HNO-VIO odometry against RTAB-Map optimized odometry.
+
+Usage:
+    hno_eval_raw_vs_optimized --out-dir OUT_DIR --raw-tum ODOM_RAW_TXT \
+        --optimized-tum ODOM_OPTIMIZED_TXT --gt-tum GROUND_TRUTH_TUM
+
+Inputs:
+    --raw-tum: Raw HNO-VIO trajectory in TUM/TXT format.
+    --optimized-tum: RTAB-Map optimized trajectory in TUM/TXT format.
+    --gt-tum: Ground-truth trajectory in TUM/TXT format.
+    Optional: --evo-ape, --evo-rpe, --evo-traj.
+
+Outputs:
+    OUT_DIR/summary.md
+    OUT_DIR/evo_*.txt
+    OUT_DIR/evo_*.pdf
+    OUT_DIR/evo_traj_gt_raw_optimized.pdf
+    OUT_DIR/logs/rpy_raw_vs_optimized.csv
+    OUT_DIR/logs/rpy_raw_vs_optimized.pdf
+    OUT_DIR/logs/traj_raw_vs_optimized_matplotlib.pdf
+"""
+
 import argparse
 import csv
 import math
@@ -12,7 +34,7 @@ import numpy as np
 
 from .euroc_utils import read_gt_csv
 from .odom_utils import OdomPose, read_tum, write_tum
-from .tf_utils import quat_to_rpy_deg, unwrap_degrees
+from .tf_utils import angle_diff_degrees, quat_to_rpy_deg, unwrap_degrees
 
 
 def run_cmd(cmd, output_path):
@@ -197,16 +219,56 @@ def raw_optimized_delta_stats(raw, opt):
     }
 
 
-def plot_rpy(raw, opt, gt, csv_path, pdf_path):
-    rows = []
-    raw_rpy = np.array([quat_to_rpy_deg(pose.q) for pose in raw])
-    opt_rpy = np.array([quat_to_rpy_deg(pose.q) for pose in opt])
-    gt_rpy = np.array([quat_to_rpy_deg(pose.q) for pose in gt])
+def nearest_pose_index(poses, stamp_ns, max_diff_ns=50_000_000):
+    if not poses:
+        return None
+    lo, hi = 0, len(poses)
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if poses[mid].stamp_ns < stamp_ns:
+            lo = mid + 1
+        else:
+            hi = mid
+    candidates = []
+    if lo < len(poses):
+        candidates.append(lo)
+    if lo > 0:
+        candidates.append(lo - 1)
+    best = min(candidates, key=lambda idx: abs(poses[idx].stamp_ns - stamp_ns))
+    if abs(poses[best].stamp_ns - stamp_ns) > max_diff_ns:
+        return None
+    return best
 
-    for values in (raw_rpy, opt_rpy, gt_rpy):
-        if values.size:
-            for axis in range(3):
-                values[:, axis] = unwrap_degrees(values[:, axis])
+
+def unwrap_rpy_degrees(rpy):
+    rpy = np.asarray(rpy, dtype=float).copy()
+    if not rpy.size:
+        return rpy
+    for axis in range(3):
+        rpy[:, axis] = unwrap_degrees(rpy[:, axis])
+    return rpy
+
+
+def align_rpy_branch_to_reference(poses, rpy, ref_poses, ref_rpy):
+    rpy = np.asarray(rpy, dtype=float).copy()
+    if not rpy.size or not ref_rpy.size:
+        return rpy
+    for i, pose in enumerate(poses):
+        ref_idx = nearest_pose_index(ref_poses, pose.stamp_ns)
+        if ref_idx is None:
+            continue
+        for axis in range(3):
+            ref_value = ref_rpy[ref_idx, axis]
+            rpy[i, axis] = ref_value + angle_diff_degrees(rpy[i, axis], ref_value)
+    return rpy
+
+
+def plot_rpy(raw, opt, gt, csv_path, pdf_path):
+    raw_rpy = unwrap_rpy_degrees(np.array([quat_to_rpy_deg(pose.q) for pose in raw]))
+    opt_rpy = unwrap_rpy_degrees(np.array([quat_to_rpy_deg(pose.q) for pose in opt]))
+    gt_rpy = unwrap_rpy_degrees(np.array([quat_to_rpy_deg(pose.q) for pose in gt]))
+    opt_rpy = align_rpy_branch_to_reference(opt, opt_rpy, raw, raw_rpy)
+    gt_rpy = align_rpy_branch_to_reference(gt, gt_rpy, raw, raw_rpy)
 
     opt_by_time = opt
     gt_by_time = gt
@@ -219,14 +281,14 @@ def plot_rpy(raw, opt, gt, csv_path, pdf_path):
             "gt_roll_deg", "gt_pitch_deg", "gt_yaw_deg",
         ])
         for i, pose in enumerate(raw):
-            opt_pose = nearest_pose(opt_by_time, pose.stamp_ns)
-            gt_pose = nearest_pose(gt_by_time, pose.stamp_ns)
+            opt_idx = nearest_pose_index(opt_by_time, pose.stamp_ns)
+            gt_idx = nearest_pose_index(gt_by_time, pose.stamp_ns)
             opt_vals = [math.nan, math.nan, math.nan]
             gt_vals = [math.nan, math.nan, math.nan]
-            if opt_pose is not None and opt_rpy.size:
-                opt_vals = opt_rpy[opt_by_time.index(opt_pose)].tolist()
-            if gt_pose is not None and gt_rpy.size:
-                gt_vals = gt_rpy[gt_by_time.index(gt_pose)].tolist()
+            if opt_idx is not None and opt_rpy.size:
+                opt_vals = opt_rpy[opt_idx].tolist()
+            if gt_idx is not None and gt_rpy.size:
+                gt_vals = gt_rpy[gt_idx].tolist()
             writer.writerow([pose.stamp_sec, *raw_rpy[i].tolist(), *opt_vals, *gt_vals])
 
     t0 = raw[0].stamp_sec if raw else 0.0
@@ -253,53 +315,149 @@ def plot_rpy(raw, opt, gt, csv_path, pdf_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", required=True)
-    parser.add_argument("--euroc-mav0", required=True)
+    parser.add_argument("--raw-tum", required=True)
+    parser.add_argument("--optimized-tum", required=True)
+    parser.add_argument("--gt-tum", required=True)
     parser.add_argument("--evo-ape", default="evo_ape")
     parser.add_argument("--evo-rpe", default="evo_rpe")
+    parser.add_argument("--evo-traj", default="evo_traj")
     args = parser.parse_args()
 
     out_dir = Path(args.out_dir)
-    raw_tum = out_dir / "hno_vio_raw.tum"
-    opt_tum = out_dir / "rtabmap_optimized.tum"
-    graph_tum = out_dir / "rtabmap_graph_final.tum"
-    gt_tum = out_dir / "gt.tum"
-    gt_csv = Path(args.euroc_mav0) / "state_groundtruth_estimate0" / "data.csv"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    log_dir = out_dir / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
 
-    gt = write_gt_tum(gt_csv, gt_tum)
+    raw_tum = Path(args.raw_tum)
+    opt_tum = Path(args.optimized_tum)
+    gt_tum = Path(args.gt_tum)
+
+    gt = load_tum(gt_tum)
     raw = load_tum(raw_tum)
     opt = load_tum(opt_tum)
-    graph = load_tum(graph_tum) if graph_tum.exists() else []
 
-    ape_raw = run_cmd([args.evo_ape, "tum", str(gt_tum), str(raw_tum), "--align", "--correct_scale"], out_dir / "ape_raw.txt")
-    ape_opt = run_cmd([args.evo_ape, "tum", str(gt_tum), str(opt_tum), "--align", "--correct_scale"], out_dir / "ape_optimized.txt")
-    ape_graph = None
-    if len(graph) >= 3:
-        ape_graph = run_cmd([args.evo_ape, "tum", str(gt_tum), str(graph_tum), "--align", "--correct_scale"], out_dir / "ape_graph_final.txt")
+    if len(opt) < 20:
+        raise RuntimeError(f"optimized graph pose count < 20: {len(opt)}")
+    graph_warning = ""
+    if len(opt) < 50:
+        graph_warning = f"WARNING: optimized graph pose count {len(opt)} < 50"
 
-    rpe_raw_trans = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "trans_part", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_raw_trans.txt")
-    rpe_raw_rot = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "angle_deg", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_raw_rot.txt")
-    rpe_opt_trans = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(opt_tum), "-r", "trans_part", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_optimized_trans.txt")
-    rpe_opt_rot = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(opt_tum), "-r", "angle_deg", "-d", "20", "-u", "f", "--align", "--correct_scale"], out_dir / "rpe_optimized_rot.txt")
+    ape_raw = run_cmd([args.evo_ape, "tum", str(gt_tum), str(raw_tum), "--align", "--correct_scale"], out_dir / "evo_ape_raw.txt")
+    ape_opt = run_cmd([args.evo_ape, "tum", str(gt_tum), str(opt_tum), "--align", "--correct_scale"], out_dir / "evo_ape_optimized.txt")
 
-    (out_dir / "rpe_raw.txt").write_text(
+    rpe_raw_trans = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "trans_part", "-d", "20", "-u", "f", "--align", "--correct_scale"], log_dir / "evo_rpe_raw_trans.txt")
+    rpe_raw_rot = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(raw_tum), "-r", "angle_deg", "-d", "20", "-u", "f", "--align", "--correct_scale"], log_dir / "evo_rpe_raw_rot.txt")
+    rpe_opt_trans = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(opt_tum), "-r", "trans_part", "-d", "20", "-u", "f", "--align", "--correct_scale"], log_dir / "evo_rpe_optimized_trans.txt")
+    rpe_opt_rot = run_cmd([args.evo_rpe, "tum", str(gt_tum), str(opt_tum), "-r", "angle_deg", "-d", "20", "-u", "f", "--align", "--correct_scale"], log_dir / "evo_rpe_optimized_rot.txt")
+
+    (out_dir / "evo_rpe_raw.txt").write_text(
         "# trans_part @20 frames, about 1s at 20Hz\n" + rpe_raw_trans + "\n# angle_deg @20 frames, about 1s at 20Hz\n" + rpe_raw_rot,
         encoding="utf-8",
     )
-    (out_dir / "rpe_optimized.txt").write_text(
+    (out_dir / "evo_rpe_optimized.txt").write_text(
         "# trans_part @20 frames, about 1s at 20Hz\n" + rpe_opt_trans + "\n# angle_deg @20 frames, about 1s at 20Hz\n" + rpe_opt_rot,
         encoding="utf-8",
     )
 
-    plot_traj(raw, opt, gt, out_dir / "traj_raw_vs_optimized.pdf")
-    plot_rpy(raw, opt, gt, out_dir / "rpy_raw_vs_optimized.csv", out_dir / "rpy_raw_vs_optimized.pdf")
-    evo_plot_trajectories = [
-        ("raw", raw_tum),
-        ("map_odom_optimized", opt_tum),
-    ]
-    if len(graph) >= 3:
-        evo_plot_trajectories.append(("graph_final", graph_tum))
-    write_evo_ape_plots(args.evo_ape, gt_tum, evo_plot_trajectories, out_dir)
+    plot_rpy(raw, opt, gt, log_dir / "rpy_raw_vs_optimized.csv", log_dir / "rpy_raw_vs_optimized.pdf")
+    plot_traj(raw, opt, gt, log_dir / "traj_raw_vs_optimized_matplotlib.pdf")
 
+    evo_cfg = log_dir / "evo_agg.json"
+    evo_cfg.write_text('{\n  "plot_backend": "Agg"\n}\n', encoding="utf-8")
+    run_cmd(
+        [
+            args.evo_ape,
+            "tum",
+            str(gt_tum),
+            str(opt_tum),
+            "--align",
+            "--correct_scale",
+            "--plot",
+            "--plot_mode",
+            "xyz",
+            "--save_plot",
+            str(out_dir / "evo_ape_optimized.pdf"),
+            "--silent",
+            "--no_warnings",
+            "-c",
+            str(evo_cfg),
+        ],
+        log_dir / "evo_ape_optimized_pdf.log",
+    )
+    run_cmd(
+        [
+            args.evo_rpe,
+            "tum",
+            str(gt_tum),
+            str(opt_tum),
+            "-r",
+            "trans_part",
+            "-d",
+            "20",
+            "-u",
+            "f",
+            "--align",
+            "--correct_scale",
+            "--plot",
+            "--plot_mode",
+            "xyz",
+            "--save_plot",
+            str(out_dir / "evo_rpe_trans_optimized.pdf"),
+            "--silent",
+            "--no_warnings",
+            "-c",
+            str(evo_cfg),
+        ],
+        log_dir / "evo_rpe_trans_optimized_pdf.log",
+    )
+    run_cmd(
+        [
+            args.evo_rpe,
+            "tum",
+            str(gt_tum),
+            str(opt_tum),
+            "-r",
+            "angle_deg",
+            "-d",
+            "20",
+            "-u",
+            "f",
+            "--align",
+            "--correct_scale",
+            "--plot",
+            "--plot_mode",
+            "xyz",
+            "--save_plot",
+            str(out_dir / "evo_rpe_rot_optimized.pdf"),
+            "--silent",
+            "--no_warnings",
+            "-c",
+            str(evo_cfg),
+        ],
+        log_dir / "evo_rpe_rot_optimized_pdf.log",
+    )
+    run_cmd(
+        [
+            args.evo_traj,
+            "tum",
+            str(raw_tum),
+            str(opt_tum),
+            "--ref",
+            str(gt_tum),
+            "--align",
+            "--correct_scale",
+            "--plot",
+            "--plot_mode",
+            "xyz",
+            "--save_plot",
+            str(out_dir / "evo_traj_gt_raw_optimized.pdf"),
+            "--silent",
+            "--no_warnings",
+            "-c",
+            str(evo_cfg),
+        ],
+        log_dir / "evo_traj_gt_raw_optimized_pdf.log",
+    )
     raw_len = path_length(raw)
     opt_len = path_length(opt)
     duration = raw[-1].stamp_sec - raw[0].stamp_sec if len(raw) >= 2 else 0.0
@@ -309,7 +467,9 @@ def main():
     lines = [
         "# RTAB-Map Offline Evaluation",
         "",
-        "Selected run: `case009_guarded_020`.",
+        f"Raw odometry: `{raw_tum}`.",
+        f"Optimized odometry: `{opt_tum}`.",
+        f"Ground truth: `{gt_tum}`.",
         "",
         "| metric | raw | optimized |",
         "| --- | ---: | ---: |",
@@ -325,28 +485,18 @@ def main():
         f"| final raw-vs-optimized position delta [m] | {final_position_error:.6f} | {final_position_error:.6f} |",
         f"| raw-vs-optimized mean position delta [m] | {delta_stats['translation_mean']:.9f} | {delta_stats['translation_mean']:.9f} |",
         f"| raw-vs-optimized max position delta [m] | {delta_stats['translation_max']:.9f} | {delta_stats['translation_max']:.9f} |",
+        f"| optimized graph pose count | {len(opt)} | {len(opt)} |",
     ]
-    if ape_graph is not None:
-        lines.extend([
-            "",
-            "Graph-final trajectory from `mapData.graph.poses`:",
-            "",
-            "| metric | graph_final |",
-            "| --- | ---: |",
-            f"| ATE RMSE [m] | {parse_metric(ape_graph, 'rmse'):.6f} |",
-            f"| ATE mean [m] | {parse_metric(ape_graph, 'mean'):.6f} |",
-            f"| ATE median [m] | {parse_metric(ape_graph, 'median'):.6f} |",
-            f"| pose count | {len(graph)} |",
-        ])
+    if graph_warning:
+        lines.extend(["", graph_warning])
     lines.extend([
         "",
         "Notes:",
         "- Evaluation uses `evo_ape/evo_rpe --align --correct_scale` for shape comparison.",
-        "- The trajectory PDF applies the same kind of Sim(3) alignment before plotting against GT.",
-        "- `rtabmap_optimized.tum` is exported through `map->odom`; `rtabmap_graph_final.tum` is exported directly from the optimized RTAB-Map graph.",
-        "- In this run, RTAB-Map did not publish a meaningful `map->odom` correction, but the final optimized graph trajectory is non-identity.",
+        "- `odom_optimized.txt` is exported from `/rtabmap/mapData.graph.poses`.",
         "- The primary RTAB-Map odometry input is TF `odom -> base_link`; `/hno_vio/odom` is recorded for export/debugging.",
-        "- RPY plot and CSV apply +-180 degree unwrap correction before visualization.",
+        "- `evo_traj_gt_raw_optimized.pdf` is generated by evo_traj with xyz components; use `logs/rpy_raw_vs_optimized.pdf` for branch-safe RPY.",
+        "- RPY plot and CSV unwrap each curve and place optimized/GT on the nearest 360-degree branch of raw before visualization.",
     ])
     summary = out_dir / "summary.md"
     summary.write_text("\n".join(lines) + "\n", encoding="utf-8")

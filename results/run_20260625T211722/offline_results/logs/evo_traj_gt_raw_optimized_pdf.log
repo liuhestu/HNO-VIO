@@ -1,0 +1,6 @@
+$ evo_traj tum src/hno_vio/results/run_20260625T211722/vio_results/odom_raw.txt src/hno_vio/results/run_20260625T211722/offline_results/odom_optimized.txt --ref src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt --align --correct_scale --plot --plot_mode xyz --save_plot src/hno_vio/results/run_20260625T211722/offline_results/evo_traj_gt_raw_optimized.pdf --silent --no_warnings -c src/hno_vio/results/run_20260625T211722/offline_results/logs/evo_agg.json
+
+/home/sharpa/.config/matplotlib is not a writable directory
+Matplotlib created a temporary cache directory at /tmp/matplotlib-o40afops because there was an issue with the default path (/home/sharpa/.config/matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+/home/sharpa/.local/lib/python3.13/site-packages/evo/tools/plot.py:250: UserWarning: FigureCanvasAgg is non-interactive, and thus cannot be shown
+  plt.show()

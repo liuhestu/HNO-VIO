@@ -5,6 +5,8 @@
 #include <utils/opencv_yaml_parse.h>
 #include <boost/filesystem.hpp>
 #include <cmath>
+#include <cstdint>
+#include <ctime>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
@@ -63,10 +65,103 @@ HNOManager::~HNOManager() {
         odom_output_file.flush();
         odom_output_file.close();
     }
-    if (odom_tum_output_file.is_open()) {
-        odom_tum_output_file.flush();
-        odom_tum_output_file.close();
+    if (odom_txt_output_file.is_open()) {
+        odom_txt_output_file.flush();
+        odom_txt_output_file.close();
     }
+}
+
+std::string HNOManager::make_run_id_beijing_time() const {
+    const std::time_t now = std::time(nullptr);
+    const std::time_t beijing_now = now + 8 * 60 * 60;
+    std::tm tm_now;
+    gmtime_r(&beijing_now, &tm_now);
+
+    char run_id[32];
+    std::strftime(run_id, sizeof(run_id), "run_%Y%m%dT%H%M%S", &tm_now);
+    return std::string(run_id);
+}
+
+std::string HNOManager::infer_dataset_from_bag_path() const {
+    if (bag_path.empty()) {
+        return "";
+    }
+
+    boost::filesystem::path path(bag_path);
+    return path.stem().string();
+}
+
+std::string HNOManager::json_escape(const std::string& value) const {
+    std::ostringstream escaped;
+    for (unsigned char c : value) {
+        switch (c) {
+            case '"':
+                escaped << "\\\"";
+                break;
+            case '\\':
+                escaped << "\\\\";
+                break;
+            case '\b':
+                escaped << "\\b";
+                break;
+            case '\f':
+                escaped << "\\f";
+                break;
+            case '\n':
+                escaped << "\\n";
+                break;
+            case '\r':
+                escaped << "\\r";
+                break;
+            case '\t':
+                escaped << "\\t";
+                break;
+            default:
+                if (c < 0x20) {
+                    escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0')
+                            << static_cast<unsigned int>(c) << std::dec << std::setfill(' ');
+                } else {
+                    escaped << c;
+                }
+                break;
+        }
+    }
+    return escaped.str();
+}
+
+void HNOManager::write_run_context(const std::string& run_dir) const {
+    if (run_dir.empty()) {
+        ROS_WARN("[HNO] Cannot write run_context.json because run directory is empty.");
+        return;
+    }
+
+    const std::string context_dataset = dataset.empty() ? infer_dataset_from_bag_path() : dataset;
+    const boost::filesystem::path context_path = boost::filesystem::path(run_dir) / "run_context.json";
+    std::ofstream context_file(context_path.string(), std::ios::out | std::ios::trunc);
+    if (!context_file.is_open()) {
+        ROS_WARN("[HNO] Failed to open run context file: %s", context_path.string().c_str());
+        return;
+    }
+
+    context_file << "{\n";
+    context_file << "  \"dataset\": \"" << json_escape(context_dataset) << "\",\n";
+    context_file << "  \"euroc_mav0\": \"" << json_escape(euroc_mav0) << "\",\n";
+    context_file << "  \"ground_truth_tum\": \"" << json_escape(path_gt) << "\",\n";
+    context_file << "  \"odom_csv\": \"vio_results/odom_raw.csv\",\n";
+    context_file << "  \"odom_tum\": \"vio_results/odom_raw.txt\",\n";
+    context_file << "  \"odom_frame\": \"odom\",\n";
+    context_file << "  \"base_frame\": \"base_link\",\n";
+    context_file << "  \"camera_left_frame\": \"cam0_rect\",\n";
+    context_file << "  \"camera_right_frame\": \"cam1_rect\",\n";
+    context_file << "  \"odom_semantic\": \"T_odom_base\"\n";
+    context_file << "}\n";
+
+    if (!context_file.good()) {
+        ROS_WARN("[HNO] Failed while writing run context file: %s", context_path.string().c_str());
+        return;
+    }
+
+    ROS_INFO("[HNO] Wrote run context to %s", context_path.string().c_str());
 }
 
 /**
@@ -211,6 +306,9 @@ void HNOManager::load_parameters(const std::string& config_path) {
     nh_.param<bool>("use_gt_mapping", use_gt_mapping, false);
     nh_.param<bool>("export_odom", export_odom, false);
     nh_.param<std::string>("odom_output_path", odom_output_path, "");
+    nh_.param<std::string>("dataset", dataset, "");
+    nh_.param<std::string>("bag_path", bag_path, "");
+    nh_.param<std::string>("euroc_mav0", euroc_mav0, "");
 
     ROS_INFO("[HNO] Switches: use_gt_init=%s use_gt_mapping=%s export_odom=%s",
              use_gt_init ? "true" : "false",
@@ -232,6 +330,13 @@ void HNOManager::load_parameters(const std::string& config_path) {
             ROS_ERROR("[HNO] export_odom is true but odom_output_path is empty. Disabling odom export.");
             export_odom = false;
         } else {
+            const std::string run_id_token = "{run_id}";
+            size_t token_pos = odom_output_path.find(run_id_token);
+            if (token_pos != std::string::npos) {
+                const std::string run_id = make_run_id_beijing_time();
+                odom_output_path.replace(token_pos, run_id_token.size(), run_id);
+            }
+
             boost::filesystem::path out_path(odom_output_path);
             boost::filesystem::path parent = out_path.parent_path();
             if (!parent.empty()) {
@@ -243,22 +348,24 @@ void HNOManager::load_parameters(const std::string& config_path) {
                 ROS_ERROR("[HNO] Failed to open odom output file: %s", odom_output_path.c_str());
                 export_odom = false;
             } else {
-                boost::filesystem::path tum_path = out_path;
-                tum_path.replace_extension(".tum");
-                odom_tum_output_path = tum_path.string();
-                odom_tum_output_file.open(odom_tum_output_path, std::ios::out | std::ios::trunc);
-                if (!odom_tum_output_file.is_open()) {
-                    ROS_ERROR("[HNO] Failed to open odom TUM output file: %s", odom_tum_output_path.c_str());
+                boost::filesystem::path txt_path = out_path;
+                txt_path.replace_extension(".txt");
+                odom_txt_output_path = txt_path.string();
+                odom_txt_output_file.open(odom_txt_output_path, std::ios::out | std::ios::trunc);
+                if (!odom_txt_output_file.is_open()) {
+                    ROS_ERROR("[HNO] Failed to open odom TXT output file: %s", odom_txt_output_path.c_str());
                     odom_output_file.close();
                     export_odom = false;
                     return;
                 }
 
-                odom_output_file << "timestamp,tx,ty,tz,qx,qy,qz,qw\n";
-                odom_output_file << std::fixed << std::setprecision(9);
-                odom_tum_output_file << std::fixed << std::setprecision(9);
+                odom_output_file << "timestamp_ns,tx,ty,tz,qx,qy,qz,qw\n";
+                odom_output_file << std::fixed << std::setprecision(12);
+                odom_txt_output_file << std::fixed << std::setprecision(9);
+                boost::filesystem::path run_dir = parent.filename().string() == "vio_results" ? parent.parent_path() : parent;
+                write_run_context(run_dir.string());
                 ROS_INFO("[HNO] Exporting camera-frame odom to %s and %s",
-                         odom_output_path.c_str(), odom_tum_output_path.c_str());
+                         odom_output_path.c_str(), odom_txt_output_path.c_str());
             }
         }
     }
@@ -593,7 +700,9 @@ void HNOManager::export_odom_state(double timestamp, const std::shared_ptr<HNOSt
     Eigen::Quaterniond q(state_to_export->R_hat_B2I);
     q.normalize();
 
-    odom_output_file << timestamp << ","
+    const int64_t timestamp_ns = static_cast<int64_t>(std::llround(timestamp * 1e9));
+
+    odom_output_file << timestamp_ns << ","
                      << state_to_export->p_hat.x() << ","
                      << state_to_export->p_hat.y() << ","
                      << state_to_export->p_hat.z() << ","
@@ -601,8 +710,8 @@ void HNOManager::export_odom_state(double timestamp, const std::shared_ptr<HNOSt
                      << q.y() << ","
                      << q.z() << ","
                      << q.w() << "\n";
-    if (odom_tum_output_file.is_open()) {
-        odom_tum_output_file << timestamp << " "
+    if (odom_txt_output_file.is_open()) {
+        odom_txt_output_file << timestamp << " "
                              << state_to_export->p_hat.x() << " "
                              << state_to_export->p_hat.y() << " "
                              << state_to_export->p_hat.z() << " "

@@ -1,0 +1,7 @@
+[INFO] [1782388174.522714573] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782388178.234053802] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782388180.569339961] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+[INFO] [1782388183.196664487] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/logs/map_odom_stats.txt
+/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/logs/rtabmap_graph_stats.txt
+/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T092005/offline_results/logs/topic_hz_stats.txt

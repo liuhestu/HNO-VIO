@@ -1,0 +1,13 @@
+$ /home/sharpa/.local/bin/evo_ape tum /home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/odom_optimized.txt --align --correct_scale
+
+APE w.r.t. translation part (m)
+(with Sim(3) Umeyama alignment)
+
+       max	0.392194
+      mean	0.060730
+    median	0.046181
+       min	0.010754
+      rmse	0.083788
+       sse	0.800321
+       std	0.057726
+

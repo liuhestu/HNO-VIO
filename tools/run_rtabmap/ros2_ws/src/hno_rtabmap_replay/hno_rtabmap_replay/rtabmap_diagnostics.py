@@ -1,3 +1,20 @@
+"""Write diagnostics for the RTAB-Map offline input and output bags.
+
+Usage:
+    hno_analyze_rtabmap_bag --input-bag INPUT_BAG \
+        --output-bag RTABMAP_OUTPUT_BAG --out-dir LOG_DIR
+
+Inputs:
+    --input-bag: ROS 2 bag generated for RTAB-Map input replay.
+    --output-bag: ROS 2 bag recorded from RTAB-Map output topics.
+    --out-dir: Directory for diagnostic text reports.
+
+Outputs:
+    OUT_DIR/map_odom_stats.txt
+    OUT_DIR/rtabmap_graph_stats.txt
+    OUT_DIR/topic_hz_stats.txt
+"""
+
 import argparse
 from pathlib import Path
 

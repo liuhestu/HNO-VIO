@@ -1,0 +1,21 @@
+source_bag: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T120152/offline_results/rtabmap_output.bag
+info_count: 108
+mapData_count: 108
+global_path_msg_count: 0
+global_path_last_pose_count: 0
+local_path_msg_count: 0
+local_path_last_pose_count: 0
+loop_closure_id_nonzero_count: 31
+proximity_detection_id_nonzero_count: 19
+loop_closure_ids_sample: [20, 15, 16, 15, 15, 16, 32, 20, 21, 21, 6, 8, 10, 17, 17, 54, 31, 31, 56, 57]
+proximity_detection_ids_sample: [16, 32, 19, 20, 21, 22, 55, 54, 31, 56, 57, 73, 75, 29, 27, 26, 26, 26, 69]
+final_graph_pose_count: 106
+final_graph_link_count: 139
+final_adjacent_link_count: 104
+final_non_adjacent_link_count: 35
+max_graph_link_count: 139
+max_non_adjacent_link_count: 35
+final_link_type_counts:
+  type_0: 105
+  type_1: 31
+  type_2: 3

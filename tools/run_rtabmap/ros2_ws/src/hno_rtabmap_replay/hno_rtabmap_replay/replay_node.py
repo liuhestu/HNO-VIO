@@ -1,3 +1,20 @@
+"""ROS 2 node that replays EuRoC stereo images with saved HNO-VIO odometry.
+
+Usage:
+    ros2 run hno_rtabmap_replay hno_replay_node --ros-args \
+        -p euroc_mav0:=EUROC_MAV0 -p odom_csv:=ODOM_RAW_CSV
+
+Inputs:
+    ROS parameters:
+    euroc_mav0, odom_csv, max_odom_time_diff_sec, replay_rate_hz,
+    max_duration_sec, odom_frame, base_frame, left_camera_frame,
+    right_camera_frame.
+
+Outputs:
+    Publishes /cam0/image_rect, /cam1/image_rect, camera_info topics,
+    /hno_vio/odom, /tf, /tf_static, and /clock for offline RTAB-Map replay.
+"""
+
 import math
 from pathlib import Path
 
@@ -13,7 +30,7 @@ from sensor_msgs.msg import CameraInfo, Image
 from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
 from .euroc_utils import pair_stereo, read_sensor_yaml
-from .odom_utils import nearest_pose, read_standard_csv
+from .odom_utils import nearest_pose, read_hno_odom_csv
 from .tf_utils import make_transform_msg, pose_to_matrix
 
 
@@ -73,7 +90,7 @@ class ReplayNode(Node):
 
         self.left_sensor = read_sensor_yaml(self.euroc_mav0 / "cam0" / "sensor.yaml")
         self.right_sensor = read_sensor_yaml(self.euroc_mav0 / "cam1" / "sensor.yaml")
-        self.poses = read_standard_csv(self.odom_csv)
+        self.poses = read_hno_odom_csv(self.odom_csv)
         self.stereo = pair_stereo(self.euroc_mav0 / "cam0" / "data.csv", self.euroc_mav0 / "cam1" / "data.csv")
         if not self.stereo:
             raise RuntimeError("no stereo frames found")

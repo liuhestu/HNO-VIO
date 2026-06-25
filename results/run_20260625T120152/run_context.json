@@ -1,0 +1,11 @@
+{
+  "dataset": "V1_01_easy",
+  "sequence_type": "euroc",
+  "euroc_mav0": "/home/sharpa/datasets/euroc/ASL/V1_01_easy/mav0",
+  "ground_truth_tum": "/home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt",
+  "odom_frame": "odom",
+  "base_frame": "base_link",
+  "odom_semantic": "T_odom_base",
+  "odom_csv": "vio_results/odom_raw.csv",
+  "odom_tum": "vio_results/odom_raw.txt"
+}

@@ -1,0 +1,27 @@
+# trans_part @20 frames, about 1s at 20Hz
+RPE w.r.t. translation part (m)
+for delta = 20 (frames) using consecutive pairs
+(with Sim(3) Umeyama alignment)
+
+       max	0.113268
+      mean	0.026180
+    median	0.022931
+       min	0.002011
+      rmse	0.032162
+       sse	0.121020
+       std	0.018681
+
+
+# angle_deg @20 frames, about 1s at 20Hz
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 20 (frames) using consecutive pairs
+(with Sim(3) Umeyama alignment)
+
+       max	2.387033
+      mean	0.555288
+    median	0.480881
+       min	0.023946
+      rmse	0.672309
+       sse	52.883895
+       std	0.379017
+
