@@ -8,3 +8,4 @@ logs/
 __pycache__/
 rtabmap_input.bag/
 rtabmap_output.bag/
+rtabmap.db
