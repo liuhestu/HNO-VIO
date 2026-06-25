@@ -1,4 +1,4 @@
-run_rtabmap start: 2026-06-25T21:30:22+08:00
+run_rtabmap start: 2026-06-25T22:01:33+08:00
 HNO_PKG=/home/sharpa/hno_vio_clean/src/hno_vio
 RUN_RTABMAP_DIR=/home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap
 ROS2_WS=/home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap/ros2_ws
@@ -55,45 +55,45 @@ python imports: ok
 /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/odom_check.txt
 not found: "/home/sharpa/hno_slam_ws/devel/local_setup.bash"
 Starting >>> hno_rtabmap_replay
-Finished <<< hno_rtabmap_replay [0.71s]
+Finished <<< hno_rtabmap_replay [0.70s]
 
-Summary: 1 package finished [0.90s]
+Summary: 1 package finished [1.06s]
 /home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap/ros2_ws/install/hno_rtabmap_replay
 not found: "/home/sharpa/hno_slam_ws/devel/local_setup.bash"
-[INFO] [launch]: All log files can be found below /tmp/ros2_logs/2026-06-25-21-30-27-860662-IT26000351-188616
+[INFO] [launch]: All log files can be found below /tmp/ros2_logs/2026-06-25-22-01-39-880875-IT26000351-203131
 [INFO] [launch]: Default logging verbosity is set to INFO
-[INFO] [hno_replay_node-1]: process started with pid [188619]
-[hno_replay_node-1] [INFO] [1782394228.401343175] [hno_rtabmap_replay]: T_base_cam0_rect:
+[INFO] [hno_replay_node-1]: process started with pid [203140]
+[hno_replay_node-1] [INFO] [1782396100.477483113] [hno_rtabmap_replay]: T_base_cam0_rect:
 [hno_replay_node-1] [[ 0.01632106 -0.99980559  0.01106332 -0.02164015]
 [hno_replay_node-1]  [ 0.99971009  0.0165134   0.01752279 -0.06467699]
 [hno_replay_node-1]  [-0.01770207  0.01077413  0.99978525  0.00981073]
 [hno_replay_node-1]  [ 0.          0.          0.          1.        ]]
-[hno_replay_node-1] [INFO] [1782394228.401782112] [hno_rtabmap_replay]: T_base_cam1_rect:
+[hno_replay_node-1] [INFO] [1782396100.477920547] [hno_rtabmap_replay]: T_base_cam1_rect:
 [hno_replay_node-1] [[ 0.01632106 -0.99980559  0.01106332 -0.01984356]
 [hno_replay_node-1]  [ 0.99971009  0.0165134   0.01752279  0.04536894]
 [hno_replay_node-1]  [-0.01770207  0.01077413  0.99978525  0.00786212]
 [hno_replay_node-1]  [ 0.          0.          0.          1.        ]]
-[hno_replay_node-1] [INFO] [1782394228.401998293] [hno_rtabmap_replay]: baseline_tf 0.110078 baseline_from_P 0.110078
-[hno_replay_node-1] [INFO] [1782394228.402514479] [hno_rtabmap_replay]: Replay ready: 2912 stereo frames, 2362 odom poses
-[hno_replay_node-1] [WARN] [1782394228.452969666] [hno_rtabmap_replay]: skip frame 1403715273262142976: nearest odom diff ns=2749999872
-[hno_replay_node-1] [WARN] [1782394228.502988731] [hno_rtabmap_replay]: skip frame 1403715273312143104: nearest odom diff ns=2699999744
-[hno_replay_node-1] [WARN] [1782394228.552968440] [hno_rtabmap_replay]: skip frame 1403715273362142976: nearest odom diff ns=2649999872
-[hno_replay_node-1] [WARN] [1782394228.603020754] [hno_rtabmap_replay]: skip frame 1403715273412143104: nearest odom diff ns=2599999744
-[hno_replay_node-1] [WARN] [1782394228.652963392] [hno_rtabmap_replay]: skip frame 1403715273462142976: nearest odom diff ns=2549999872
-[hno_replay_node-1] [WARN] [1782394246.652836146] [hno_rtabmap_replay]: skip frame 1403715291462142976: nearest odom diff ns=49999872
-[hno_replay_node-1] [WARN] [1782394275.803899282] [hno_rtabmap_replay]: skip frame 1403715320612143104: nearest odom diff ns=49999872
-[hno_replay_node-1] [WARN] [1782394300.002811240] [hno_rtabmap_replay]: skip frame 1403715344812143104: nearest odom diff ns=49999872
-[hno_replay_node-1] [WARN] [1782394328.653314591] [hno_rtabmap_replay]: skip frame 1403715373462142976: nearest odom diff ns=49999872
-[hno_replay_node-1] [WARN] [1782394355.904057119] [hno_rtabmap_replay]: skip frame 1403715400712143104: nearest odom diff ns=49999872
-[hno_replay_node-1] [INFO] [1782394374.053658841] [hno_rtabmap_replay]: Replay finished: published=2362 skipped=550
-[INFO] [hno_replay_node-1]: process has finished cleanly [pid 188619]
+[hno_replay_node-1] [INFO] [1782396100.478152684] [hno_rtabmap_replay]: baseline_tf 0.110078 baseline_from_P 0.110078
+[hno_replay_node-1] [INFO] [1782396100.478695300] [hno_rtabmap_replay]: Replay ready: 2912 stereo frames, 2362 odom poses
+[hno_replay_node-1] [WARN] [1782396100.529751926] [hno_rtabmap_replay]: skip frame 1403715273262142976: nearest odom diff ns=2749999872
+[hno_replay_node-1] [WARN] [1782396100.579546846] [hno_rtabmap_replay]: skip frame 1403715273312143104: nearest odom diff ns=2699999744
+[hno_replay_node-1] [WARN] [1782396100.629610527] [hno_rtabmap_replay]: skip frame 1403715273362142976: nearest odom diff ns=2649999872
+[hno_replay_node-1] [WARN] [1782396100.680059111] [hno_rtabmap_replay]: skip frame 1403715273412143104: nearest odom diff ns=2599999744
+[hno_replay_node-1] [WARN] [1782396100.729572385] [hno_rtabmap_replay]: skip frame 1403715273462142976: nearest odom diff ns=2549999872
+[hno_replay_node-1] [WARN] [1782396118.729763335] [hno_rtabmap_replay]: skip frame 1403715291462142976: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782396147.879526435] [hno_rtabmap_replay]: skip frame 1403715320612143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782396172.079980298] [hno_rtabmap_replay]: skip frame 1403715344812143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782396200.729623012] [hno_rtabmap_replay]: skip frame 1403715373462142976: nearest odom diff ns=49999872
+[hno_replay_node-1] [WARN] [1782396227.978988886] [hno_rtabmap_replay]: skip frame 1403715400712143104: nearest odom diff ns=49999872
+[hno_replay_node-1] [INFO] [1782396246.129635230] [hno_rtabmap_replay]: Replay finished: published=2362 skipped=550
+[INFO] [hno_replay_node-1]: process has finished cleanly [pid 203140]
 
 Files:             rtabmap_input.bag_0.db3
 Bag size:          1.6 GiB
 Storage id:        sqlite3
-Duration:          145.579766990s
-Start:             Jun 25 2026 21:30:28.445050425 (1782394228.445050425)
-End:               Jun 25 2026 21:32:54.024817415 (1782394374.024817415)
+Duration:          145.613057942s
+Start:             Jun 25 2026 22:01:40.478613249 (1782396100.478613249)
+End:               Jun 25 2026 22:04:06.091671191 (1782396246.091671191)
 Messages:          16535
 Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
                    Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 2362 | Serialization Format: cdr
@@ -105,40 +105,40 @@ Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 |
                    Topic: /cam0/camera_info | Type: sensor_msgs/msg/CameraInfo | Count: 2362 | Serialization Format: cdr
 
 not found: "/home/sharpa/hno_slam_ws/devel/local_setup.bash"
-stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782394409.460076746] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
-[INFO] [1782394409.460130203] [rosbag2_player]: Set rate to 1
-[INFO] [1782394409.466870413] [rosbag2_player]: Adding keyboard callbacks.
-[INFO] [1782394409.466901754] [rosbag2_player]: Press SPACE for Pause/Resume
-[INFO] [1782394409.466907945] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
-[INFO] [1782394409.466912163] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
-[INFO] [1782394409.466916135] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
-[INFO] [1782394409.467309399] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782396289.395094173] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+[INFO] [1782396289.395164559] [rosbag2_player]: Set rate to 1
+[INFO] [1782396289.410871571] [rosbag2_player]: Adding keyboard callbacks.
+[INFO] [1782396289.410915747] [rosbag2_player]: Press SPACE for Pause/Resume
+[INFO] [1782396289.410932882] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
+[INFO] [1782396289.410942386] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
+[INFO] [1782396289.410951129] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
+[INFO] [1782396289.411507937] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
 cleanup: rtabmap launch did not exit after SIGINT; sending SIGTERM
 
 Files:             rtabmap_output.bag_0.db3
-Bag size:          1.6 GiB
+Bag size:          1.7 GiB
 Storage id:        sqlite3
-Duration:          155.649906573s
-Start:             Jun 25 2026 21:33:27.487423391 (1782394407.487423391)
-End:               Jun 25 2026 21:36:03.137329964 (1782394563.137329964)
-Messages:          10439
+Duration:          155.739690171s
+Start:             Jun 25 2026 22:04:47.385587696 (1782396287.385587696)
+End:               Jun 25 2026 22:07:23.125277867 (1782396443.125277867)
+Messages:          10854
 Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
                    Topic: /rtabmap/global_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
-                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 119 | Serialization Format: cdr
+                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 323 | Serialization Format: cdr
                    Topic: /rtabmap/local_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
-                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 119 | Serialization Format: cdr
-                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2362 | Serialization Format: cdr
+                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 323 | Serialization Format: cdr
+                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2361 | Serialization Format: cdr
                    Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2362 | Serialization Format: cdr
-                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5476 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5484 | Serialization Format: cdr
 
 not found: "/home/sharpa/hno_slam_ws/devel/local_setup.bash"
-[INFO] [1782394569.543169148] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782396449.620405673] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
 optimized_tum: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/odom_optimized.txt
 report: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/export_report.txt
-[INFO] [1782394574.985003462] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
-[INFO] [1782394578.719276314] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
-[INFO] [1782394580.865199691] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
-[INFO] [1782394583.608146067] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782396458.650682568] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782396465.794616571] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
+[INFO] [1782396471.167345852] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+[INFO] [1782396474.053087663] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
 /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/map_odom_stats.txt
 /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/rtabmap_graph_stats.txt
 /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/logs/topic_hz_stats.txt
@@ -159,22 +159,23 @@ Ground truth: `/home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_
 
 | metric | raw | optimized |
 | --- | ---: | ---: |
-| ATE RMSE [m] | 0.316636 | 0.083788 |
-| ATE mean [m] | 0.281614 | 0.060730 |
-| ATE median [m] | 0.247018 | 0.046181 |
-| RPE trans RMSE @20 frames (~1s) [m] | 0.032162 | 0.100897 |
-| RPE rot RMSE @20 frames (~1s) [deg] | 0.672309 | 3.415439 |
-| path length [m] | 61.196934 | 54.450512 |
-| optimized/raw path length ratio | 1.000000 | 0.889759 |
-| pose count | 2362 | 115 |
+| ATE RMSE [m] | 0.316636 | 0.077022 |
+| ATE mean [m] | 0.281614 | 0.062836 |
+| ATE median [m] | 0.247018 | 0.047760 |
+| RPE trans RMSE @20 frames (~1s) [m] | 0.032162 | 0.092669 |
+| RPE rot RMSE @20 frames (~1s) [deg] | 0.672309 | 3.015823 |
+| path length [m] | 61.196934 | 56.119403 |
+| optimized/raw path length ratio | 1.000000 | 0.917030 |
+| pose count | 2362 | 301 |
 | duration [s] | 142.800000 | 142.800000 |
-| final raw-vs-optimized position delta [m] | 0.003007 | 0.003007 |
-| raw-vs-optimized mean position delta [m] | 3.173391218 | 3.173391218 |
-| raw-vs-optimized max position delta [m] | 6.084424635 | 6.084424635 |
-| optimized graph pose count | 115 | 115 |
+| final raw-vs-optimized position delta [m] | 0.000000 | 0.000000 |
+| raw-vs-optimized mean position delta [m] | 2.991482183 | 2.991482183 |
+| raw-vs-optimized max position delta [m] | 6.561087468 | 6.561087468 |
+| optimized graph pose count | 301 | 301 |
 
 Notes:
 - Evaluation uses `evo_ape/evo_rpe --align --correct_scale` for shape comparison.
 - `odom_optimized.txt` is exported from `/rtabmap/mapData.graph.poses`.
 - The primary RTAB-Map odometry input is TF `odom -> base_link`; `/hno_vio/odom` is recorded for export/debugging.
+- `evo_traj_gt_raw_optimized.pdf` is generated by evo_traj with xyz components; use `logs/rpy_raw_vs_optimized.pdf` for branch-safe RPY.
 - RPY plot and CSV unwrap each curve and place optimized/GT on the nearest 360-degree branch of raw before visualization.

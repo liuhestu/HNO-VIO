@@ -8,7 +8,7 @@ topics:
   /hno_vio/odom: count=2362 hz=16.53361344537815
   /tf: count=2362 hz=16.53361344537815
   /rtabmap/global_path: count=0 hz=n/a recorded=False
-  /rtabmap/info: count=119 hz=0.8309859154929577 recorded=True
+  /rtabmap/info: count=323 hz=2.258064516129032 recorded=True
   /rtabmap/local_path: count=0 hz=n/a recorded=False
-  /rtabmap/mapData: count=119 hz=0.8309859154929577 recorded=True
-  /rtabmap/rgbd_image: count=2362 hz=16.53361344537815 recorded=True
+  /rtabmap/mapData: count=323 hz=2.258064516129032 recorded=True
+  /rtabmap/rgbd_image: count=2361 hz=16.5266106442577 recorded=True

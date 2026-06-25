@@ -3,11 +3,11 @@ $ /home/sharpa/.local/bin/evo_ape tum /home/sharpa/hno_vio_clean/src/hno_vio/gro
 APE w.r.t. translation part (m)
 (with Sim(3) Umeyama alignment)
 
-       max	0.392194
-      mean	0.060730
-    median	0.046181
-       min	0.010754
-      rmse	0.083788
-       sse	0.800321
-       std	0.057726
+       max	0.257856
+      mean	0.062836
+    median	0.047760
+       min	0.012301
+      rmse	0.077022
+       sse	1.779735
+       std	0.044543
 

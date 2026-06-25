@@ -91,6 +91,10 @@ sleep 6
     publish_tf \
     publish_tf_map \
     database_path \
+    "Rtabmap/CreateIntermediateNodes" \
+    "Rtabmap/DetectionRate" \
+    "RGBD/LinearUpdate" \
+    "RGBD/AngularUpdate" \
     "Mem/IncrementalMemory" \
     "RGBD/ProximityBySpace" \
     "RGBD/OptimizeFromGraphEnd" \

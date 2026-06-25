@@ -1,7 +1,7 @@
 node list:
 /rtabmap/rtabmap
 /rtabmap/stereo_sync
-/rtabmap/transform_listener_impl_5f8451e59d30
+/rtabmap/transform_listener_impl_5ad1772a4060
 
 rtabmap relevant params:
 use_sim_time: Boolean value is: False
@@ -13,6 +13,10 @@ subscribe_odom: Boolean value is: True
 approx_sync: Boolean value is: True
 publish_tf: Boolean value is: True
 publish_tf_map: database_path: String value is: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap.db
+Rtabmap/CreateIntermediateNodes: String value is: true
+Rtabmap/DetectionRate: String value is: 5
+RGBD/LinearUpdate: String value is: 0.03
+RGBD/AngularUpdate: String value is: 0.03
 Mem/IncrementalMemory: String value is: true
 RGBD/ProximityBySpace: String value is: true
 RGBD/OptimizeFromGraphEnd: String value is: true
@@ -20,7 +24,7 @@ RGBD/NeighborLinkRefining: String value is: true
 RGBD/LoopClosureReextractFeatures: String value is: false
 Vis/MinInliers: String value is: 12
 Kp/MaxFeatures: String value is: 800
-Rtabmap/DetectionRate: String value is: 1
+Rtabmap/DetectionRate: String value is: 5
 
 stereo_sync relevant params:
 use_sim_time: Boolean value is: False

@@ -2,9 +2,9 @@
 Files:             rtabmap_input.bag_0.db3
 Bag size:          1.6 GiB
 Storage id:        sqlite3
-Duration:          145.579766990s
-Start:             Jun 25 2026 21:30:28.445050425 (1782394228.445050425)
-End:               Jun 25 2026 21:32:54.024817415 (1782394374.024817415)
+Duration:          145.613057942s
+Start:             Jun 25 2026 22:01:40.478613249 (1782396100.478613249)
+End:               Jun 25 2026 22:04:06.091671191 (1782396246.091671191)
 Messages:          16535
 Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
                    Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 2362 | Serialization Format: cdr

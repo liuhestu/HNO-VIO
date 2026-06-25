@@ -65,6 +65,10 @@ sleep 6
     publish_tf_map \
     database_path \
     wait_for_transform \
+    "Rtabmap/CreateIntermediateNodes" \
+    "Rtabmap/DetectionRate" \
+    "RGBD/LinearUpdate" \
+    "RGBD/AngularUpdate" \
     "Mem/IncrementalMemory" \
     "Mem/InitWMWithAllNodes" \
     "RGBD/ProximityBySpace" \

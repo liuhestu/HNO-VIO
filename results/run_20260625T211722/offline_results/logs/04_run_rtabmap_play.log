@@ -1,8 +1,8 @@
-stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782394409.460076746] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
-[INFO] [1782394409.460130203] [rosbag2_player]: Set rate to 1
-[INFO] [1782394409.466870413] [rosbag2_player]: Adding keyboard callbacks.
-[INFO] [1782394409.466901754] [rosbag2_player]: Press SPACE for Pause/Resume
-[INFO] [1782394409.466907945] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
-[INFO] [1782394409.466912163] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
-[INFO] [1782394409.466916135] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
-[INFO] [1782394409.467309399] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+stdin is not a terminal device. Keyboard handling disabled.[INFO] [1782396289.395094173] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.
+[INFO] [1782396289.395164559] [rosbag2_player]: Set rate to 1
+[INFO] [1782396289.410871571] [rosbag2_player]: Adding keyboard callbacks.
+[INFO] [1782396289.410915747] [rosbag2_player]: Press SPACE for Pause/Resume
+[INFO] [1782396289.410932882] [rosbag2_player]: Press CURSOR_RIGHT for Play Next Message
+[INFO] [1782396289.410942386] [rosbag2_player]: Press CURSOR_UP for Increase Rate 10%
+[INFO] [1782396289.410951129] [rosbag2_player]: Press CURSOR_DOWN for Decrease Rate 10%
+[INFO] [1782396289.411507937] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T211722/offline_results/rtabmap_input.bag/rtabmap_input.bag_0.db3' for READ_ONLY.

@@ -55,3 +55,28 @@ results/run_YYYYmmddTHHMMSS/offline_results/
 
 `odom_optimized.txt` is exported from `/rtabmap/mapData.graph.poses`. If the graph
 contains fewer than 20 poses the run fails; 20-49 poses is treated as a warning.
+
+## RTAB-Map Density Tuning
+
+The optimized trajectory is only as dense as the RTAB-Map graph. The default
+pipeline uses a denser graph than RTAB-Map's 1 Hz default to reduce visibly
+piecewise-linear optimized curves:
+
+```text
+RTABMAP_DETECTION_RATE=5
+RTABMAP_LINEAR_UPDATE=0.03
+RTABMAP_ANGULAR_UPDATE=0.03
+RTABMAP_CREATE_INTERMEDIATE_NODES=true
+```
+
+Override them per run when needed:
+
+```bash
+RTABMAP_DETECTION_RATE=10 RTABMAP_LINEAR_UPDATE=0.02 \
+src/hno_vio/tools/run_rtabmap/scripts/run_rtabmap.sh \
+  src/hno_vio/results/run_YYYYmmddTHHMMSS/vio_results/odom_raw.csv
+```
+
+Check `offline_results/logs/export_report.txt` after a run. If
+`graph_final_mean_hz` is still low or `graph_final_max_step_m` is large, raise
+`RTABMAP_DETECTION_RATE` or lower the update thresholds.

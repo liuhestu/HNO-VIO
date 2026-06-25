@@ -8,6 +8,10 @@ def generate_launch_description():
     database_path = os.environ.get("RTABMAP_DB", "/tmp/hno_case009_rtabmap.db")
     odom_frame = os.environ.get("ODOM_FRAME", "odom")
     base_frame = os.environ.get("BASE_FRAME", "base_link")
+    detection_rate = os.environ.get("RTABMAP_DETECTION_RATE", "5")
+    linear_update = os.environ.get("RTABMAP_LINEAR_UPDATE", "0.03")
+    angular_update = os.environ.get("RTABMAP_ANGULAR_UPDATE", "0.03")
+    create_intermediate_nodes = os.environ.get("RTABMAP_CREATE_INTERMEDIATE_NODES", "true")
 
     stereo_sync = Node(
         package="rtabmap_sync",
@@ -57,6 +61,10 @@ def generate_launch_description():
             "Mem/IncrementalMemory": "true",
             "Mem/InitWMWithAllNodes": "false",
             "Reg/Force3DoF": "false",
+            "Rtabmap/CreateIntermediateNodes": create_intermediate_nodes,
+            "Rtabmap/DetectionRate": detection_rate,
+            "RGBD/LinearUpdate": linear_update,
+            "RGBD/AngularUpdate": angular_update,
             "RGBD/OptimizeFromGraphEnd": "true",
             "RGBD/NeighborLinkRefining": "true",
             "Vis/MinInliers": "12",

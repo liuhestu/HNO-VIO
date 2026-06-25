@@ -6,19 +6,19 @@ Ground truth: `/home/sharpa/hno_vio_clean/src/hno_vio/ground_truth/euroc_mav/V1_
 
 | metric | raw | optimized |
 | --- | ---: | ---: |
-| ATE RMSE [m] | 0.316636 | 0.083788 |
-| ATE mean [m] | 0.281614 | 0.060730 |
-| ATE median [m] | 0.247018 | 0.046181 |
-| RPE trans RMSE @20 frames (~1s) [m] | 0.032162 | 0.100897 |
-| RPE rot RMSE @20 frames (~1s) [deg] | 0.672309 | 3.415439 |
-| path length [m] | 61.196934 | 54.450512 |
-| optimized/raw path length ratio | 1.000000 | 0.889759 |
-| pose count | 2362 | 115 |
+| ATE RMSE [m] | 0.316636 | 0.077022 |
+| ATE mean [m] | 0.281614 | 0.062836 |
+| ATE median [m] | 0.247018 | 0.047760 |
+| RPE trans RMSE @20 frames (~1s) [m] | 0.032162 | 0.092669 |
+| RPE rot RMSE @20 frames (~1s) [deg] | 0.672309 | 3.015823 |
+| path length [m] | 61.196934 | 56.119403 |
+| optimized/raw path length ratio | 1.000000 | 0.917030 |
+| pose count | 2362 | 301 |
 | duration [s] | 142.800000 | 142.800000 |
-| final raw-vs-optimized position delta [m] | 0.003007 | 0.003007 |
-| raw-vs-optimized mean position delta [m] | 3.173391218 | 3.173391218 |
-| raw-vs-optimized max position delta [m] | 6.084424635 | 6.084424635 |
-| optimized graph pose count | 115 | 115 |
+| final raw-vs-optimized position delta [m] | 0.000000 | 0.000000 |
+| raw-vs-optimized mean position delta [m] | 2.991482183 | 2.991482183 |
+| raw-vs-optimized max position delta [m] | 6.561087468 | 6.561087468 |
+| optimized graph pose count | 301 | 301 |
 
 Notes:
 - Evaluation uses `evo_ape/evo_rpe --align --correct_scale` for shape comparison.

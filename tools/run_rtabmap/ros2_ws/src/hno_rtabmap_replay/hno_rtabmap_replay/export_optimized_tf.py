@@ -166,6 +166,33 @@ def matrices_to_poses(items):
     return poses
 
 
+def graph_spacing_stats(items):
+    if len(items) < 2:
+        return {
+            "duration_sec": 0.0,
+            "mean_hz": 0.0,
+            "median_dt_sec": 0.0,
+            "max_dt_sec": 0.0,
+            "median_step_m": 0.0,
+            "max_step_m": 0.0,
+        }
+
+    dts = []
+    steps = []
+    for (stamp_a, T_a), (stamp_b, T_b) in zip(items, items[1:]):
+        dts.append((stamp_b - stamp_a) * 1e-9)
+        steps.append(float(np.linalg.norm(T_b[:3, 3] - T_a[:3, 3])))
+    duration_sec = (items[-1][0] - items[0][0]) * 1e-9
+    return {
+        "duration_sec": duration_sec,
+        "mean_hz": (len(items) - 1) / duration_sec if duration_sec > 0 else 0.0,
+        "median_dt_sec": float(np.median(dts)),
+        "max_dt_sec": float(np.max(dts)),
+        "median_step_m": float(np.median(steps)),
+        "max_step_m": float(np.max(steps)),
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--bag", required=True)
@@ -222,6 +249,7 @@ def main():
     warning = ""
     if len(graph_final) < args.warn_graph_poses:
         warning = f"WARNING: graph pose count {len(graph_final)} < {args.warn_graph_poses}"
+    spacing = graph_spacing_stats(graph_final)
 
     report = log_dir / "export_report.txt"
     report.write_text(
@@ -234,6 +262,12 @@ def main():
             f"map_base_header_tf_count: {len(map_base_header)}",
             f"map_base_bag_tf_count: {len(map_base_bag)}",
             f"graph_final_pose_count: {len(graph_final)}",
+            f"graph_final_duration_sec: {spacing['duration_sec']:.9f}",
+            f"graph_final_mean_hz: {spacing['mean_hz']:.9f}",
+            f"graph_final_median_dt_sec: {spacing['median_dt_sec']:.9f}",
+            f"graph_final_max_dt_sec: {spacing['max_dt_sec']:.9f}",
+            f"graph_final_median_step_m: {spacing['median_step_m']:.9f}",
+            f"graph_final_max_step_m: {spacing['max_step_m']:.9f}",
             f"graph_final_missing_stamp_count: {missing_graph_stamps}",
             f"optimized_source: mapData.graph.poses",
             f"diagnostic_tf_source: {diagnostic_source}",

@@ -3,13 +3,13 @@ RPE w.r.t. translation part (m)
 for delta = 20 (frames) using consecutive pairs
 (with Sim(3) Umeyama alignment)
 
-       max	0.175819
-      mean	0.090404
-    median	0.082106
-       min	0.045672
-      rmse	0.100897
-       sse	0.050901
-       std	0.044802
+       max	0.204462
+      mean	0.078521
+    median	0.053227
+       min	0.023771
+      rmse	0.092669
+       sse	0.120227
+       std	0.049214
 
 
 # angle_deg @20 frames, about 1s at 20Hz
@@ -17,11 +17,11 @@ RPE w.r.t. rotation angle in degrees (deg)
 for delta = 20 (frames) using consecutive pairs
 (with Sim(3) Umeyama alignment)
 
-       max	4.617749
-      mean	3.235162
-    median	3.352982
-       min	1.487258
-      rmse	3.415439
-       sse	58.326102
-       std	1.094965
+       max	8.375460
+      mean	2.369547
+    median	1.885009
+       min	0.776464
+      rmse	3.015823
+       sse	127.332651
+       std	1.865593
 
