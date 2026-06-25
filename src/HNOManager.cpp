@@ -3,7 +3,10 @@
 #include <track/TrackKLT.h>
 #include <cv_bridge/cv_bridge.h>
 #include <utils/opencv_yaml_parse.h>
+#include <boost/filesystem.hpp>
+#include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <unordered_set>
 
@@ -37,6 +40,8 @@ HNOManager::HNOManager(ros::NodeHandle& nh, const std::string& config_path) : nh
     // 5. 初始化ROS发布器
     // 姿态 (EKF输出)
     pub_pose = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 100);
+    // 原始 HNO odom (给调试/离线后端记录使用)
+    pub_odom = nh.advertise<nav_msgs::Odometry>("odom", 100);
     // 路径 (轨迹)
     pub_path = nh.advertise<nav_msgs::Path>("path", 100);
     pub_path_gt = nh.advertise<nav_msgs::Path>("path_gt", 100);
@@ -51,6 +56,17 @@ HNOManager::HNOManager(ros::NodeHandle& nh, const std::string& config_path) : nh
     path_gt_msg.header.frame_id = "world";
 
     ROS_INFO("[HNOManager] Initialized successfully.");
+}
+
+HNOManager::~HNOManager() {
+    if (odom_output_file.is_open()) {
+        odom_output_file.flush();
+        odom_output_file.close();
+    }
+    if (odom_tum_output_file.is_open()) {
+        odom_tum_output_file.flush();
+        odom_tum_output_file.close();
+    }
 }
 
 /**
@@ -193,6 +209,13 @@ void HNOManager::load_parameters(const std::string& config_path) {
     // --- 5. 调试/Cheat 模式参数 ---
     nh_.param<bool>("use_gt_init", use_gt_init, false);
     nh_.param<bool>("use_gt_mapping", use_gt_mapping, false);
+    nh_.param<bool>("export_odom", export_odom, false);
+    nh_.param<std::string>("odom_output_path", odom_output_path, "");
+
+    ROS_INFO("[HNO] Switches: use_gt_init=%s use_gt_mapping=%s export_odom=%s",
+             use_gt_init ? "true" : "false",
+             use_gt_mapping ? "true" : "false",
+             export_odom ? "true" : "false");
     if(use_gt_init) {
         ROS_WARN("[HNO] RUNNING IN CHEAT INIT MODE: Using GT for initialization!");
     } else {
@@ -202,6 +225,42 @@ void HNOManager::load_parameters(const std::string& config_path) {
         ROS_WARN("[HNO] RUNNING IN CHEAT MODE: Using GT for Mapping!");
     } else {
         ROS_INFO("[HNO] RUNNING IN REAL MODE: Using Estimation for Mapping.");
+    }
+
+    if (export_odom) {
+        if (odom_output_path.empty()) {
+            ROS_ERROR("[HNO] export_odom is true but odom_output_path is empty. Disabling odom export.");
+            export_odom = false;
+        } else {
+            boost::filesystem::path out_path(odom_output_path);
+            boost::filesystem::path parent = out_path.parent_path();
+            if (!parent.empty()) {
+                boost::filesystem::create_directories(parent);
+            }
+
+            odom_output_file.open(odom_output_path, std::ios::out | std::ios::trunc);
+            if (!odom_output_file.is_open()) {
+                ROS_ERROR("[HNO] Failed to open odom output file: %s", odom_output_path.c_str());
+                export_odom = false;
+            } else {
+                boost::filesystem::path tum_path = out_path;
+                tum_path.replace_extension(".tum");
+                odom_tum_output_path = tum_path.string();
+                odom_tum_output_file.open(odom_tum_output_path, std::ios::out | std::ios::trunc);
+                if (!odom_tum_output_file.is_open()) {
+                    ROS_ERROR("[HNO] Failed to open odom TUM output file: %s", odom_tum_output_path.c_str());
+                    odom_output_file.close();
+                    export_odom = false;
+                    return;
+                }
+
+                odom_output_file << "timestamp,tx,ty,tz,qx,qy,qz,qw\n";
+                odom_output_file << std::fixed << std::setprecision(9);
+                odom_tum_output_file << std::fixed << std::setprecision(9);
+                ROS_INFO("[HNO] Exporting camera-frame odom to %s and %s",
+                         odom_output_path.c_str(), odom_tum_output_path.c_str());
+            }
+        }
     }
 }
 
@@ -439,6 +498,9 @@ void HNOManager::process_camera_data(const ov_core::CameraData& msg) {
     // 计算误差
     int map_size = feature_handler->get_active_map().size();
     compute_and_print_error(msg.timestamp, state->p_hat, map_size, num_obs);
+
+    // 导出给 RTAB-Map 离线后端的原始 HNO odom。不要使用任何 GT 对齐结果。
+    export_odom_state(msg.timestamp, state);
     
     // 发布可视化话题
     publish_visualization(msg.timestamp, msg);
@@ -467,8 +529,18 @@ void HNOManager::publish_state(double timestamp, const std::shared_ptr<HNOState>
     msg_pose.pose.pose.orientation.y = q.y();
     msg_pose.pose.pose.orientation.z = q.z();
     pub_pose.publish(msg_pose);
+
+    // 2. Odometry
+    nav_msgs::Odometry msg_odom;
+    msg_odom.header = msg_pose.header;
+    msg_odom.child_frame_id = "imu";
+    msg_odom.pose.pose = msg_pose.pose.pose;
+    msg_odom.twist.twist.linear.x = state_viz->v_hat.x();
+    msg_odom.twist.twist.linear.y = state_viz->v_hat.y();
+    msg_odom.twist.twist.linear.z = state_viz->v_hat.z();
+    pub_odom.publish(msg_odom);
     
-    // 2. Path
+    // 3. Path
     geometry_msgs::PoseStamped ps;
     ps.header = msg_pose.header;
     ps.pose = msg_pose.pose.pose;
@@ -476,7 +548,7 @@ void HNOManager::publish_state(double timestamp, const std::shared_ptr<HNOState>
     path_msg.poses.push_back(ps);
     pub_path.publish(path_msg);
 
-    // 3. Ground-truth Path, time-synchronized and aligned to the first estimated pose.
+    // 4. Ground-truth Path, time-synchronized and aligned to the first estimated pose.
     Eigen::Vector3d p_gt;
     Eigen::Matrix3d R_gt;
     if (get_interpolated_gt(timestamp, p_gt, R_gt)) {
@@ -505,12 +577,41 @@ void HNOManager::publish_state(double timestamp, const std::shared_ptr<HNOState>
         pub_path_gt.publish(path_gt_msg);
     }
     
-    // 4. TF
+    // 5. TF
     tf::Transform transform;
     tf::Quaternion tf_q(q.x(), q.y(), q.z(), q.w());
     transform.setOrigin(tf::Vector3(state_viz->p_hat.x(), state_viz->p_hat.y(), state_viz->p_hat.z()));
     transform.setRotation(tf_q);
     tf_broadcaster.sendTransform(tf::StampedTransform(transform, rtime, "world", "imu"));
+}
+
+void HNOManager::export_odom_state(double timestamp, const std::shared_ptr<HNOState>& state_to_export) {
+    if (!export_odom || !odom_output_file.is_open() || !state_to_export) return;
+
+    if (last_exported_odom_time > 0.0 && timestamp <= last_exported_odom_time) return;
+
+    Eigen::Quaterniond q(state_to_export->R_hat_B2I);
+    q.normalize();
+
+    odom_output_file << timestamp << ","
+                     << state_to_export->p_hat.x() << ","
+                     << state_to_export->p_hat.y() << ","
+                     << state_to_export->p_hat.z() << ","
+                     << q.x() << ","
+                     << q.y() << ","
+                     << q.z() << ","
+                     << q.w() << "\n";
+    if (odom_tum_output_file.is_open()) {
+        odom_tum_output_file << timestamp << " "
+                             << state_to_export->p_hat.x() << " "
+                             << state_to_export->p_hat.y() << " "
+                             << state_to_export->p_hat.z() << " "
+                             << q.x() << " "
+                             << q.y() << " "
+                             << q.z() << " "
+                             << q.w() << "\n";
+    }
+    last_exported_odom_time = timestamp;
 }
 
 void HNOManager::publish_visualization(double timestamp, const ov_core::CameraData& msg) {

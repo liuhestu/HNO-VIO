@@ -11,6 +11,8 @@
   <arg name="dobag" default="true" />
   <arg name="use_gt_init" default="false" />
   <arg name="use_gt_mapping" default="false" />
+  <arg name="export_odom" default="true" />
+  <arg name="odom_output_path" default="$(find hno_vio)/vio_results/odom_raw.csv" />
   <arg name="rviz" default="true" />
 
   <node name="run_hno_vio" pkg="hno_vio" type="run_hno_vio" output="screen" clear_params="true" required="true">
@@ -18,6 +20,8 @@
     <param name="path_gt" type="string" value="$(arg path_gt)" />
     <param name="use_gt_init" type="bool" value="$(arg use_gt_init)" />
     <param name="use_gt_mapping" type="bool" value="$(arg use_gt_mapping)" />
+    <param name="export_odom" type="bool" value="$(arg export_odom)" />
+    <param name="odom_output_path" type="string" value="$(arg odom_output_path)" />
 
     <param name="topic_imu" value="/imu0" />
     <param name="topic_cam0" value="/cam0/image_raw" />

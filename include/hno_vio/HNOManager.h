@@ -5,6 +5,7 @@
 #include <vector>
 #include <mutex>
 #include <map>
+#include <fstream>
 #include <ros/ros.h>
 
 #include "cam/CamBase.h"
@@ -43,6 +44,7 @@ namespace hno_vio {
 class HNOManager {
 public:
     HNOManager(ros::NodeHandle& nh, const std::string& config_path);
+    ~HNOManager();
     
     // 启动ROS订阅
     void launch_subscribers();
@@ -70,6 +72,9 @@ private:
 
     // 发布位姿、路径、TF
     void publish_state(double timestamp, const std::shared_ptr<HNOState>& state);
+
+    // 导出相机帧频率 odom 轨迹给离线 RTAB-Map 后端
+    void export_odom_state(double timestamp, const std::shared_ptr<HNOState>& state_to_export);
     
     // 发布特征点云、追踪图像
     void publish_visualization(double timestamp, const ov_core::CameraData& msg);
@@ -121,6 +126,7 @@ private:
     double current_time = -1;      // 当前估计状态的时间戳
     double first_timestamp = -1;   // 系统启动的时间戳
     double last_published_time = -1; // 限制发布频率
+    double last_exported_odom_time = -1;
     
     // 相机配置
     std::vector<std::shared_ptr<ov_core::CamBase>> cams;
@@ -141,6 +147,13 @@ private:
     // --- Debug / Cheating Params ---
     bool use_gt_init = false;      // true: overwrite initialization from GT; false: real initialization
     bool use_gt_mapping = false;   // true: use GT for mapping (Cheating); false: use State (Real VIO)
+
+    // --- Offline backend export ---
+    bool export_odom = false;
+    std::string odom_output_path;
+    std::string odom_tum_output_path;
+    std::ofstream odom_output_file;
+    std::ofstream odom_tum_output_file;
 };
 
 } // namespace hno_vio
