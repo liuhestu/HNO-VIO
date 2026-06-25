@@ -1,0 +1,17 @@
+
+Files:             hno_case009_baseline_repeat_2_rerun_input_bag_0.db3
+Bag size:          1.9 GiB
+Storage id:        sqlite3
+Duration:          145.611816388s
+Start:             Jun 25 2026 15:44:03.244658533 (1782373443.244658533)
+End:               Jun 25 2026 15:46:28.856474921 (1782373588.856474921)
+Messages:          19321
+Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 2760 | Serialization Format: cdr
+                   Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2760 | Serialization Format: cdr
+                   Topic: /clock | Type: rosgraph_msgs/msg/Clock | Count: 2760 | Serialization Format: cdr
+                   Topic: /cam1/image_rect | Type: sensor_msgs/msg/Image | Count: 2760 | Serialization Format: cdr
+                   Topic: /cam1/camera_info | Type: sensor_msgs/msg/CameraInfo | Count: 2760 | Serialization Format: cdr
+                   Topic: /cam0/image_rect | Type: sensor_msgs/msg/Image | Count: 2760 | Serialization Format: cdr
+                   Topic: /cam0/camera_info | Type: sensor_msgs/msg/CameraInfo | Count: 2760 | Serialization Format: cdr
+

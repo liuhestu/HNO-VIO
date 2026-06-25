@@ -1,0 +1,17 @@
+raw_pose_count: 2760
+optimized_pose_count: 2760
+tf_match_time: bag
+map_odom_header_tf_count: 3140
+map_odom_bag_tf_count: 3140
+map_base_header_tf_count: 0
+map_base_bag_tf_count: 0
+graph_final_pose_count: 121
+graph_final_missing_stamp_count: 0
+optimized_source: map->odom composed with odom->base_link using bag stamps
+topic_counts:
+  /hno_vio/odom: 2760
+  /rtabmap/info: 126
+  /rtabmap/mapData: 126
+  /rtabmap/rgbd_image: 2760
+  /tf: 5900
+  /tf_static: 1

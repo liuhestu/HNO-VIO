@@ -1,0 +1,17 @@
+
+Files:             hno_case009_baseline_repeat_2_rerun_output_bag_0.db3
+Bag size:          1.9 GiB
+Storage id:        sqlite3
+Duration:          156.950040329s
+Start:             Jun 25 2026 15:47:49.053179169 (1782373669.053179169)
+End:               Jun 25 2026 15:50:26.003219498 (1782373826.003219498)
+Messages:          11673
+Topic information: Topic: /tf_static | Type: tf2_msgs/msg/TFMessage | Count: 1 | Serialization Format: cdr
+                   Topic: /hno_vio/odom | Type: nav_msgs/msg/Odometry | Count: 2760 | Serialization Format: cdr
+                   Topic: /tf | Type: tf2_msgs/msg/TFMessage | Count: 5900 | Serialization Format: cdr
+                   Topic: /rtabmap/mapData | Type: rtabmap_msgs/msg/MapData | Count: 126 | Serialization Format: cdr
+                   Topic: /rtabmap/local_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
+                   Topic: /rtabmap/info | Type: rtabmap_msgs/msg/Info | Count: 126 | Serialization Format: cdr
+                   Topic: /rtabmap/global_path | Type: nav_msgs/msg/Path | Count: 0 | Serialization Format: cdr
+                   Topic: /rtabmap/rgbd_image | Type: rtabmap_msgs/msg/RGBDImage | Count: 2760 | Serialization Format: cdr
+

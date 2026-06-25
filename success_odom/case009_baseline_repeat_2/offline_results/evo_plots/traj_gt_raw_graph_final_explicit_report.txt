@@ -1,0 +1,6 @@
+raw_input_poses: 2760
+graph_final_input_poses: 121
+raw_assoc_to_gt: 2741
+graph_assoc_to_gt: 120
+graph_final_source: rtabmap_graph_final.tum exported from mapData.graph.poses
+alignment: independent Sim(3) alignment to gt.tum for visual comparison

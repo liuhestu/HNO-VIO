@@ -1,0 +1,21 @@
+source_bag: /tmp/hno_case009_baseline_repeat_2_rerun_output_bag
+info_count: 126
+mapData_count: 126
+global_path_msg_count: 0
+global_path_last_pose_count: 0
+local_path_msg_count: 0
+local_path_last_pose_count: 0
+loop_closure_id_nonzero_count: 41
+proximity_detection_id_nonzero_count: 28
+loop_closure_ids_sample: [16, 17, 17, 17, 17, 17, 35, 36, 20, 23, 23, 6, 7, 8, 8, 8, 18, 62, 63, 35]
+proximity_detection_ids_sample: [17, 36, 20, 23, 63, 34, 35, 65, 66, 6, 76, 8, 11, 11, 80, 80, 82, 83, 85, 30]
+final_graph_pose_count: 121
+final_graph_link_count: 169
+final_adjacent_link_count: 118
+final_non_adjacent_link_count: 51
+max_graph_link_count: 169
+max_non_adjacent_link_count: 51
+final_link_type_counts:
+  type_0: 122
+  type_1: 41
+  type_2: 6

@@ -1,6 +1,6 @@
 Starting >>> hno_rtabmap_replay
 [Processing: hno_rtabmap_replay]
-Finished <<< hno_rtabmap_replay [30.1s]
+Finished <<< hno_rtabmap_replay [30.6s]
 
-Summary: 1 package finished [30.4s]
+Summary: 1 package finished [31.2s]
 /home/sharpa/hno_vio_clean/src/hno_vio/tools/run_rtabmap/ros2_ws/install/hno_rtabmap_replay

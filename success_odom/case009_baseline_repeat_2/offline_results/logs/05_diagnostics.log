@@ -1,0 +1,7 @@
+[INFO] [1782373929.573435060] [rosbag2_storage]: Opened database '/tmp/hno_case009_baseline_repeat_2_rerun_output_bag/hno_case009_baseline_repeat_2_rerun_output_bag_0.db3' for READ_ONLY.
+[INFO] [1782373939.074427341] [rosbag2_storage]: Opened database '/tmp/hno_case009_baseline_repeat_2_rerun_output_bag/hno_case009_baseline_repeat_2_rerun_output_bag_0.db3' for READ_ONLY.
+[INFO] [1782373944.719187793] [rosbag2_storage]: Opened database '/tmp/hno_case009_baseline_repeat_2_rerun_input_bag/hno_case009_baseline_repeat_2_rerun_input_bag_0.db3' for READ_ONLY.
+[INFO] [1782373950.466375595] [rosbag2_storage]: Opened database '/tmp/hno_case009_baseline_repeat_2_rerun_output_bag/hno_case009_baseline_repeat_2_rerun_output_bag_0.db3' for READ_ONLY.
+/home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_baseline_repeat_2/offline_results/map_odom_stats.txt
+/home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_baseline_repeat_2/offline_results/rtabmap_graph_stats.txt
+/home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_baseline_repeat_2/offline_results/topic_hz_stats.txt

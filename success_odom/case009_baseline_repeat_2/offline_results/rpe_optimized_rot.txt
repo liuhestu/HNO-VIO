@@ -1,0 +1,14 @@
+$ /home/sharpa/.local/bin/evo_rpe tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_baseline_repeat_2/offline_results/gt.tum /home/sharpa/hno_vio_clean/src/hno_vio/success_odom/case009_baseline_repeat_2/offline_results/rtabmap_optimized.tum -r angle_deg -d 20 -u f --align --correct_scale
+
+RPE w.r.t. rotation angle in degrees (deg)
+for delta = 20 (frames) using consecutive pairs
+(with Sim(3) Umeyama alignment)
+
+       max	2.099341
+      mean	0.700691
+    median	0.623006
+       min	0.047669
+      rmse	0.802791
+       sse	88.292859
+       std	0.391798
+
