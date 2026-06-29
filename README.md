@@ -1,1 +1,1 @@
-03-集成了rtabmap离线优化，run tools/script/run_rtabmap.sh /path/to/run_YYYYmmddTHHMMSS/vio_results
+04-集成了rtabmap离线优化，正在添加实时回环矫正，回环时重置状态
