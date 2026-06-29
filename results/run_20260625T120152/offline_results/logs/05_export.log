@@ -1,3 +1,0 @@
-[INFO] [1782393812.539913373] [rosbag2_storage]: Opened database '/home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T120152/offline_results/rtabmap_output.bag/rtabmap_output.bag_0.db3' for READ_ONLY.
-optimized_tum: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T120152/offline_results/odom_optimized.txt
-report: /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260625T120152/offline_results/logs/export_report.txt

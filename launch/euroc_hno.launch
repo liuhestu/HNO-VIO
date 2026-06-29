@@ -10,8 +10,8 @@
   <arg name="bag_start" default="0" />
   <arg name="bag_rate" default="1" />
   <arg name="dobag" default="true" />
-  <arg name="use_gt_init" default="false" />
-  <arg name="use_gt_mapping" default="false" />
+  <arg name="use_gt_init" default="true" />
+  <arg name="use_gt_mapping" default="true" />
   <arg name="export_odom" default="true" />
   <arg name="odom_output_path" default="$(find hno_vio)/results/{run_id}/vio_results/odom_raw.csv" />
   <arg name="rviz" default="true" />
