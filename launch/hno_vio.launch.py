@@ -8,11 +8,11 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
-
+# 把字符串转成真正的bool值
 def as_bool(value):
     return str(value).lower() in ("1", "true", "yes", "on")
 
-
+# rosbags-convert 与 rtabmap 要求的格式有差别
 def normalize_rosbag2_metadata(bag_path):
     metadata_path = os.path.join(bag_path, "metadata.yaml")
     if not os.path.isfile(metadata_path):
@@ -28,9 +28,10 @@ def normalize_rosbag2_metadata(bag_path):
     with open(metadata_path, "w", encoding="utf-8") as f:
         f.write(fixed)
 
-
+# 主逻辑函数
 def launch_setup(context, *args, **kwargs):
     pkg_share = get_package_share_directory("hno_vio")
+    # 读取 launch 参数
     dataset = LaunchConfiguration("dataset").perform(context)
     config = LaunchConfiguration("config").perform(context)
     bag_path = LaunchConfiguration("bag_path").perform(context)
@@ -39,12 +40,12 @@ def launch_setup(context, *args, **kwargs):
     rviz = as_bool(LaunchConfiguration("rviz").perform(context))
     use_sim_time = as_bool(LaunchConfiguration("use_sim_time").perform(context))
     num_cams = int(LaunchConfiguration("num_cams").perform(context))
-    max_cameras = int(LaunchConfiguration("max_cameras").perform(context))
     results_root = LaunchConfiguration("results_root").perform(context)
     bag_rate = LaunchConfiguration("bag_rate").perform(context)
     bag_start = LaunchConfiguration("bag_start").perform(context)
     play_topics = LaunchConfiguration("play_topics").perform(context)
 
+    # 自动补全默认路径
     config_path = LaunchConfiguration("config_path").perform(context)
     if not config_path:
         config_path = os.path.join(pkg_share, "config", config, "estimator_config.yaml")
@@ -54,12 +55,14 @@ def launch_setup(context, *args, **kwargs):
     path_gt = LaunchConfiguration("path_gt").perform(context)
     if not path_gt:
         path_gt = os.path.join(pkg_share, "ground_truth", "euroc_mav", f"{dataset}.txt")
-
+    
+    # 合法性检查
     if run_preprocess and num_cams != 2:
         raise RuntimeError("run_preprocess=true requires num_cams=2 because RTAB-Map input is stereo.")
     if play_bag:
         normalize_rosbag2_metadata(bag_path)
 
+    # 创建本次 run 目录
     beijing = timezone(timedelta(hours=8))
     run_id = datetime.now(beijing).strftime("run_%Y%m%dT%H%M%S")
     run_dir = os.path.join(results_root, run_id)
@@ -71,7 +74,9 @@ def launch_setup(context, *args, **kwargs):
     odom_output_path = odom_output_path.replace("{run_id}", run_id)
     rtabmap_input = os.path.join(vio_results, "rtabmap_input_db3")
 
+    # 节点启动区
     actions = []
+    ## 启动 HNO-VIO 主节点
     actions.append(Node(
         package="hno_vio",
         executable="run_hno_vio",
@@ -86,7 +91,6 @@ def launch_setup(context, *args, **kwargs):
             "bag_path": bag_path,
             "raw_bag": bag_path,
             "path_gt": path_gt,
-            "max_cameras": max_cameras,
             "num_cams": num_cams,
             "use_gt_mapping": as_bool(LaunchConfiguration("use_gt_mapping").perform(context)),
             "export_odom": as_bool(LaunchConfiguration("export_odom").perform(context)),
@@ -99,6 +103,7 @@ def launch_setup(context, *args, **kwargs):
         }],
     ))
 
+    ## 启动 RTAB-Map 预处理节点
     if run_preprocess:
         actions.append(Node(
             package="hno_vio",
@@ -131,6 +136,8 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
         ))
 
+
+    ## 启动 rviz 可视化
     if rviz:
         actions.append(Node(
             package="rviz2",
@@ -140,6 +147,7 @@ def launch_setup(context, *args, **kwargs):
             output="screen",
         ))
 
+    ##  自动播放 rosbag
     if play_bag:
         play_cmd = ["ros2", "bag", "play", bag_path, "--clock", "--rate", bag_rate]
         if float(bag_start) > 0.0:
@@ -151,33 +159,40 @@ def launch_setup(context, *args, **kwargs):
 
     return actions
 
-
+# 参数声明区
 def generate_launch_description():
     default_results = "/home/sharpa/hno_vio_clean/src/hno_vio/results"
     return LaunchDescription([
+        # 输入数据集参数
         DeclareLaunchArgument("dataset", default_value="V1_01_easy"),
         DeclareLaunchArgument("bag_path", default_value="/home/sharpa/datasets/euroc/ros2db/V1_01_easy_db"),
         DeclareLaunchArgument("play_bag", default_value="true"),
         DeclareLaunchArgument("bag_rate", default_value="1.0"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),
+
+        # 配置文件参数
         DeclareLaunchArgument("config", default_value="euroc_mav"),
         DeclareLaunchArgument("config_path", default_value=""),
         DeclareLaunchArgument("camera_config", default_value=""),
         DeclareLaunchArgument("path_gt", default_value=""),
         DeclareLaunchArgument("results_root", default_value=default_results),
-        DeclareLaunchArgument("max_cameras", default_value="2"),
         DeclareLaunchArgument("num_cams", default_value="2"),
+
+        # 行为控制
         DeclareLaunchArgument("use_gt_mapping", default_value="false"),
         DeclareLaunchArgument("export_odom", default_value="true"),
+        DeclareLaunchArgument("run_preprocess", default_value="true"),
+        DeclareLaunchArgument("rviz", default_value="true"),
+        DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("odom_output_path", default_value=""),
+        
+        # 话题
         DeclareLaunchArgument("odom_frame", default_value="odom"),
         DeclareLaunchArgument("base_frame", default_value="base_link"),
         DeclareLaunchArgument("topic_imu", default_value="/imu0"),
         DeclareLaunchArgument("topic_cam0", default_value="/cam0/image_raw"),
         DeclareLaunchArgument("topic_cam1", default_value="/cam1/image_raw"),
-        DeclareLaunchArgument("run_preprocess", default_value="false"),
-        DeclareLaunchArgument("rviz", default_value="true"),
-        DeclareLaunchArgument("use_sim_time", default_value="true"),
+
         OpaqueFunction(function=launch_setup),
     ])

@@ -186,7 +186,6 @@ void HNOManager::load_parameters(const std::string& config_path) {
     int max_cameras = 2;
     parser.parse_config("max_cameras", max_cameras);
     num_cams = declare_or_get<int>(node_, "num_cams", max_cameras);
-    max_cameras = declare_or_get<int>(node_, "max_cameras", num_cams);
     num_cams = std::max(1, std::min(num_cams, max_cameras));
 
     for (int i = 0; i < num_cams; i++) {
