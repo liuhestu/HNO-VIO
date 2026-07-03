@@ -23,6 +23,7 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     HNOInitializer();
+    void setOptions(size_t window_size, double max_acc_variance, double max_gyro_variance);
 
     /**
      * @brief 添加 IMU 数据到初始化缓存
@@ -50,6 +51,7 @@ private:
     // 静止检测阈值
     double max_acc_variance = 0.05; // m/s^2 (收紧阈值，原0.5)
     double max_gyro_variance = 0.01; // rad/s (收紧阈值，原0.1非常大)
+    size_t stationary_warn_count = 0;
 };
 
 }

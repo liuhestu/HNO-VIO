@@ -6,6 +6,12 @@ namespace hno_vio {
 
 HNOInitializer::HNOInitializer() {}
 
+void HNOInitializer::setOptions(size_t window_size_in, double max_acc_variance_in, double max_gyro_variance_in) {
+    window_size = window_size_in;
+    max_acc_variance = max_acc_variance_in;
+    max_gyro_variance = max_gyro_variance_in;
+}
+
 void HNOInitializer::feedImuData(const ov_core::ImuData& msg) {
     imu_buffer.push_back(msg);
     // 滑动窗口：如果超过大小，丢弃最旧的数据
@@ -43,8 +49,13 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
 
     // 静止检测，如果数据晃动太大，说明不是静止状态，不能用于初始化
     if(var_acc.norm() > max_acc_variance || var_gyro.norm() > max_gyro_variance) {
-        std::cout << "[HNOInit] Waiting for stationary... Var Acc: " << var_acc.norm() 
-                  << " Gyro: " << var_gyro.norm() << std::endl;
+        stationary_warn_count++;
+        if(stationary_warn_count <= 5 || stationary_warn_count % 50 == 0) {
+            std::cout << "[HNOInit] Waiting for stationary... Var Acc: " << var_acc.norm()
+                      << " / " << max_acc_variance
+                      << " Gyro: " << var_gyro.norm()
+                      << " / " << max_gyro_variance << std::endl;
+        }
         return false;
     }
 
@@ -106,6 +117,7 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
 
     // 清空缓存
     imu_buffer.clear();
+    stationary_warn_count = 0;
     
     return true;
 }

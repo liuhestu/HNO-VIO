@@ -1,37 +1,42 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.8)
 project(hno_vio)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_definitions(-DROS_AVAILABLE=1)
+add_compile_definitions(ROS_AVAILABLE=2)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(message_filters REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
+find_package(CURL REQUIRED)
+
+set(HNO_ROS_DEPS
+  rclcpp
   std_msgs
   sensor_msgs
   nav_msgs
   geometry_msgs
   visualization_msgs
   cv_bridge
-  image_transport
   message_filters
-  tf
-)
-
-find_package(Eigen3 REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
-
-catkin_package(
-  INCLUDE_DIRS include thirdparty/openvins_core/src
-  LIBRARIES hno_vio_lib openvins_core_minimal
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs nav_msgs geometry_msgs visualization_msgs cv_bridge image_transport message_filters tf
+  tf2
+  tf2_ros
 )
 
 include_directories(
   include
   thirdparty/openvins_core/src
-  ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
   ${Eigen3_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
@@ -45,7 +50,8 @@ add_library(openvins_core_minimal
   thirdparty/openvins_core/src/track/TrackKLT.cpp
   thirdparty/openvins_core/src/utils/print.cpp
 )
-target_link_libraries(openvins_core_minimal ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Boost_LIBRARIES})
+ament_target_dependencies(openvins_core_minimal ${HNO_ROS_DEPS})
+target_link_libraries(openvins_core_minimal ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} CURL::libcurl)
 
 add_library(hno_vio_lib
   src/HNOPropagator.cpp
@@ -54,21 +60,43 @@ add_library(hno_vio_lib
   src/HNOInitializer.cpp
   src/HNOManager.cpp
 )
-target_link_libraries(hno_vio_lib openvins_core_minimal ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Boost_LIBRARIES})
+ament_target_dependencies(hno_vio_lib ${HNO_ROS_DEPS})
+target_link_libraries(hno_vio_lib openvins_core_minimal ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} CURL::libcurl)
 
 add_executable(run_hno_vio src/run_hno_vio.cpp)
-target_link_libraries(run_hno_vio hno_vio_lib openvins_core_minimal ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${Boost_LIBRARIES})
+ament_target_dependencies(run_hno_vio ${HNO_ROS_DEPS})
+target_link_libraries(run_hno_vio hno_vio_lib openvins_core_minimal ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} CURL::libcurl)
 
 install(TARGETS openvins_core_minimal hno_vio_lib run_hno_vio
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/
+  DESTINATION include
 )
 
-install(DIRECTORY launch config ground_truth thirdparty
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+install(DIRECTORY launch config ground_truth tools
+  DESTINATION share/${PROJECT_NAME}
+  USE_SOURCE_PERMISSIONS
 )
+
+install(PROGRAMS tools/run_rtabmap/rtabmap_preprocess.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME rtabmap_preprocess
+)
+install(PROGRAMS tools/run_rtabmap/export_optimized_odom.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME export_optimized_odom
+)
+install(PROGRAMS tools/run_rtabmap/eval_and_summary.py
+  DESTINATION lib/${PROJECT_NAME}
+  RENAME eval_and_summary
+)
+
+ament_export_include_directories(include thirdparty/openvins_core/src)
+ament_export_libraries(hno_vio_lib openvins_core_minimal)
+ament_export_dependencies(${HNO_ROS_DEPS})
+
+ament_package()

@@ -1,11 +1,6 @@
-build/
-devel/
-install/
-log/
-logs/
-.catkin_workspace
-*.pyc
-__pycache__/
 rtabmap_input.bag/
 rtabmap_output.bag/
 rtabmap.db
+results/run_*/
+*.db3
+params_eval/
