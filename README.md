@@ -1,1 +1,1 @@
-04-集成了rtabmap离线优化，正在添加实时回环矫正，回环时重置状态
+03-将原ros1 vio + ros2 rtabmap 组合迁移到统一 ros2 humble 环境，作为日后的修改基模。
