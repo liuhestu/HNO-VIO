@@ -2,6 +2,7 @@
 #define HNO_MANAGER_H
 
 #include <fstream>
+#include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -45,6 +46,9 @@ private:
     void load_parameters(const std::string& config_path);
     void load_gt_data();
     void process_camera_data(const ov_core::CameraData& msg);
+    bool check_zupt_stationary(double& acc_variance,
+                               double& gyro_variance) const;
+    void reset_zupt_detector();
     bool get_interpolated_gt(double timestamp, Eigen::Vector3d& p_gt, Eigen::Matrix3d& R_gt);
 
     void publish_state(double timestamp, const std::shared_ptr<HNOState>& state);
@@ -92,6 +96,7 @@ private:
 
     std::mutex data_mutex;
     std::vector<ov_core::ImuData> imu_data_buffer;
+    std::deque<ov_core::ImuData> zupt_imu_window;
 
     bool is_initialized = false;
     double current_time = -1;
@@ -103,6 +108,17 @@ private:
     std::vector<Eigen::Matrix4d> cams_T_C2B;
     HNOFeature::Options feature_options;
     HNOUpdater::Options updater_options;
+
+    bool try_zupt = false;
+    int zupt_imu_window_size = 40;
+    int zupt_min_tracks = 20;
+    int zupt_hold_frames = 3;
+    double zupt_max_disparity = 0.5;
+    double zupt_acc_var_threshold = 0.05;
+    double zupt_gyro_var_threshold = 1e-4;
+    double zupt_activation_speed = 0.2;
+    int zupt_stationary_streak = 0;
+    bool zupt_active = false;
 
     std::string path_gt;
     std::string dataset;

@@ -37,7 +37,8 @@ public:
               min_observations(20),
               low_observation_hold_frames(3),
               warn_delta_ratio(0.8),
-              enforce_structure_after_update(false) {}
+              enforce_structure_after_update(false),
+              zupt_velocity_noise(0.05) {}
 
         double pixel_noise;
         double focal_length;
@@ -48,6 +49,7 @@ public:
         int low_observation_hold_frames;
         double warn_delta_ratio;
         bool enforce_structure_after_update;
+        double zupt_velocity_noise;
     };
 
     // 构造函数，只在程序启动、创建这个类对象的时候运行一次
@@ -69,6 +71,8 @@ public:
      */
     void update(std::shared_ptr<HNOState> state,
                 const std::vector<HNOObservation>& observations);
+
+    bool update_zero_velocity(std::shared_ptr<HNOState> state);
 
 private:
     // 参数配置

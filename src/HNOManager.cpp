@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <ctime>
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <unordered_set>
 
@@ -265,6 +266,15 @@ void HNOManager::load_parameters(const std::string& config_path) {
     parser.parse_config("update_low_observation_hold_frames", updater_options.low_observation_hold_frames, false);
     parser.parse_config("update_warn_delta_ratio", updater_options.warn_delta_ratio, false);
     parser.parse_config("update_enforce_structure", updater_options.enforce_structure_after_update, false);
+    parser.parse_config("try_zupt", try_zupt, false);
+    parser.parse_config("zupt_max_disparity", zupt_max_disparity, false);
+    parser.parse_config("zupt_imu_window_size", zupt_imu_window_size, false);
+    parser.parse_config("zupt_min_tracks", zupt_min_tracks, false);
+    parser.parse_config("zupt_hold_frames", zupt_hold_frames, false);
+    parser.parse_config("zupt_acc_var_threshold", zupt_acc_var_threshold, false);
+    parser.parse_config("zupt_gyro_var_threshold", zupt_gyro_var_threshold, false);
+    parser.parse_config("zupt_activation_speed", zupt_activation_speed, false);
+    parser.parse_config("zupt_velocity_noise", updater_options.zupt_velocity_noise, false);
 
     feature_options.tracker_num_pts = declare_or_get<int>(node_, "feature_tracker_num_pts", feature_options.tracker_num_pts);
     feature_options.tracker_fast_threshold = declare_or_get<int>(node_, "feature_tracker_fast_threshold", feature_options.tracker_fast_threshold);
@@ -300,6 +310,27 @@ void HNOManager::load_parameters(const std::string& config_path) {
     updater_options.warn_delta_ratio = declare_or_get<double>(node_, "update_warn_delta_ratio", updater_options.warn_delta_ratio);
     updater_options.enforce_structure_after_update =
         declare_or_get<bool>(node_, "update_enforce_structure", updater_options.enforce_structure_after_update);
+    try_zupt = declare_or_get<bool>(node_, "try_zupt", try_zupt);
+    zupt_max_disparity =
+        declare_or_get<double>(node_, "zupt_max_disparity", zupt_max_disparity);
+    zupt_imu_window_size =
+        declare_or_get<int>(node_, "zupt_imu_window_size", zupt_imu_window_size);
+    zupt_min_tracks =
+        declare_or_get<int>(node_, "zupt_min_tracks", zupt_min_tracks);
+    zupt_hold_frames =
+        declare_or_get<int>(node_, "zupt_hold_frames", zupt_hold_frames);
+    zupt_acc_var_threshold =
+        declare_or_get<double>(node_, "zupt_acc_var_threshold", zupt_acc_var_threshold);
+    zupt_gyro_var_threshold =
+        declare_or_get<double>(node_, "zupt_gyro_var_threshold", zupt_gyro_var_threshold);
+    zupt_activation_speed =
+        declare_or_get<double>(node_, "zupt_activation_speed", zupt_activation_speed);
+    updater_options.zupt_velocity_noise =
+        declare_or_get<double>(node_, "zupt_velocity_noise", updater_options.zupt_velocity_noise);
+
+    zupt_imu_window_size = std::max(2, zupt_imu_window_size);
+    zupt_min_tracks = std::max(1, zupt_min_tracks);
+    zupt_hold_frames = std::max(1, zupt_hold_frames);
 
     path_gt = declare_or_get<std::string>(node_, "path_gt", "");
     if (!path_gt.empty()) {
@@ -323,8 +354,11 @@ void HNOManager::load_parameters(const std::string& config_path) {
     topic_cam0 = declare_or_get<std::string>(node_, "topic_cam0", "/cam0/image_raw");
     topic_cam1 = declare_or_get<std::string>(node_, "topic_cam1", "/cam1/image_raw");
 
-    RCLCPP_INFO(node_->get_logger(), "[HNO] Switches: use_gt_mapping=%s export_odom=%s",
-                use_gt_mapping ? "true" : "false", export_odom ? "true" : "false");
+    RCLCPP_INFO(node_->get_logger(),
+                "[HNO] Switches: use_gt_mapping=%s export_odom=%s try_zupt=%s",
+                use_gt_mapping ? "true" : "false",
+                export_odom ? "true" : "false",
+                try_zupt ? "true" : "false");
     if (use_gt_mapping) {
         RCLCPP_WARN(node_->get_logger(), "[HNO] RUNNING IN WANG 2022 GT MAPPING MODE!");
     } else {
@@ -449,9 +483,18 @@ void HNOManager::feed_measurement(const ov_core::ImuData& msg) {
         initializer->feedImuData(msg);
         if (initializer->initialize(state, current_time)) {
             is_initialized = true;
+            reset_zupt_detector();
             RCLCPP_INFO(node_->get_logger(), "Statical Initialization Done at %.3f", current_time);
         }
         return;
+    }
+
+    if (try_zupt) {
+        zupt_imu_window.push_back(msg);
+        while (zupt_imu_window.size() >
+               static_cast<size_t>(zupt_imu_window_size)) {
+            zupt_imu_window.pop_front();
+        }
     }
 
     auto state_viz = std::make_shared<HNOState>(*state);
@@ -499,6 +542,53 @@ bool HNOManager::get_interpolated_gt(double timestamp, Eigen::Vector3d& p_gt, Ei
     return true;
 }
 
+void HNOManager::reset_zupt_detector() {
+    zupt_imu_window.clear();
+    zupt_stationary_streak = 0;
+    zupt_active = false;
+}
+
+bool HNOManager::check_zupt_stationary(
+    double& acc_variance,
+    double& gyro_variance) const {
+    acc_variance = std::numeric_limits<double>::infinity();
+    gyro_variance = std::numeric_limits<double>::infinity();
+
+    if (!try_zupt ||
+        zupt_imu_window.size() <
+            static_cast<size_t>(zupt_imu_window_size) ||
+        feature_handler->get_last_common_track_count() < zupt_min_tracks ||
+        !std::isfinite(feature_handler->get_last_median_disparity()) ||
+        feature_handler->get_last_median_disparity() > zupt_max_disparity) {
+        return false;
+    }
+
+    Eigen::Vector3d mean_acc = Eigen::Vector3d::Zero();
+    Eigen::Vector3d mean_gyro = Eigen::Vector3d::Zero();
+    for (const auto& imu : zupt_imu_window) {
+        mean_acc += imu.am;
+        mean_gyro += imu.wm;
+    }
+    const double sample_count =
+        static_cast<double>(zupt_imu_window.size());
+    mean_acc /= sample_count;
+    mean_gyro /= sample_count;
+
+    Eigen::Vector3d var_acc = Eigen::Vector3d::Zero();
+    Eigen::Vector3d var_gyro = Eigen::Vector3d::Zero();
+    for (const auto& imu : zupt_imu_window) {
+        var_acc += (imu.am - mean_acc).cwiseAbs2();
+        var_gyro += (imu.wm - mean_gyro).cwiseAbs2();
+    }
+    var_acc /= sample_count;
+    var_gyro /= sample_count;
+    acc_variance = var_acc.norm();
+    gyro_variance = var_gyro.norm();
+
+    return acc_variance <= zupt_acc_var_threshold &&
+           gyro_variance <= zupt_gyro_var_threshold;
+}
+
 void HNOManager::process_camera_data(const ov_core::CameraData& msg) {
     if (msg.timestamp <= current_time) {
         RCLCPP_WARN(node_->get_logger(), "Camera message skipped (old params): %.3f <= %.3f", msg.timestamp, current_time);
@@ -544,6 +634,73 @@ void HNOManager::process_camera_data(const ov_core::CameraData& msg) {
     int num_obs = valid_measurements.size();
     if (!valid_measurements.empty()) {
         updater->update(state, valid_measurements);
+    }
+
+    double zupt_acc_variance = 0.0;
+    double zupt_gyro_variance = 0.0;
+    const bool stationary = check_zupt_stationary(
+        zupt_acc_variance, zupt_gyro_variance);
+    if (stationary) {
+        zupt_stationary_streak++;
+    } else {
+        if (zupt_active) {
+            RCLCPP_INFO(node_->get_logger(),
+                        "[HNOZUPT] exit disparity=%.3f tracks=%d",
+                        feature_handler->get_last_median_disparity(),
+                        feature_handler->get_last_common_track_count());
+        }
+        zupt_stationary_streak = 0;
+        zupt_active = false;
+    }
+
+    const bool should_enter_zupt =
+        stationary &&
+        zupt_stationary_streak >= zupt_hold_frames &&
+        state->v_hat.norm() >= zupt_activation_speed;
+    if ((should_enter_zupt || zupt_active) && stationary) {
+        const bool entering = !zupt_active;
+        zupt_active = true;
+
+        const HNOState state_before = *state;
+        const double speed_before = state->v_hat.norm();
+        const bool updated = updater->update_zero_velocity(state);
+        const double position_delta =
+            (state->p_hat - state_before.p_hat).norm();
+        const Eigen::Matrix3d rotation_delta =
+            state_before.R_hat_B2I.transpose() * state->R_hat_B2I;
+        const double orientation_delta =
+            std::abs(Eigen::AngleAxisd(rotation_delta).angle());
+
+        if (!updated ||
+            position_delta > 1e-9 ||
+            orientation_delta > 1e-8) {
+            *state = state_before;
+            zupt_active = false;
+            RCLCPP_WARN(node_->get_logger(),
+                        "[HNOZUPT] rejected update_ok=%s dP=%.6f dR=%.6f",
+                        updated ? "true" : "false",
+                        position_delta,
+                        orientation_delta);
+        } else if (entering) {
+            RCLCPP_INFO(node_->get_logger(),
+                        "[HNOZUPT] enter disparity=%.3f tracks=%d acc_var=%.6f gyro_var=%.6f speed=%.3f->%.3f dP=%.6f dR=%.6f",
+                        feature_handler->get_last_median_disparity(),
+                        feature_handler->get_last_common_track_count(),
+                        zupt_acc_variance,
+                        zupt_gyro_variance,
+                        speed_before,
+                        state->v_hat.norm(),
+                        position_delta,
+                        orientation_delta);
+        } else {
+            RCLCPP_INFO_THROTTLE(
+                node_->get_logger(), *node_->get_clock(), 1000,
+                "[HNOZUPT] active disparity=%.3f tracks=%d speed=%.3f->%.3f",
+                feature_handler->get_last_median_disparity(),
+                feature_handler->get_last_common_track_count(),
+                speed_before,
+                state->v_hat.norm());
+        }
     }
 
     int map_size = feature_handler->get_active_map().size();

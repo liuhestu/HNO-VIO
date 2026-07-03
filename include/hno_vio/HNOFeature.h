@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <map>
+#include <limits>
 #include <Eigen/Dense>
 
 #include "track/TrackKLT.h"
@@ -83,6 +84,8 @@ public:
 
     const std::map<size_t, Eigen::Vector3d> get_active_map() const;
     std::shared_ptr<ov_core::TrackKLT> get_tracker() { return tracker; }
+    double get_last_median_disparity() const { return last_median_disparity_; }
+    int get_last_common_track_count() const { return last_common_track_count_; }
 
 private:
     std::shared_ptr<ov_core::TrackKLT> tracker;
@@ -95,6 +98,8 @@ private:
     
     // RANSAC 辅助
     std::map<size_t, cv::Point2f> history_obs; 
+    double last_median_disparity_ = std::numeric_limits<double>::infinity();
+    int last_common_track_count_ = 0;
 
     // 双目三角化 (返回相机系坐标)
     bool triangulate_stereo(const Eigen::Vector3d& uv_left, 

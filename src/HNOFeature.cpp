@@ -1,4 +1,5 @@
 #include "hno_vio/HNOFeature.h"
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
@@ -37,6 +38,8 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     static bool first_zero_stable_logged = false;
     frame_counter++;
     observations.clear();
+    last_median_disparity_ = std::numeric_limits<double>::infinity();
+    last_common_track_count_ = 0;
 
     tracker->feed_new_camera(message);
 
@@ -51,13 +54,24 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     if (!history_obs.empty()) {
         std::vector<cv::Point2f> pts_prev, pts_curr;
         std::vector<size_t> pts_ids;
+        std::vector<double> disparities;
         for(size_t i=0; i<ids_raw[0].size(); ++i) {
             size_t id = ids_raw[0][i];
             if(history_obs.count(id)) {
                 pts_prev.push_back(history_obs[id]);
                 pts_curr.push_back(obs_raw[0][i].pt);
                 pts_ids.push_back(id);
+                disparities.push_back(
+                    cv::norm(obs_raw[0][i].pt - history_obs[id]));
             }
+        }
+        last_common_track_count_ = static_cast<int>(disparities.size());
+        if(!disparities.empty()) {
+            const size_t mid = disparities.size() / 2;
+            std::nth_element(disparities.begin(),
+                             disparities.begin() + mid,
+                             disparities.end());
+            last_median_disparity_ = disparities[mid];
         }
         if(pts_prev.size() >= 15) {
              std::vector<uchar> status;
@@ -146,8 +160,8 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
                         double dist = (info.p_w - p_w_new).norm();
                         if(dist > options_.map_jump_thresh) {
-                            // 大跳变当作误匹配，直接移除
-                            feature_db.erase(id);
+                            // Keep the world anchor while the KLT track is alive.
+                            info.fail_count++;
                             continue;
                         } else {
                             double alpha = 1.0 / (info.track_count + 1.0);
@@ -170,7 +184,6 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
             if(!reproj_ok) {
                 info.fail_count++;
-                if(info.fail_count > 3) { feature_db.erase(id); }
                 reproj_reject++;
                 continue;
             }
@@ -229,13 +242,10 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
         for(size_t id : ids_raw[0]) klt_alive_ids.insert(id);
     }
     
-    int fail_limit = low_feat_mode ? options_.fail_limit_low : options_.fail_limit;
-
     for (auto it = feature_db.begin(); it != feature_db.end(); ) {
         bool alive = klt_alive_ids.find(it->first) != klt_alive_ids.end();
-        bool too_many_fail = it->second.fail_count > fail_limit;
 
-        if(!alive || too_many_fail) {
+        if(!alive) {
             it = feature_db.erase(it);
         } else {
             ++it;

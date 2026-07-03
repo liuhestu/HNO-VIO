@@ -93,6 +93,7 @@ def launch_setup(context, *args, **kwargs):
             "path_gt": path_gt,
             "num_cams": num_cams,
             "use_gt_mapping": as_bool(LaunchConfiguration("use_gt_mapping").perform(context)),
+            "try_zupt": as_bool(LaunchConfiguration("try_zupt").perform(context)),
             "export_odom": as_bool(LaunchConfiguration("export_odom").perform(context)),
             "odom_output_path": odom_output_path,
             "odom_frame": LaunchConfiguration("odom_frame").perform(context),
@@ -181,6 +182,7 @@ def generate_launch_description():
 
         # 行为控制
         DeclareLaunchArgument("use_gt_mapping", default_value="false"),
+        DeclareLaunchArgument("try_zupt", default_value="true"),
         DeclareLaunchArgument("export_odom", default_value="true"),
         DeclareLaunchArgument("run_preprocess", default_value="true"),
         DeclareLaunchArgument("rviz", default_value="true"),
