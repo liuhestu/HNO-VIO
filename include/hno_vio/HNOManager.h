@@ -129,6 +129,7 @@ private:
 
     std::string odom_frame = "odom";
     std::string base_frame = "base_link";
+    std::string gt_base_frame = "gt_base_link";
     std::string world_frame = "odom";
     std::string topic_imu = "/imu0";
     std::string topic_cam0 = "/cam0/image_raw";

@@ -50,11 +50,13 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: true
     - Class: rviz_default_plugins/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 120
       Frames:
         All Enabled: true
         base_link:
+          Value: true
+        gt_base_link:
           Value: true
         odom:
           Value: true
@@ -67,8 +69,10 @@ Visualization Manager:
         odom:
           base_link:
             {}
+          gt_base_link:
+            {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Alpha: 1
       Buffer Length: 1
       Class: rviz_default_plugins/Path

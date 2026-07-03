@@ -616,6 +616,19 @@ void HNOManager::publish_state(double timestamp, const std::shared_ptr<HNOState>
         path_gt_msg.header.frame_id = odom_frame;
         path_gt_msg.poses.push_back(ps_gt);
         pub_path_gt->publish(path_gt_msg);
+
+        geometry_msgs::msg::TransformStamped transform_gt;
+        transform_gt.header.stamp = rtime;
+        transform_gt.header.frame_id = odom_frame;
+        transform_gt.child_frame_id = gt_base_frame;
+        transform_gt.transform.translation.x = p_gt_aligned.x();
+        transform_gt.transform.translation.y = p_gt_aligned.y();
+        transform_gt.transform.translation.z = p_gt_aligned.z();
+        transform_gt.transform.rotation.x = q_gt_aligned.x();
+        transform_gt.transform.rotation.y = q_gt_aligned.y();
+        transform_gt.transform.rotation.z = q_gt_aligned.z();
+        transform_gt.transform.rotation.w = q_gt_aligned.w();
+        tf_broadcaster->sendTransform(transform_gt);
     }
 
     geometry_msgs::msg::TransformStamped transform;

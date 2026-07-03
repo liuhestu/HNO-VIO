@@ -136,7 +136,7 @@ def launch_setup(context, *args, **kwargs):
             package="rviz2",
             executable="rviz2",
             name="rviz2",
-            arguments=["-d", os.path.join(pkg_share, "launch", "hno.rviz")],
+            arguments=["-d", os.path.join(pkg_share, "launch", "hno_vio.rviz")],
             output="screen",
         ))
 
