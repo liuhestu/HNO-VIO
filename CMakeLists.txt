@@ -90,9 +90,9 @@ install(PROGRAMS tools/run_rtabmap/export_optimized_odom.py
   DESTINATION lib/${PROJECT_NAME}
   RENAME export_optimized_odom
 )
-install(PROGRAMS tools/run_rtabmap/eval_and_summary.py
+install(PROGRAMS tools/run_rtabmap/eval_and_analysis.py
   DESTINATION lib/${PROJECT_NAME}
-  RENAME eval_and_summary
+  RENAME eval_and_analysis
 )
 
 ament_export_include_directories(include thirdparty/openvins_core/src)

@@ -115,7 +115,7 @@
 - `hno_rtabmap.sh`：RTAB-Map 后端主入口，输入为某次运行的 `vio_results/rtabmap_input_db3`。
 - `rtabmap_preprocess.py`：ROS2 节点，把原始双目图像和 HNO odom 整理成 RTAB-Map 输入所需 topic。
 - `export_optimized_odom.py`：从 RTAB-Map 输出 bag 的 `/rtabmap/mapData.graph.poses` 导出优化轨迹。
-- `eval_and_summary.py`：读取 `run_context.json`、raw/optimized odom 和 GT，生成离线评估摘要。
+- `eval_and_analysis.py`：读取 `run_context.json`、raw/optimized odom 和 GT，生成 APE 结果与轨迹对比图。
 
 典型 RTAB-Map 输入输出结构：
 
@@ -130,8 +130,16 @@ results/run_YYYYmmddTHHMMSS/
     rtabmap_output.bag/
     rtabmap.db
     odom_optimized.txt
-    summary.md
     logs/
+  evo_results/
+    ape_raw.zip
+    ape_optimized.zip
+    ate_plot.pdf
+    ate_stats.txt
+    traj_trajectories.png
+    traj_xyz.png
+    traj_rpy.png
+    traj_speeds.png
 ```
 
 ### 1.7 Ground Truth、Results 与 Params Eval
@@ -542,7 +550,7 @@ Optional run_preprocess
 Offline RTAB-Map
   -> hno_rtabmap.sh
   -> offline_results/odom_optimized.txt
-  -> offline_results/summary.md
+  -> evo_results/APE and trajectory plots
 ```
 
 ## 4. 当前 ROS 接口汇总

@@ -167,7 +167,6 @@ def generate_launch_description():
         # 输入数据集参数
         DeclareLaunchArgument("dataset", default_value="V1_01_easy"),
         DeclareLaunchArgument("bag_path", default_value="/home/sharpa/datasets/euroc/ros2db/V1_01_easy_db"),
-        DeclareLaunchArgument("play_bag", default_value="true"),
         DeclareLaunchArgument("bag_rate", default_value="1.0"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),
@@ -181,6 +180,7 @@ def generate_launch_description():
         DeclareLaunchArgument("num_cams", default_value="2"),
 
         # 行为控制
+        DeclareLaunchArgument("play_bag", default_value="true"),
         DeclareLaunchArgument("use_gt_mapping", default_value="false"),
         DeclareLaunchArgument("try_zupt", default_value="true"),
         DeclareLaunchArgument("export_odom", default_value="true"),
