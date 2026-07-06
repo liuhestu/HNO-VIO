@@ -29,6 +29,12 @@ optimized graph trajectory, and runs evo. No keyboard interaction is needed.
 For EuRoC `V1_01_easy`, leave the command running for several minutes until
 it prints `completed:`.
 
+The backend runs in an isolated ROS domain and permits only one script
+instance. Stereo images are not duplicated. The output bag contains the
+lightweight map path and exactly one final MapData fetched through GetMap2
+without image or vocabulary payloads, so it can be replayed in RViz without
+restoring continuous high-memory MapData recording.
+
 Output:
 
 ```text
@@ -49,7 +55,8 @@ results/run_YYYYmmddTHHMMSS/
     traj_speeds.png
 ```
 
-`odom_optimized.txt` is exported from `/rtabmap/mapData.graph.poses`.
+`odom_optimized.txt` is exported from the final optimized
+`GetMap2.data.graph.poses`.
 `rtabmap.db` is kept for database viewer and graph debugging.
 
 Re-run only the EVO analysis for an existing run:

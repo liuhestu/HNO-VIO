@@ -114,7 +114,7 @@
 - `README.md`：RTAB-Map 后端离线流程说明。
 - `hno_rtabmap.sh`：RTAB-Map 后端主入口，输入为某次运行的 `vio_results/rtabmap_input_db3`。
 - `rtabmap_preprocess.py`：ROS2 节点，把原始双目图像和 HNO odom 整理成 RTAB-Map 输入所需 topic。
-- `export_optimized_odom.py`：从 RTAB-Map 输出 bag 的 `/rtabmap/mapData.graph.poses` 导出优化轨迹。
+- `export_optimized_odom.py`：从 RTAB-Map `GetMap2` 的最终优化图导出轨迹，并向输出 bag 发布一次轻量 MapData；也兼容读取旧版 MapData bag。
 - `eval_and_analysis.py`：读取 `run_context.json`、raw/optimized odom 和 GT，生成 APE 结果与轨迹对比图。
 
 典型 RTAB-Map 输入输出结构：

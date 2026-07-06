@@ -50,6 +50,18 @@ LOG_DIR="${OFFLINE_DIR}/logs"
 OUTPUT_BAG="${OFFLINE_DIR}/rtabmap_output.bag"
 RTABMAP_DB="${OFFLINE_DIR}/rtabmap.db"
 
+# 同一时间只允许一个离线后端，并使用独立 ROS domain 隔离遗留节点。
+if ! command -v flock >/dev/null 2>&1; then
+  echo "required command not found: flock" >&2
+  exit 1
+fi
+exec 9>"${TMPDIR:-/tmp}/hno_rtabmap.lock"
+if ! flock -n 9; then
+  echo "another hno_rtabmap.sh process is already running" >&2
+  exit 1
+fi
+export ROS_DOMAIN_ID="${HNO_RTABMAP_ROS_DOMAIN_ID:-$((100 + $$ % 100))}"
+
 rm -rf "${OFFLINE_DIR}"
 mkdir -p "${LOG_DIR}"
 
@@ -149,6 +161,7 @@ trap cleanup EXIT
 echo "hno_rtabmap start: $(date -Is)" | tee "${LOG_DIR}/run.log"
 echo "input_bag=${INPUT_BAG}" | tee -a "${LOG_DIR}/run.log"
 echo "offline_dir=${OFFLINE_DIR}" | tee -a "${LOG_DIR}/run.log"
+echo "ros_domain_id=${ROS_DOMAIN_ID}" | tee -a "${LOG_DIR}/run.log"
 
 require_command ros2
 require_command evo_ape
@@ -210,8 +223,9 @@ ros2 run rtabmap_slam rtabmap --delete_db_on_start \
   -p 'Vis/MinInliers:="12"' \
   -p 'Kp/MaxFeatures:="800"' \
   -r rgbd_image:=/rtabmap/rgbd_image \
-  -r mapData:=/rtabmap/mapData \
+  -r mapData:=/rtabmap/internal_mapData \
   -r info:=/rtabmap/info \
+  -r mapPath:=/rtabmap/mapPath \
   -r global_path:=/rtabmap/global_path \
   -r local_path:=/rtabmap/local_path \
   > "${LOG_DIR}/rtabmap.log" 2>&1 &
@@ -220,13 +234,14 @@ RTABMAP_PID="$!"
 sleep 2
 assert_alive "rtabmap" "${RTABMAP_PID}" "${LOG_DIR}/rtabmap.log"
 
-# 记录原始里程计、同步图像、优化图和 TF，供后续离线导出。
+# 只记录轻量诊断 topic；RGBD 输入已在 input bag 中，不重复记录。
 stage 3 "recording RTAB-Map outputs"
 ros2 bag record \
+  --max-cache-size 0 \
   -o "${OUTPUT_BAG}" \
   /hno_vio/odom \
-  /rtabmap/rgbd_image \
   /rtabmap/mapData \
+  /rtabmap/mapPath \
   /rtabmap/info \
   /rtabmap/global_path \
   /rtabmap/local_path \
@@ -244,34 +259,24 @@ stage 4 "playing the complete input bag; no keyboard operation is required"
 ros2 bag play "${INPUT_BAG}" </dev/null 2>&1 | tee "${LOG_DIR}/play_input.log"
 assert_alive "rtabmap after playback" "${RTABMAP_PID}" "${LOG_DIR}/rtabmap.log"
 
-# 请求发布最终优化图，确保输出 bag 中包含最后一帧 MapData。
-if ! timeout 20s ros2 service call \
-  /rtabmap/publish_map \
-  rtabmap_msgs/srv/PublishMap \
-  "{global_map: true, optimized: true, graph_only: false}" \
-  > "${LOG_DIR}/publish_final_map.log" 2>&1; then
-  echo "failed to request the final optimized map." >&2
-  echo "See ${LOG_DIR}/publish_final_map.log" >&2
-  exit 1
-fi
-sleep 3
+# 通过轻量 GetMap2 响应直接导出，不传输图像、词袋和栅格数据。
+stage 5 "exporting optimized graph poses"
+"${SCRIPT_DIR}/export_optimized_odom.py" \
+  --service /rtabmap/get_map_data2 \
+  --publish-topic /rtabmap/mapData \
+  --out "${OFFLINE_DIR}/odom_optimized.txt" \
+  2>&1 | tee "${LOG_DIR}/export_optimized_odom.log"
+
 cleanup
 trap - EXIT
 
-# 确认最终优化图已录制，失败时停止后续导出。
+# 保存轻量输出 bag 的 topic 和消息计数，供诊断使用。
 ros2 bag info "${OUTPUT_BAG}" > "${LOG_DIR}/rtabmap_output_bag_info.txt" 2>&1 || true
-if ! grep -q "/rtabmap/mapData" "${LOG_DIR}/rtabmap_output_bag_info.txt"; then
-  echo "RTAB-Map produced no /rtabmap/mapData messages." >&2
-  echo "See ${LOG_DIR}/rtabmap.log" >&2
+if ! grep -Eq "Topic: /rtabmap/mapData .* Count: 1 " "${LOG_DIR}/rtabmap_output_bag_info.txt"; then
+  echo "final /rtabmap/mapData message was not recorded exactly once" >&2
+  echo "See ${LOG_DIR}/rtabmap_output_bag_info.txt" >&2
   exit 1
 fi
-
-# 从最终 MapData 图节点导出 TUM 格式优化轨迹。
-stage 5 "exporting optimized graph poses"
-"${SCRIPT_DIR}/export_optimized_odom.py" \
-  --bag "${OUTPUT_BAG}" \
-  --out "${OFFLINE_DIR}/odom_optimized.txt" \
-  2>&1 | tee "${LOG_DIR}/export_optimized_odom.log"
 
 # 运行 APE 对比和三轨迹绘图，结果统一写入 run_dir/evo_results。
 stage 6 "running evo evaluation and analysis"
