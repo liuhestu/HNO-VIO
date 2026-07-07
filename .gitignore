@@ -1,5 +1,7 @@
-rtabmap_input.bag/
-rtabmap_output.bag/
 rtabmap.db
-*.db3
 params_eval/
+logs/
+rtabmap_input_db3/
+rtabmap_output_db3/
+ape_optimized.zip
+ape_raw.zip

@@ -47,7 +47,7 @@ fi
 
 OFFLINE_DIR="${RUN_DIR}/offline_results"
 LOG_DIR="${OFFLINE_DIR}/logs"
-OUTPUT_BAG="${OFFLINE_DIR}/rtabmap_output.bag"
+OUTPUT_BAG="${OFFLINE_DIR}/rtabmap_output_db3"
 RTABMAP_DB="${OFFLINE_DIR}/rtabmap.db"
 
 # 同一时间只允许一个离线后端，并使用独立 ROS domain 隔离遗留节点。
