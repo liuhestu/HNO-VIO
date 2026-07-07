@@ -1,0 +1,18 @@
+{
+  "dataset": "V1_01_easy",
+  "raw_bag": "/home/sharpa/datasets/euroc/ros2db/V1_01_easy_db",
+  "config": "euroc_mav",
+  "config_path": "/home/sharpa/hno_vio_clean/install/hno_vio/share/hno_vio/config/euroc_mav/estimator_config.yaml",
+  "camera_config": "/home/sharpa/hno_vio_clean/install/hno_vio/share/hno_vio/config/euroc_mav/kalibr_imucam_chain.yaml",
+  "ground_truth_tum": "/home/sharpa/hno_vio_clean/install/hno_vio/share/hno_vio/ground_truth/euroc_mav/V1_01_easy.txt",
+  "odom_csv": "vio_results/odom_raw.csv",
+  "odom_tum": "vio_results/odom_raw.txt",
+  "rtabmap_input_bag": "vio_results/rtabmap_input_db3",
+  "odom_frame": "odom",
+  "base_frame": "base_link",
+  "camera_left_frame": "cam0_rect",
+  "camera_right_frame": "cam1_rect",
+  "odom_semantic": "T_odom_base",
+  "num_cams": 2,
+  "use_gt_mapping": false
+}

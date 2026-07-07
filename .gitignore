@@ -1,6 +1,5 @@
 rtabmap_input.bag/
 rtabmap_output.bag/
 rtabmap.db
-results/
 *.db3
 params_eval/
