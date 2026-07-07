@@ -256,7 +256,19 @@ assert_alive "ros2 bag record" "${RECORDER_PID}" "${LOG_DIR}/record_output.log"
 
 # 输入 bag 已含 /clock；完整回放一次，不额外生成第二路模拟时钟。
 stage 4 "playing the complete input bag; no keyboard operation is required"
+set +e
 ros2 bag play "${INPUT_BAG}" </dev/null 2>&1 | tee "${LOG_DIR}/play_input.log"
+PLAY_PIPE_STATUS=("${PIPESTATUS[@]}")
+set -e
+PLAY_STATUS="${PLAY_PIPE_STATUS[0]}"
+TEE_STATUS="${PLAY_PIPE_STATUS[1]}"
+if [[ "${PLAY_STATUS}" -ne 0 ]]; then
+  echo "ros2 bag play exited with status ${PLAY_STATUS}; continuing with export" | tee -a "${LOG_DIR}/run.log"
+fi
+if [[ "${TEE_STATUS}" -ne 0 ]]; then
+  echo "tee exited with status ${TEE_STATUS}" >&2
+  exit "${TEE_STATUS}"
+fi
 assert_alive "rtabmap after playback" "${RTABMAP_PID}" "${LOG_DIR}/rtabmap.log"
 
 # 通过轻量 GetMap2 响应直接导出，不传输图像、词袋和栅格数据。

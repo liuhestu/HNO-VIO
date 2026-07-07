@@ -4,7 +4,9 @@ from datetime import datetime, timezone, timedelta
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction, TimerAction
+from launch.actions import DeclareLaunchArgument, EmitEvent, ExecuteProcess, OpaqueFunction, RegisterEventHandler, TimerAction
+from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -156,7 +158,15 @@ def launch_setup(context, *args, **kwargs):
         if play_topics.strip():
             play_cmd.append("--topics")
             play_cmd.extend(play_topics.split())
-        actions.append(TimerAction(period=3.0, actions=[ExecuteProcess(cmd=play_cmd, output="screen")]))
+        play_process = ExecuteProcess(cmd=play_cmd, output="screen")
+        actions.append(TimerAction(period=3.0, actions=[play_process]))
+        if run_preprocess:
+            actions.append(RegisterEventHandler(
+                OnProcessExit(
+                    target_action=play_process,
+                    on_exit=[EmitEvent(event=Shutdown(reason="input bag playback completed"))],
+                )
+            ))
 
     return actions
 
@@ -167,7 +177,7 @@ def generate_launch_description():
         # 输入数据集参数
         DeclareLaunchArgument("dataset", default_value="V1_01_easy"),
         DeclareLaunchArgument("bag_path", default_value="/home/sharpa/datasets/euroc/ros2db/V1_01_easy_db"),
-        DeclareLaunchArgument("bag_rate", default_value="1.0"),
+        DeclareLaunchArgument("bag_rate", default_value="1.5"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),
 

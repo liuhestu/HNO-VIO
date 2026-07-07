@@ -1,1 +1,1 @@
-04-基于ros2 humble版本，增加工程优化，重构算法结构、函数分类
+03-将原ros1 vio + ros2 rtabmap 组合迁移到统一 ros2 humble 环境，作为日后的修改基模。
