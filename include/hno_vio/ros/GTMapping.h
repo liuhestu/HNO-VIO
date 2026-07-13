@@ -24,7 +24,7 @@ public:
               std::string gt_base_frame = "gt_base_link");
 
     std::optional<Pose> getPose(double timestamp) const;
-    void publish(double timestamp, const Pose& estimated_pose);
+    std::optional<Pose> publish(double timestamp, const Pose& estimated_pose);
     bool loaded() const { return !poses_.empty(); }
 
 private:

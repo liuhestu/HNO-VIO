@@ -1,7 +1,5 @@
 #include "hno_vio/frontend/FeatureManager.h"
 #include <algorithm>
-#include <iostream>
-#include <iomanip>
 #include <opencv2/opencv.hpp>
 #include <unordered_set>
 
@@ -41,10 +39,16 @@ FeatureManager::FeatureManager(std::vector<std::shared_ptr<ov_core::CamBase>> ca
 
 void FeatureManager::processStereo(const ov_core::CameraData& message,
                                    const Pose& mapping_pose,
-                                   std::vector<observer::VisualObservation>& observations) {
+                                   std::vector<observer::VisualObservation>& observations,
+                                   FeatureDiagnostics* diagnostics) {
     observations.clear();
     last_median_disparity_ = std::numeric_limits<double>::infinity();
     last_common_track_count_ = 0;
+    if (diagnostics) {
+        *diagnostics = FeatureDiagnostics{};
+        diagnostics->landmark_map_size = static_cast<int>(landmark_map_.size());
+        diagnostics->median_disparity = last_median_disparity_;
+    }
 
     tracker->feed_new_camera(message);
 
@@ -52,6 +56,9 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
     auto ids_raw = tracker->get_last_ids();
 
     if(!obs_raw.count(0)) return;
+    if (diagnostics) {
+        diagnostics->tracked_count = static_cast<int>(obs_raw[0].size());
+    }
     if(obs_raw[0].empty()) return; // 无特征时直接退出，避免尾帧继续估计
 
     // --- 1. RANSAC (2D-2D) 剔除动态点 ---
@@ -86,9 +93,12 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
              }
         }
     }
+    if (diagnostics) {
+        diagnostics->common_track_count = last_common_track_count_;
+        diagnostics->median_disparity = last_median_disparity_;
+    }
 
     // --- 准备数据 ---
-    std::vector<size_t> current_frame_ids;
     std::map<size_t, cv::Point2f> next_history_obs;
 
     std::map<size_t, int> right_cam_idx;
@@ -108,7 +118,7 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
     int reproj_pass = 0, reproj_reject = 0;
     double reproj_err_max = 0.0, reproj_err_sum = 0.0;
     int stereo_pass = 0, stereo_reject = 0;
-    double stereo_err_max = 0.0;
+    double stereo_err_max = 0.0, stereo_err_sum = 0.0;
 
     bool low_feat_mode = false; // 自适应：少点时放宽门限并提前输出
 
@@ -122,7 +132,6 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
         size_t id = ids_raw[0][i];
         if(outlier_ids.count(id)) continue; // 跳过 2D RANSAC 外点
 
-        current_frame_ids.push_back(id);
         next_history_obs[id] = obs_raw[0][i].pt;
 
         // 计算左目归一化坐标
@@ -156,6 +165,7 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
                     double depth = p_c_curr.z();
                     if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                         stereo_pass++;
+                        stereo_err_sum += stereo_err;
                         if(stereo_err > stereo_err_max) stereo_err_max = stereo_err;
                         stereo_ok = true;
                         Eigen::Vector3d p_body = R_bc * p_c_curr + p_bc;
@@ -183,7 +193,7 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
 
             Eigen::Vector3d p_w_est = stereo_ok ? p_w_new : info.p_world;
             double reproj_err = 0.0;
-            bool reproj_ok = stereo_ok ? true : check_reprojection(id, p_w_est, R_wb, p_wb, uv_l_vec, reproj_thresh, &reproj_err);
+            bool reproj_ok = stereo_ok ? true : check_reprojection(p_w_est, R_wb, p_wb, uv_l_vec, reproj_thresh, &reproj_err);
 
             if(!reproj_ok) {
                 info.fail_count++;
@@ -222,6 +232,7 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
                 double depth = p_c_left.z();
                 if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                     stereo_pass++;
+                    stereo_err_sum += stereo_err;
                     if(stereo_err > stereo_err_max) stereo_err_max = stereo_err;
                     Landmark info;
                     Eigen::Vector3d p_body = R_bc * p_c_left + p_bc;
@@ -251,61 +262,39 @@ void FeatureManager::processStereo(const ov_core::CameraData& message,
 
     const FeatureHealth::Status health =
         feature_health_.update(count_stable, static_cast<int>(landmark_map_.size()));
-    if(health.guard_active && (health.low_stable || health.low_landmarks)) {
-        if(!first_low_stable_logged_) {
-            first_low_stable_logged_ = true;
-            std::cout << "[FeatureManagerHealth] first_low_map frame " << health.frame_id
-                      << " stable " << count_stable
-                      << " min_stable " << options_.health_min_stable
-                      << " db " << landmark_map_.size()
-                      << " min_db " << options_.health_min_db
-                      << std::endl;
-        }
-        if(count_stable == 0 && !first_zero_stable_logged_) {
-            first_zero_stable_logged_ = true;
-            std::cout << "[FeatureManagerHealth] first_zero_stable frame " << health.frame_id
-                      << " db " << landmark_map_.size()
-                      << " pts " << num_pts
-                      << std::endl;
-        }
-    }
 
     if(!health.allow_visual_update) {
         if(!observations.empty()) {
             observations.clear();
         }
-        if(health.frame_id % 30 == 0) {
-            std::cout << "[FeatureManagerHealth] suppress_untrusted_map frame " << health.frame_id
-                      << " stable " << count_stable
-                      << " db " << landmark_map_.size()
-                      << " streak " << health.unhealthy_streak
-                      << std::endl;
-        }
     }
 
-    // 节流日志：每 30 帧输出一次前端健康度
-    if(health.frame_id % 30 == 0) {
-        int reproj_total = reproj_pass + reproj_reject;
-        int stereo_total = stereo_pass + stereo_reject;
-        double reproj_mean = reproj_pass > 0 ? reproj_err_sum / reproj_pass : 0.0;
-        std::cout << std::fixed << std::setprecision(3)
-                  << "[FeatureManager] frame " << health.frame_id
-                  << " pts " << num_pts
-                  << " stable " << count_stable
-                  << " new " << count_new
-                  << " db " << landmark_map_.size()
-                  << " stereo " << stereo_pass << "/" << stereo_total
-                  << " err_max " << stereo_err_max
-                  << " reproj " << reproj_pass << "/" << reproj_total
-                  << " err_mean " << reproj_mean
-                  << " err_max " << reproj_err_max
-                  << std::endl;
+    if (diagnostics) {
+        diagnostics->new_count = count_new;
+        diagnostics->stable_count = count_stable;
+        diagnostics->landmark_map_size = static_cast<int>(landmark_map_.size());
+        diagnostics->stereo_passed = stereo_pass;
+        diagnostics->stereo_rejected = stereo_reject;
+        diagnostics->reprojection_passed = reproj_pass;
+        diagnostics->reprojection_rejected = reproj_reject;
+        diagnostics->unhealthy_streak = health.unhealthy_streak;
+        diagnostics->stereo_error_mean =
+            stereo_pass > 0 ? stereo_err_sum / stereo_pass : 0.0;
+        diagnostics->stereo_error_max = stereo_err_max;
+        diagnostics->reprojection_error_mean =
+            reproj_pass > 0 ? reproj_err_sum / reproj_pass : 0.0;
+        diagnostics->reprojection_error_max = reproj_err_max;
+        diagnostics->low_feature_mode = low_feat_mode;
+        diagnostics->health_guard_active = health.guard_active;
+        diagnostics->health_low_stable = health.low_stable;
+        diagnostics->health_low_landmarks = health.low_landmarks;
+        diagnostics->visual_update_allowed = health.allow_visual_update;
     }
 }
 
 // 检查重投影误差
 // 如果返回 false，说明点有问题
-bool FeatureManager::check_reprojection(size_t id, const Eigen::Vector3d& p_w,
+bool FeatureManager::check_reprojection(const Eigen::Vector3d& p_w,
                                     const Eigen::Matrix3d& R_wb, const Eigen::Vector3d& p_wb,
                                     const Eigen::Vector3d& uv_meas_norm,
                                     double reproj_thresh,

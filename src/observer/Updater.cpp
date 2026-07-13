@@ -2,8 +2,6 @@
 
 #include "hno_vio/observer/Updater.h"
 #include <algorithm>
-#include <iostream>
-#include <iomanip>
 #include <vector>
 
 using namespace hno_vio;
@@ -40,40 +38,27 @@ Eigen::Matrix3d observer::Updater::project_pi(const Eigen::Vector3d& x) {
 bool observer::Updater::update(std::shared_ptr<State> state,
                                const std::vector<VisualObservation>& observations,
                                UpdaterDiagnostics* diagnostics) {
-    static int update_counter = 0; // Warm-up counter
-    static int print_counter = 0;
-    static int low_observation_streak = 0;
-    static bool first_low_obs_logged = false;
-    static bool first_large_delta_logged = false;
-
     int N = observations.size();
     if (diagnostics) {
         *diagnostics = UpdaterDiagnostics{};
         diagnostics->total_observations = N;
+        diagnostics->low_observation_streak = low_observation_streak_;
     }
     if(N == 0) return false;
 
     if(N < options_.min_observations) {
-        low_observation_streak++;
-        if(!first_low_obs_logged) {
-            first_low_obs_logged = true;
-            std::cout << "[observer::UpdaterGuard] first_low_observations obs " << N
-                      << " min " << options_.min_observations
-                      << " streak " << low_observation_streak
-                      << std::endl;
+        ++low_observation_streak_;
+        if (diagnostics) {
+            diagnostics->low_observation = true;
+            diagnostics->low_observation_streak = low_observation_streak_;
         }
-        if(low_observation_streak >= options_.low_observation_hold_frames) {
-            print_counter++;
-            if(print_counter % 30 == 0) {
-                std::cout << "[observer::UpdaterGuard] skip_low_observations obs " << N
-                          << " min " << options_.min_observations
-                          << " streak " << low_observation_streak
-                          << std::endl;
-            }
+        if(low_observation_streak_ >= options_.low_observation_hold_frames) {
+            if (diagnostics) diagnostics->skipped_for_low_observations = true;
             return false;
         }
     } else {
-        low_observation_streak = 0;
+        low_observation_streak_ = 0;
+        if (diagnostics) diagnostics->low_observation_streak = 0;
     }
 
     // 归一化平面像素噪声标准差 Cov(ny)
@@ -87,6 +72,7 @@ bool observer::Updater::update(std::shared_ptr<State> state,
     int reject_trunc_p = 0, reject_trunc_r = 0;
     double chi2_max = 0.0, chi2_max_rej = 0.0;
     double delta_p_max = 0.0, delta_r_max = 0.0;
+    bool large_delta_warning = false;
 
     // --- 采用序贯更新 (Sequential Update) ---
     for (int i = 0; i < N; ++i) {
@@ -205,17 +191,9 @@ bool observer::Updater::update(std::shared_ptr<State> state,
                effective_max_delta_r *= 0.5;
            }
 
-           if(!first_large_delta_logged &&
-              (delta_p > options_.warn_delta_ratio * effective_max_delta_p ||
-               delta_r > options_.warn_delta_ratio * effective_max_delta_r)) {
-               first_large_delta_logged = true;
-               std::cout << std::fixed << std::setprecision(3)
-                         << "[observer::UpdaterGuard] first_large_delta obs " << N
-                         << " dP " << delta_p
-                         << " maxP " << effective_max_delta_p
-                         << " dR " << delta_r
-                         << " maxR " << effective_max_delta_r
-                         << std::endl;
+           if(delta_p > options_.warn_delta_ratio * effective_max_delta_p ||
+              delta_r > options_.warn_delta_ratio * effective_max_delta_r) {
+               large_delta_warning = true;
            }
 
            if (delta_p > effective_max_delta_p) {
@@ -258,35 +236,22 @@ bool observer::Updater::update(std::shared_ptr<State> state,
         }
     }
 
-    if (applied_observations > 0) update_counter++;
-    print_counter++;
-
     if (options_.enforce_structure_after_update) {
         state->enforce_structure();
     }
 
-    // 节流日志：每 30 次尝试更新打印一次统计
-    if(print_counter % 30 == 0) {
-        std::cout << std::fixed << std::setprecision(3)
-                  << "[observer::Updater] obs " << N
-                  << " chi2_passed " << chi2_passed
-                  << " applied " << applied_observations
-                  << " chi2_max " << chi2_max
-                  << " chi2_rej " << reject_chi2 << " max " << chi2_max_rej
-                  << " trunc_p " << reject_trunc_p
-                  << " trunc_r " << reject_trunc_r
-                  << " nan " << reject_nan
-                  << " dP_max " << delta_p_max
-                  << " dR_max " << delta_r_max
-                  << " P_pos_diag " << state->P(0,0) << "," << state->P(1,1) << "," << state->P(2,2)
-                  << std::endl;
-    }
     if (diagnostics) {
         diagnostics->chi2_passed_observations = chi2_passed;
+        diagnostics->chi2_rejected_observations = reject_chi2;
         diagnostics->applied_observations = applied_observations;
         diagnostics->numerical_rejected_observations = reject_nan;
         diagnostics->kalman_gain_rejected_observations = reject_gain;
         diagnostics->delta_rejected_observations = reject_trunc_p + reject_trunc_r;
+        diagnostics->max_chi2 = chi2_max;
+        diagnostics->max_rejected_chi2 = chi2_max_rej;
+        diagnostics->max_position_delta = delta_p_max;
+        diagnostics->max_rotation_delta = delta_r_max;
+        diagnostics->large_delta_warning = large_delta_warning;
         diagnostics->update_applied = applied_observations > 0;
     }
     return applied_observations > 0;

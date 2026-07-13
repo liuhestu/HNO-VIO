@@ -1,1 +1,1 @@
-03-将原ros1 vio + ros2 rtabmap 组合迁移到统一 ros2 humble 环境，作为日后的修改基模。
+04-ros2 humble 环境，重构当前 HNO-VIO 的函数分类、文件结构和类职责。

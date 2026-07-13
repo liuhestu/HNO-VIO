@@ -10,6 +10,7 @@
 #include "track/TrackKLT.h"
 #include "cam/CamBase.h"
 #include "hno_vio/observer/Updater.h"
+#include "hno_vio/Diagnostics.h"
 #include "hno_vio/frontend/FeatureHealth.h"
 #include "hno_vio/frontend/LandmarkMap.h"
 #include "hno_vio/frontend/StereoTriangulator.h"
@@ -36,8 +37,6 @@ public:
               low_feature_db(60),
               mature_thresh(3),
               mature_thresh_low(2),
-              fail_limit(5),
-              fail_limit_low(8),
               map_jump_thresh(0.5),
               active_mature_thresh(3),
               health_min_stable(20),
@@ -59,8 +58,6 @@ public:
         int low_feature_db;
         int mature_thresh;
         int mature_thresh_low;
-        int fail_limit;
-        int fail_limit_low;
         double map_jump_thresh;
         int active_mature_thresh;
         int health_min_stable;
@@ -76,7 +73,8 @@ public:
     // 核心处理函数
     void processStereo(const ov_core::CameraData& message,
                        const Pose& mapping_pose,
-                       std::vector<observer::VisualObservation>& observations);
+                       std::vector<observer::VisualObservation>& observations,
+                       FeatureDiagnostics* diagnostics = nullptr);
 
     const std::map<size_t, Eigen::Vector3d> get_active_map() const;
     std::shared_ptr<ov_core::TrackKLT> get_tracker() { return tracker; }
@@ -97,11 +95,8 @@ private:
     std::map<size_t, cv::Point2f> history_obs;
     double last_median_disparity_ = std::numeric_limits<double>::infinity();
     int last_common_track_count_ = 0;
-    bool first_low_stable_logged_ = false;
-    bool first_zero_stable_logged_ = false;
-
     // 将点投影并检查误差
-    bool check_reprojection(size_t id, const Eigen::Vector3d& p_w,
+    bool check_reprojection(const Eigen::Vector3d& p_w,
                             const Eigen::Matrix3d& R_wb, const Eigen::Vector3d& p_wb,
                             const Eigen::Vector3d& uv_meas_norm,
                             double reproj_thresh,

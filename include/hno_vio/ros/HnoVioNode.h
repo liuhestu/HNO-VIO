@@ -72,6 +72,11 @@ private:
     int num_cams_ = 2;
     bool use_gt_mapping_ = false;
     bool export_odom_ = false;
+    bool frontend_print_ = false;
+    bool essential_print_ = true;
+    bool updater_print_ = false;
+    bool zupt_print_ = false;
+    bool pipeline_print_ = false;
 
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_subscription_;
     rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr mono_subscription_;

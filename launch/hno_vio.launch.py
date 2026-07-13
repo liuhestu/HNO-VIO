@@ -96,6 +96,14 @@ def launch_setup(context, *args, **kwargs):
             "num_cams": num_cams,
             "use_gt_mapping": as_bool(LaunchConfiguration("use_gt_mapping").perform(context)),
             "try_zupt": as_bool(LaunchConfiguration("try_zupt").perform(context)),
+            "update_enforce_structure": as_bool(
+                LaunchConfiguration("update_enforce_structure").perform(context)
+            ),
+            "frontend_print": as_bool(LaunchConfiguration("frontend_print").perform(context)),
+            "essential_print": as_bool(LaunchConfiguration("essential_print").perform(context)),
+            "updater_print": as_bool(LaunchConfiguration("updater_print").perform(context)),
+            "ZUPT_print": as_bool(LaunchConfiguration("ZUPT_print").perform(context)),
+            "pipeline_print": as_bool(LaunchConfiguration("pipeline_print").perform(context)),
             "export_odom": as_bool(LaunchConfiguration("export_odom").perform(context)),
             "odom_output_path": odom_output_path,
             "odom_frame": LaunchConfiguration("odom_frame").perform(context),
@@ -197,11 +205,19 @@ def generate_launch_description():
         DeclareLaunchArgument("play_bag", default_value="true"),
         DeclareLaunchArgument("use_gt_mapping", default_value="false"),
         DeclareLaunchArgument("try_zupt", default_value="true"),
+        DeclareLaunchArgument("update_enforce_structure", default_value="true"),
         DeclareLaunchArgument("export_odom", default_value="true"),
         DeclareLaunchArgument("run_preprocess", default_value="true"),
         DeclareLaunchArgument("rviz", default_value="true"),
         DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("odom_output_path", default_value=""),
+
+        # 诊断打印
+        DeclareLaunchArgument("essential_print", default_value="true"),
+        DeclareLaunchArgument("frontend_print", default_value="false"),
+        DeclareLaunchArgument("updater_print", default_value="false"),
+        DeclareLaunchArgument("ZUPT_print", default_value="false"),
+        DeclareLaunchArgument("pipeline_print", default_value="false"),
 
         # 话题
         DeclareLaunchArgument("odom_frame", default_value="odom"),

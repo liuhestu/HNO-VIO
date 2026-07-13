@@ -50,7 +50,6 @@ struct PipelineResult {
     bool visual_update_applied = false;
     bool zupt_update_applied = false;
     int observation_count = 0;
-    UpdaterDiagnostics updater_diagnostics;
     std::map<size_t, Eigen::Vector3d> active_landmarks;
     std::shared_ptr<ov_core::TrackKLT> tracker;
     PipelineDiagnostics diagnostics;

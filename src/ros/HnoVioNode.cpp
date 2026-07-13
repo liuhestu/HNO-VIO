@@ -36,7 +36,13 @@ HnoVioNode::HnoVioNode(const rclcpp::Node::SharedPtr& node,
     gt_mapping_ = std::make_unique<GTMapping>(node_, path_gt_, odom_frame_);
     ros_publisher_ = std::make_unique<RosPublisher>(node_, odom_frame_, base_frame_);
     odom_export_ = std::make_unique<pipeline::OdomExport>();
-    diagnostics_ = std::make_unique<Diagnostics>();
+    DiagnosticsOptions diagnostics_options;
+    diagnostics_options.frontend_print = frontend_print_;
+    diagnostics_options.essential_print = essential_print_;
+    diagnostics_options.updater_print = updater_print_;
+    diagnostics_options.zupt_print = zupt_print_;
+    diagnostics_options.pipeline_print = pipeline_print_;
+    diagnostics_ = std::make_unique<Diagnostics>(diagnostics_options);
 
     if (export_odom_) {
         pipeline::RunContext context;
@@ -116,8 +122,6 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     parser.parse_config("feature_low_feature_db", frontend.low_feature_db, false);
     parser.parse_config("feature_mature_thresh", frontend.mature_thresh, false);
     parser.parse_config("feature_mature_thresh_low", frontend.mature_thresh_low, false);
-    parser.parse_config("feature_fail_limit", frontend.fail_limit, false);
-    parser.parse_config("feature_fail_limit_low", frontend.fail_limit_low, false);
     parser.parse_config("feature_map_jump_thresh", frontend.map_jump_thresh, false);
     parser.parse_config("feature_active_mature_thresh", frontend.active_mature_thresh, false);
     parser.parse_config("feature_health_min_stable", frontend.health_min_stable, false);
@@ -141,8 +145,6 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     HNO_FRONTEND_PARAM(int, "feature_low_feature_db", low_feature_db);
     HNO_FRONTEND_PARAM(int, "feature_mature_thresh", mature_thresh);
     HNO_FRONTEND_PARAM(int, "feature_mature_thresh_low", mature_thresh_low);
-    HNO_FRONTEND_PARAM(int, "feature_fail_limit", fail_limit);
-    HNO_FRONTEND_PARAM(int, "feature_fail_limit_low", fail_limit_low);
     HNO_FRONTEND_PARAM(double, "feature_map_jump_thresh", map_jump_thresh);
     HNO_FRONTEND_PARAM(int, "feature_active_mature_thresh", active_mature_thresh);
     HNO_FRONTEND_PARAM(int, "feature_health_min_stable", health_min_stable);
@@ -160,7 +162,6 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     parser.parse_config("update_min_observations", updater.min_observations, false);
     parser.parse_config("update_low_observation_hold_frames", updater.low_observation_hold_frames, false);
     parser.parse_config("update_warn_delta_ratio", updater.warn_delta_ratio, false);
-    parser.parse_config("update_enforce_structure", updater.enforce_structure_after_update, false);
     parser.parse_config("zupt_velocity_noise", updater.zupt_velocity_noise, false);
     updater.pixel_noise = declareOrGet<double>(node_, "update_pixel_noise", updater.pixel_noise);
     updater.focal_length = declareOrGet<double>(node_, "update_focal_length", updater.focal_length);
@@ -174,7 +175,6 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     updater.zupt_velocity_noise = declareOrGet<double>(node_, "zupt_velocity_noise", updater.zupt_velocity_noise);
 
     auto& zupt = pipeline_options_.zupt;
-    parser.parse_config("try_zupt", zupt.enabled, false);
     parser.parse_config("zupt_max_disparity", zupt.max_disparity, false);
     parser.parse_config("zupt_imu_window_size", zupt.imu_window_size, false);
     parser.parse_config("zupt_min_tracks", zupt.min_tracks, false);
@@ -194,6 +194,11 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     path_gt_ = declareOrGet<std::string>(node_, "path_gt", "");
     use_gt_mapping_ = declareOrGet<bool>(node_, "use_gt_mapping", false);
     export_odom_ = declareOrGet<bool>(node_, "export_odom", false);
+    frontend_print_ = declareOrGet<bool>(node_, "frontend_print", false);
+    essential_print_ = declareOrGet<bool>(node_, "essential_print", true);
+    updater_print_ = declareOrGet<bool>(node_, "updater_print", false);
+    zupt_print_ = declareOrGet<bool>(node_, "ZUPT_print", false);
+    pipeline_print_ = declareOrGet<bool>(node_, "pipeline_print", false);
     odom_output_path_ = declareOrGet<std::string>(node_, "odom_output_path", "");
     dataset_ = declareOrGet<std::string>(node_, "dataset", "");
     bag_path_ = declareOrGet<std::string>(node_, "bag_path", "");
@@ -256,11 +261,11 @@ std::optional<pipeline::PipelineResult> HnoVioNode::tryProcessReadyCameras() {
         ros_publisher_->publishCommittedPath(result->timestamp, result->state);
         ros_publisher_->publishFrontend(result->timestamp, camera,
                                         result->active_landmarks, result->tracker);
-        gt_mapping_->publish(result->timestamp, Pose::FromState(result->state));
+        const Pose estimated_pose = Pose::FromState(result->state);
+        const std::optional<Pose> aligned_ground_truth =
+            gt_mapping_->publish(result->timestamp, estimated_pose);
         if (export_odom_) odom_export_->write(result->timestamp, result->state);
-        if (result->diagnostics.frame_index % 30 == 0) {
-            diagnostics_->printPipeline(result->diagnostics);
-        }
+        diagnostics_->report(result->diagnostics, estimated_pose, aligned_ground_truth);
         latest_result = result;
     }
     return latest_result;

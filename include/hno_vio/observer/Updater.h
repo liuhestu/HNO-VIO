@@ -87,6 +87,7 @@ private:
     Eigen::Matrix3d R_C2B_left, R_C2B_right;
     Eigen::Vector3d pc_left, pc_right;
     bool has_stereo_extrinsics = false;
+    int low_observation_streak_ = 0;
 };
 
 } // namespace hno_vio::observer

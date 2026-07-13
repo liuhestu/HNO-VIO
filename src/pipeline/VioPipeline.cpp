@@ -57,7 +57,12 @@ std::optional<PipelineResult> VioPipeline::processImu(const ov_core::ImuData& im
     result.timestamp = prediction_time_;
     result.state = prediction_state_;
     result.camera_frame = false;
-    result.diagnostics = {true, prediction_time_, frame_index_, "imu_prediction"};
+    result.diagnostics.initialized = true;
+    result.diagnostics.timestamp = prediction_time_;
+    result.diagnostics.committed_timestamp = committed_time_;
+    result.diagnostics.prediction_timestamp = prediction_time_;
+    result.diagnostics.frame_index = frame_index_;
+    result.diagnostics.stage = "imu_prediction";
     return result;
 }
 
@@ -121,7 +126,9 @@ std::optional<PipelineResult> VioPipeline::processStereo(
 
     std::vector<observer::VisualObservation> observations;
     const Pose mapping_pose = selectMappingPose(raw_gt_pose, *camera_state);
-    feature_manager_.processStereo(stereo, mapping_pose, observations);
+    FeatureDiagnostics frontend_diagnostics;
+    feature_manager_.processStereo(stereo, mapping_pose, observations,
+                                   &frontend_diagnostics);
     UpdaterDiagnostics updater_diagnostics;
     const bool visual_applied = updater_.update(camera_state, observations, &updater_diagnostics);
 
@@ -138,6 +145,7 @@ std::optional<PipelineResult> VioPipeline::processStereo(
     }
 
     bool zupt_applied = false;
+    const double velocity_residual_norm = camera_state->v_hat.norm();
     const bool should_enter = stationary &&
         zupt_stationary_streak_ >= zupt_options_.hold_frames &&
         camera_state->v_hat.norm() >= zupt_options_.activation_speed;
@@ -168,10 +176,26 @@ std::optional<PipelineResult> VioPipeline::processStereo(
     result.visual_update_applied = visual_applied;
     result.zupt_update_applied = zupt_applied;
     result.observation_count = static_cast<int>(observations.size());
-    result.updater_diagnostics = updater_diagnostics;
     result.active_landmarks = feature_manager_.get_active_map();
     result.tracker = feature_manager_.get_tracker();
-    result.diagnostics = {true, committed_time_, frame_index_, "camera_committed"};
+    result.diagnostics.initialized = true;
+    result.diagnostics.timestamp = committed_time_;
+    result.diagnostics.committed_timestamp = committed_time_;
+    result.diagnostics.prediction_timestamp = prediction_time_;
+    result.diagnostics.frame_index = frame_index_;
+    result.diagnostics.observation_count = result.observation_count;
+    result.diagnostics.visual_update_applied = visual_applied;
+    result.diagnostics.zupt_update_applied = zupt_applied;
+    result.diagnostics.stage = "camera_committed";
+    result.diagnostics.frontend = frontend_diagnostics;
+    result.diagnostics.updater = updater_diagnostics;
+    result.diagnostics.zupt.accelerometer_variance = acc_variance;
+    result.diagnostics.zupt.gyroscope_variance = gyro_variance;
+    result.diagnostics.zupt.stationary_detected = stationary;
+    result.diagnostics.zupt.active = zupt_active_;
+    result.diagnostics.zupt.stationary_streak = zupt_stationary_streak_;
+    result.diagnostics.zupt.velocity_residual_norm = velocity_residual_norm;
+    result.diagnostics.zupt.update_applied = zupt_applied;
     result.latest_prediction = prediction_state_;
     result.latest_prediction_timestamp = prediction_time_;
     return result;

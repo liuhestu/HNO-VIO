@@ -66,9 +66,9 @@ std::optional<Pose> GTMapping::getPose(double timestamp) const {
     return Pose{q_previous.slerp(alpha, q_next).toRotationMatrix(), p};
 }
 
-void GTMapping::publish(double timestamp, const Pose& estimated_pose) {
+std::optional<Pose> GTMapping::publish(double timestamp, const Pose& estimated_pose) {
     const auto raw = getPose(timestamp);
-    if (!raw) return;
+    if (!raw) return std::nullopt;
     if (!has_visual_alignment_) {
         R_visual_gt_ = estimated_pose.R * raw->R.transpose();
         t_visual_gt_ = estimated_pose.p - R_visual_gt_ * raw->p;
@@ -109,6 +109,7 @@ void GTMapping::publish(double timestamp, const Pose& estimated_pose) {
     transform.transform.translation.z = aligned.p.z();
     transform.transform.rotation = stamped.pose.orientation;
     tf_broadcaster_->sendTransform(transform);
+    return aligned;
 }
 
 } // namespace hno_vio::ros
