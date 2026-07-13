@@ -87,8 +87,8 @@ public:
     // SVD寻找 Frobenius 范数下最近的正交矩阵
     void enforce_structure() {
         // 1. 强制 R_hat_B2I 正交化
-        Eigen::JacobiSVD<Eigen::Matrix3d> svd_R(R_hat_B2I, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        R_hat_B2I = svd_R.matrixU() * svd_R.matrixV().transpose();
+        // Eigen::JacobiSVD<Eigen::Matrix3d> svd_R(R_hat_B2I, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        // R_hat_B2I = svd_R.matrixU() * svd_R.matrixV().transpose();
 
 
         // 2. 强制 e_hat 正交化
