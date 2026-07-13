@@ -54,11 +54,21 @@ ament_target_dependencies(openvins_core_minimal ${HNO_ROS_DEPS})
 target_link_libraries(openvins_core_minimal ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} CURL::libcurl)
 
 add_library(hno_vio_lib
-  src/HNOPropagator.cpp
-  src/HNOUpdater.cpp
-  src/HNOFeature.cpp
-  src/HNOInitializer.cpp
-  src/HNOManager.cpp
+  src/Diagnostics.cpp
+  src/observer/Propagator.cpp
+  src/observer/Updater.cpp
+  src/observer/ZuptUpdater.cpp
+  src/frontend/FeatureManager.cpp
+  src/frontend/StereoTriangulator.cpp
+  src/frontend/LandmarkMap.cpp
+  src/frontend/FeatureHealth.cpp
+  src/Initializer.cpp
+  src/pipeline/ImuBuffer.cpp
+  src/pipeline/VioPipeline.cpp
+  src/pipeline/OdomExport.cpp
+  src/ros/GTMapping.cpp
+  src/ros/RosPublisher.cpp
+  src/ros/HnoVioNode.cpp
 )
 ament_target_dependencies(hno_vio_lib ${HNO_ROS_DEPS})
 target_link_libraries(hno_vio_lib openvins_core_minimal ${OpenCV_LIBRARIES} ${Boost_LIBRARIES} CURL::libcurl)

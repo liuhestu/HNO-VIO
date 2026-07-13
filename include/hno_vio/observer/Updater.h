@@ -1,7 +1,8 @@
-#ifndef HNO_UPDATER_H
-#define HNO_UPDATER_H
+#ifndef HNO_VIO_OBSERVER_UPDATER_H
+#define HNO_VIO_OBSERVER_UPDATER_H
 
-#include "hno_vio/HNOState.h"
+#include "hno_vio/State.h"
+#include "hno_vio/Diagnostics.h"
 #include <vector>
 #include <memory>
 #include <map>
@@ -11,19 +12,19 @@
 #include "feat/FeatureDatabase.h"
 #include "feat/Feature.h"
 
-namespace hno_vio {
+namespace hno_vio::observer {
 
 // 定义单个特征点的观测数据结构 (From Reference)
-struct HNOObservation {
+struct VisualObservation {
     // 归一化观测向量 (x, y, 1).normalized()
     Eigen::Vector3d uv_left;
     Eigen::Vector3d uv_right;
-    bool isValidRight;
+    bool has_right = false;
     // 世界系下的 3D 坐标
-    Eigen::Vector3d xyz;
+    Eigen::Vector3d landmark;
 };
 
-class HNOUpdater {
+class Updater {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -53,7 +54,7 @@ public:
     };
 
     // 构造函数，只在程序启动、创建这个类对象的时候运行一次
-    HNOUpdater();
+    Updater();
 
     void setOptions(const Options& options);
 
@@ -69,10 +70,11 @@ public:
      * @param state 当前 HNO 状态
      * @param observations 预处理好的有效观测列表
      */
-    void update(std::shared_ptr<HNOState> state,
-                const std::vector<HNOObservation>& observations);
+    bool update(std::shared_ptr<State> state,
+                const std::vector<VisualObservation>& observations,
+                UpdaterDiagnostics* diagnostics = nullptr);
 
-    bool update_zero_velocity(std::shared_ptr<HNOState> state);
+    const Options& options() const { return options_; }
 
 private:
     // 参数配置
@@ -87,5 +89,5 @@ private:
     bool has_stereo_extrinsics = false;
 };
 
-} 
+} // namespace hno_vio::observer
 #endif

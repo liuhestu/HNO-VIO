@@ -1,5 +1,6 @@
-#include "hno_vio/HNOManager.h"
+#include "hno_vio/ros/HnoVioNode.h"
 
+#include <exception>
 #include <memory>
 #include <string>
 
@@ -16,12 +17,18 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    auto manager = std::make_shared<hno_vio::HNOManager>(node, config_path);
-    manager->launch_subscribers();
+    try {
+        auto application = std::make_shared<hno_vio::ros::HnoVioNode>(node, config_path);
+        application->launchSubscribers();
 
-    RCLCPP_INFO(node->get_logger(), "HNO Node Started (ROS2).");
-    rclcpp::spin(node);
-    manager.reset();
-    rclcpp::shutdown();
-    return 0;
+        RCLCPP_INFO(node->get_logger(), "HNO Node Started (ROS2).");
+        rclcpp::spin(node);
+        application.reset();
+        rclcpp::shutdown();
+        return 0;
+    } catch (const std::exception& exception) {
+        RCLCPP_FATAL(node->get_logger(), "Unhandled HNO-VIO error: %s", exception.what());
+        rclcpp::shutdown();
+        return 1;
+    }
 }

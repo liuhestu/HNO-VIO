@@ -122,7 +122,6 @@ relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
 
 # Auto-converge candidate parameters from case009_guarded_020.
-use_gt_init: false
 use_gt_mapping: false
 feature_active_mature_thresh: 4
 feature_fail_limit: 5

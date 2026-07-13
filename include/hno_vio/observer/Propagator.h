@@ -1,13 +1,13 @@
-#ifndef HNO_PROPAGATOR_H
-#define HNO_PROPAGATOR_H
+#ifndef HNO_VIO_OBSERVER_PROPAGATOR_H
+#define HNO_VIO_OBSERVER_PROPAGATOR_H
 
-#include "hno_vio/HNOState.h"
+#include "hno_vio/State.h"
 #include <memory>
 #include <tuple>
 
-namespace hno_vio {
+namespace hno_vio::observer {
 
-class HNOPropagator {
+class Propagator {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
@@ -18,21 +18,21 @@ public:
     };
 
     // 构造函数，只在程序启动、创建这个类对象的时候运行一次
-    HNOPropagator();
+    Propagator();
 
     // 设置噪声参数，预计算 Cov_nx
     void setNoiseParams(const NoiseParams& params);
-    
+
     // 4阶龙格-库塔法积分
     Eigen::Matrix<double, 15, 15> RK4(const Eigen::Matrix<double, 15, 15>& A,
                                       const Eigen::Matrix<double, 15, 15>& P,
-                                      const Eigen::Matrix<double, 15, 15>& Vt, 
+                                      const Eigen::Matrix<double, 15, 15>& Vt,
                                       double dt);
 
     // 成员函数，每收到一个 IMU 数据就要运行一次
-    void propagate(std::shared_ptr<HNOState> state, 
-                   const Eigen::Vector3d& omega_m, 
-                   const Eigen::Vector3d& acc_m, 
+    void propagate(std::shared_ptr<State> state,
+                   const Eigen::Vector3d& omega_m,
+                   const Eigen::Vector3d& acc_m,
                    double dt);
 
 private:
@@ -40,11 +40,11 @@ private:
 
     double k_R = 20.0;
     Eigen::Vector3d rho; // Weights for the 3 axes
-    Eigen::Vector3d gravity = Eigen::Vector3d(0, 0, -9.81); 
+    Eigen::Vector3d gravity = Eigen::Vector3d(0, 0, -9.81);
 
     // 原始IMU噪声协方差
-    Eigen::Matrix<double, 6, 6> Cov_nx; 
+    Eigen::Matrix<double, 6, 6> Cov_nx;
 };
 
-} 
+} // namespace hno_vio::observer
 #endif

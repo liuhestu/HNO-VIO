@@ -1,4 +1,4 @@
-#include "hno_vio/HNOFeature.h"
+#include "hno_vio/frontend/FeatureManager.h"
 #include <algorithm>
 #include <iostream>
 #include <iomanip>
@@ -6,15 +6,26 @@
 #include <unordered_set>
 
 using namespace hno_vio;
+using namespace hno_vio::frontend;
 
-HNOFeature::HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
+FeatureManager::FeatureManager(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
                        std::vector<Eigen::Matrix4d> extrinsics,
-                       const Options& options) 
-    : cameras(cams), T_C_B(extrinsics), options_(options) {
-    
+                       const Options& options)
+    : options_(options),
+      cameras(cams),
+      T_C_B(extrinsics),
+      triangulator_(extrinsics,
+                    StereoTriangulator::Constraints{options.min_stereo_depth,
+                                                    options.max_stereo_depth,
+                                                    options.stereo_reproj_thresh}),
+      feature_health_(FeatureHealth::Constraints{options.health_start_frame,
+                                                options.health_min_stable,
+                                                options.health_min_db,
+                                                options.health_hold_frames}) {
+
     std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> cam_map;
     for(size_t i=0; i<cams.size(); ++i) cam_map[i] = cams[i];
-    
+
     // 稍微增加一点点特征点上限，因为我们会扔掉很多不稳定的点
     tracker = std::make_shared<ov_core::TrackKLT>(
         cam_map,
@@ -28,15 +39,9 @@ HNOFeature::HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
         options_.tracker_min_px_dist);
 }
 
-void HNOFeature::feed_measurement(const ov_core::CameraData& message, 
-                                  Eigen::Matrix3d R_est, Eigen::Vector3d p_est,
-                                  Eigen::Matrix3d R_gt,  Eigen::Vector3d p_gt,
-                                  std::vector<HNOObservation>& observations) {
-    static int frame_counter = 0;
-    static int unhealthy_streak = 0;
-    static bool first_low_stable_logged = false;
-    static bool first_zero_stable_logged = false;
-    frame_counter++;
+void FeatureManager::processStereo(const ov_core::CameraData& message,
+                                   const Pose& mapping_pose,
+                                   std::vector<observer::VisualObservation>& observations) {
     observations.clear();
     last_median_disparity_ = std::numeric_limits<double>::infinity();
     last_common_track_count_ = 0;
@@ -46,7 +51,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     auto obs_raw = tracker->get_last_obs();
     auto ids_raw = tracker->get_last_ids();
 
-    if(!obs_raw.count(0)) return; 
+    if(!obs_raw.count(0)) return;
     if(obs_raw[0].empty()) return; // 无特征时直接退出，避免尾帧继续估计
 
     // --- 1. RANSAC (2D-2D) 剔除动态点 ---
@@ -91,11 +96,9 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
         for(size_t i=0; i<ids_raw[1].size(); ++i) right_cam_idx[ids_raw[1][i]] = i;
     }
 
-    // 获取外参 (Body -> World)
-    // 这里传入的 R_gt / p_gt 在 Cheat 模式下是 GT，否则是估计值
-    Eigen::Matrix3d R_wb = R_gt;
-    Eigen::Vector3d p_wb = p_gt;
-    
+    const Eigen::Matrix3d& R_wb = mapping_pose.R;
+    const Eigen::Vector3d& p_wb = mapping_pose.p;
+
     // 获取内参 T_bc (Cam -> Body)
     Eigen::Matrix3d R_bc = T_C_B[0].block<3,3>(0,0);
     Eigen::Vector3d p_bc = T_C_B[0].block<3,1>(0,3);
@@ -112,7 +115,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
     // --- 遍历左目所有特征点 ---
     size_t num_pts = obs_raw[0].size();
     if(num_pts < static_cast<size_t>(options_.low_feature_pts) ||
-       feature_db.size() < static_cast<size_t>(options_.low_feature_db)) low_feat_mode = true;
+       landmark_map_.size() < static_cast<size_t>(options_.low_feature_db)) low_feat_mode = true;
     double reproj_thresh = low_feat_mode ? options_.reproj_thresh_low : options_.reproj_thresh;
     int mature_thresh = low_feat_mode ? options_.mature_thresh_low : options_.mature_thresh;
     for(size_t i=0; i<num_pts; ++i) {
@@ -124,8 +127,8 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
         // 计算左目归一化坐标
         Eigen::Vector2d uv_l_px(obs_raw[0][i].pt.x, obs_raw[0][i].pt.y);
-        Eigen::Vector2d uv_l_norm = cameras[0]->undistort_d(uv_l_px); 
-        Eigen::Vector3d uv_l_vec(uv_l_norm.x(), uv_l_norm.y(), 1.0); 
+        Eigen::Vector2d uv_l_norm = cameras[0]->undistort_d(uv_l_px);
+        Eigen::Vector3d uv_l_vec(uv_l_norm.x(), uv_l_norm.y(), 1.0);
 
         // 检查右目是否存在
         bool has_right = false;
@@ -141,15 +144,15 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
         // --- 逻辑分支 ---
         // 1. 老点：使用当前帧双目刷新 p_w；若无双目则重投影检查
-        if(feature_db.count(id)) {
-            FeatureInfo& info = feature_db[id];
+        if(landmark_map_.contains(id)) {
+            Landmark& info = landmark_map_.at(id);
 
             bool stereo_ok = false;
-            Eigen::Vector3d p_w_new = info.p_w;
+            Eigen::Vector3d p_w_new = info.p_world;
             if(has_right) {
                 Eigen::Vector3d p_c_curr;
                 double stereo_err = 0.0;
-                if(triangulate_stereo(uv_l_vec, uv_r_vec, p_c_curr, &stereo_err)) {
+                if(triangulator_.triangulate(uv_l_vec, uv_r_vec, p_c_curr, &stereo_err)) {
                     double depth = p_c_curr.z();
                     if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                         stereo_pass++;
@@ -158,7 +161,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                         Eigen::Vector3d p_body = R_bc * p_c_curr + p_bc;
                         p_w_new = R_wb * p_body + p_wb;
 
-                        double dist = (info.p_w - p_w_new).norm();
+                        double dist = (info.p_world - p_w_new).norm();
                         if(dist > options_.map_jump_thresh) {
                             // Keep the world anchor while the KLT track is alive.
                             info.fail_count++;
@@ -167,7 +170,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                             double alpha = 1.0 / (info.track_count + 1.0);
                             if(alpha < 0.05) alpha = 0.05;
                             if(alpha > 0.2) alpha = 0.2;
-                            info.p_w = (1.0 - alpha) * info.p_w + alpha * p_w_new;
+                            info.p_world = (1.0 - alpha) * info.p_world + alpha * p_w_new;
                         }
                     } else {
                         stereo_reject++;
@@ -178,7 +181,7 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                 }
             }
 
-            Eigen::Vector3d p_w_est = stereo_ok ? p_w_new : info.p_w;
+            Eigen::Vector3d p_w_est = stereo_ok ? p_w_new : info.p_world;
             double reproj_err = 0.0;
             bool reproj_ok = stereo_ok ? true : check_reprojection(id, p_w_est, R_wb, p_wb, uv_l_vec, reproj_thresh, &reproj_err);
 
@@ -197,15 +200,15 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
             // 只有成熟点才输出观测；少点时提前输出
             if(info.track_count >= mature_thresh) {
-                HNOObservation obs;
+                observer::VisualObservation obs;
                 obs.uv_left = uv_l_vec.normalized();
                 if(stereo_ok) {
                     obs.uv_right = uv_r_vec.normalized();
-                    obs.isValidRight = true;
+                    obs.has_right = true;
                 } else {
-                    obs.isValidRight = false;
+                    obs.has_right = false;
                 }
-                obs.xyz = info.p_w;
+                obs.landmark = info.p_world;
                 observations.push_back(obs);
                 count_stable++;
             }
@@ -215,17 +218,17 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
         else if(has_right) {
             Eigen::Vector3d p_c_left;
             double stereo_err = 0.0;
-            if(triangulate_stereo(uv_l_vec, uv_r_vec, p_c_left, &stereo_err)) {
+            if(triangulator_.triangulate(uv_l_vec, uv_r_vec, p_c_left, &stereo_err)) {
                 double depth = p_c_left.z();
                 if(depth > options_.min_stereo_depth && depth < options_.max_stereo_depth) {
                     stereo_pass++;
                     if(stereo_err > stereo_err_max) stereo_err_max = stereo_err;
-                    FeatureInfo info;
+                    Landmark info;
                     Eigen::Vector3d p_body = R_bc * p_c_left + p_bc;
-                    info.p_w = R_wb * p_body + p_wb;
+                    info.p_world = R_wb * p_body + p_wb;
                     info.track_count = 1;
                     info.fail_count = 0;
-                    feature_db[id] = info;
+                    landmark_map_.insert(id, info);
                     count_new++;
                 } else {
                     stereo_reject++;
@@ -234,75 +237,63 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
                 stereo_reject++;
             }
         }
-    } 
+    }
 
     // 4. 地图清理
     std::unordered_set<size_t> klt_alive_ids;
     if(obs_raw.count(0)) {
         for(size_t id : ids_raw[0]) klt_alive_ids.insert(id);
     }
-    
-    for (auto it = feature_db.begin(); it != feature_db.end(); ) {
-        bool alive = klt_alive_ids.find(it->first) != klt_alive_ids.end();
 
-        if(!alive) {
-            it = feature_db.erase(it);
-        } else {
-            ++it;
-        }
-    }
-    
+    landmark_map_.eraseMissing(klt_alive_ids);
+
     history_obs = next_history_obs;
 
-    bool health_guard_active = frame_counter >= options_.health_start_frame;
-    bool low_stable = count_stable < options_.health_min_stable;
-    bool low_db = static_cast<int>(feature_db.size()) < options_.health_min_db;
-    if(health_guard_active && (low_stable || low_db)) {
-        unhealthy_streak++;
-        if(!first_low_stable_logged) {
-            first_low_stable_logged = true;
-            std::cout << "[HNOFeatureHealth] first_low_map frame " << frame_counter
+    const FeatureHealth::Status health =
+        feature_health_.update(count_stable, static_cast<int>(landmark_map_.size()));
+    if(health.guard_active && (health.low_stable || health.low_landmarks)) {
+        if(!first_low_stable_logged_) {
+            first_low_stable_logged_ = true;
+            std::cout << "[FeatureManagerHealth] first_low_map frame " << health.frame_id
                       << " stable " << count_stable
                       << " min_stable " << options_.health_min_stable
-                      << " db " << feature_db.size()
+                      << " db " << landmark_map_.size()
                       << " min_db " << options_.health_min_db
                       << std::endl;
         }
-        if(count_stable == 0 && !first_zero_stable_logged) {
-            first_zero_stable_logged = true;
-            std::cout << "[HNOFeatureHealth] first_zero_stable frame " << frame_counter
-                      << " db " << feature_db.size()
+        if(count_stable == 0 && !first_zero_stable_logged_) {
+            first_zero_stable_logged_ = true;
+            std::cout << "[FeatureManagerHealth] first_zero_stable frame " << health.frame_id
+                      << " db " << landmark_map_.size()
                       << " pts " << num_pts
                       << std::endl;
         }
-    } else if(!low_stable && !low_db) {
-        unhealthy_streak = 0;
     }
 
-    if(health_guard_active && unhealthy_streak >= options_.health_hold_frames) {
+    if(!health.allow_visual_update) {
         if(!observations.empty()) {
             observations.clear();
         }
-        if(frame_counter % 30 == 0) {
-            std::cout << "[HNOFeatureHealth] suppress_untrusted_map frame " << frame_counter
+        if(health.frame_id % 30 == 0) {
+            std::cout << "[FeatureManagerHealth] suppress_untrusted_map frame " << health.frame_id
                       << " stable " << count_stable
-                      << " db " << feature_db.size()
-                      << " streak " << unhealthy_streak
+                      << " db " << landmark_map_.size()
+                      << " streak " << health.unhealthy_streak
                       << std::endl;
         }
     }
 
     // 节流日志：每 30 帧输出一次前端健康度
-    if(frame_counter % 30 == 0) {
+    if(health.frame_id % 30 == 0) {
         int reproj_total = reproj_pass + reproj_reject;
         int stereo_total = stereo_pass + stereo_reject;
         double reproj_mean = reproj_pass > 0 ? reproj_err_sum / reproj_pass : 0.0;
         std::cout << std::fixed << std::setprecision(3)
-                  << "[HNOFeature] frame " << frame_counter
+                  << "[FeatureManager] frame " << health.frame_id
                   << " pts " << num_pts
                   << " stable " << count_stable
                   << " new " << count_new
-                  << " db " << feature_db.size()
+                  << " db " << landmark_map_.size()
                   << " stereo " << stereo_pass << "/" << stereo_total
                   << " err_max " << stereo_err_max
                   << " reproj " << reproj_pass << "/" << reproj_total
@@ -314,15 +305,15 @@ void HNOFeature::feed_measurement(const ov_core::CameraData& message,
 
 // 检查重投影误差
 // 如果返回 false，说明点有问题
-bool HNOFeature::check_reprojection(size_t id, const Eigen::Vector3d& p_w, 
+bool FeatureManager::check_reprojection(size_t id, const Eigen::Vector3d& p_w,
                                     const Eigen::Matrix3d& R_wb, const Eigen::Vector3d& p_wb,
                                     const Eigen::Vector3d& uv_meas_norm,
                                     double reproj_thresh,
                                     double* reproj_err) {
-    
+
     // 1. 转到 Body 系: P_b = R_wb^T * (P_w - p_wb)
     Eigen::Vector3d p_b = R_wb.transpose() * (p_w - p_wb);
-    
+
     // 2. 转到 Cam 系: P_c = R_bc^T * (P_b - p_bc)
     Eigen::Matrix3d R_bc = T_C_B[0].block<3,3>(0,0);
     Eigen::Vector3d p_bc = T_C_B[0].block<3,1>(0,3);
@@ -333,7 +324,7 @@ bool HNOFeature::check_reprojection(size_t id, const Eigen::Vector3d& p_w,
 
     // 4. 投影到归一化平面
     Eigen::Vector2d uv_proj = p_c.head<2>() / p_c.z();
-    Eigen::Vector2d uv_meas = uv_meas_norm.head<2>(); 
+    Eigen::Vector2d uv_meas = uv_meas_norm.head<2>();
 
     // 5. 计算误差
     double err = (uv_proj - uv_meas).norm();
@@ -345,45 +336,6 @@ bool HNOFeature::check_reprojection(size_t id, const Eigen::Vector3d& p_w,
     return true;
 }
 
-bool HNOFeature::triangulate_stereo(const Eigen::Vector3d& uv_left, 
-                                   const Eigen::Vector3d& uv_right, 
-                                   Eigen::Vector3d& p_c_left,
-                                   double* reproj_err_right) {
-    // 保持严格三角化逻辑
-    Eigen::Matrix4d T_Right_Left = T_C_B[1].inverse() * T_C_B[0];
-    Eigen::Matrix3d R = T_Right_Left.block<3,3>(0,0);
-    Eigen::Vector3d t = T_Right_Left.block<3,1>(0,3);
-
-    Eigen::Matrix<double, 3, 2> A;
-    A.col(0) = R * uv_left;
-    A.col(1) = -uv_right;
-    Eigen::Vector3d b = -t;
-    Eigen::Vector2d x = (A.transpose() * A).ldlt().solve(A.transpose() * b);
-    double d1 = x(0);
-
-    // 严格检查
-    if(d1 < options_.min_stereo_depth || d1 > options_.max_stereo_depth) return false;
-    
-    p_c_left = uv_left * d1;
-    
-    // 重投影检查
-    Eigen::Vector3d P_R = R * p_c_left + t;
-    Eigen::Vector2d uv_r_proj = (P_R / P_R(2)).head<2>();
-    double err = (uv_r_proj - uv_right.head<2>()).norm();
-    if(reproj_err_right) *reproj_err_right = err;
-    
-    if(err > options_.stereo_reproj_thresh) return false; // 略收紧双目匹配误差，提升深度质量
-
-    return true;
-}
-
-const std::map<size_t, Eigen::Vector3d> HNOFeature::get_active_map() const {
-    std::map<size_t, Eigen::Vector3d> out;
-    for(const auto& pair : feature_db) {
-        const FeatureInfo& info = pair.second;
-        if(info.track_count >= options_.active_mature_thresh) {
-            out[pair.first] = info.p_w;
-        }
-    }
-    return out;
+const std::map<size_t, Eigen::Vector3d> FeatureManager::get_active_map() const {
+    return landmark_map_.activeMap(options_.active_mature_thresh);
 }

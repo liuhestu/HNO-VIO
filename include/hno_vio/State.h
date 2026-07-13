@@ -1,17 +1,28 @@
-#ifndef HNO_STATE_H
-#define HNO_STATE_H
+#ifndef HNO_VIO_STATE_H
+#define HNO_VIO_STATE_H
 
 #include <Eigen/Dense>
 #include <iostream>
 
 namespace hno_vio {
 
-class HNOState {
+class State;
+
+struct Pose {
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d p = Eigen::Vector3d::Zero();
+
+    static Pose FromState(const State& state);
+};
+
+class State {
 public:
     // Eigen库要求的关键宏
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    HNOState() {
+    State() {
         // 默认初始化，防止空指针，具体值会被 initialize 覆盖
         R_hat_B2I.setIdentity();
         p_hat.setZero();
@@ -27,14 +38,14 @@ public:
         P.setIdentity();
 
           // 1. 位置误差: 初始虽然设为0，但我们允许它有 10cm 的不确定性
-        P.block<3,3>(0,0) *= 1e-4; 
-        
+        P.block<3,3>(0,0) *= 1e-4;
+
         // 2. 辅助向量 (e1,e2,e3) = 姿态误差:
         // 0.01 对应约 0.1弧度 (5.7度)
-        P.block<3,3>(3,3) *= 0.01; 
-        P.block<3,3>(6,6) *= 0.01; 
-        P.block<3,3>(9,9) *= 0.01; 
-        
+        P.block<3,3>(3,3) *= 0.01;
+        P.block<3,3>(6,6) *= 0.01;
+        P.block<3,3>(9,9) *= 0.01;
+
         // 3. 速度误差: 初始可能不是绝对静止，给 0.1 m/s 的容错
         P.block<3,3>(12,12) *= 0.1;
     }
@@ -69,7 +80,7 @@ public:
         e_hat[1] << 0, 1, 0;
         e_hat[2] << 0, 0, 1;
 
-        
+
     }
 
     // 强制结构约束（正交化与归一化）
@@ -95,5 +106,18 @@ public:
     }
 };
 
-} 
+inline Pose Pose::FromState(const State& state) {
+    return Pose{state.R_hat_B2I, state.p_hat};
+}
+
+namespace StateIndex {
+constexpr int kP = 0;
+constexpr int kE1 = 3;
+constexpr int kE2 = 6;
+constexpr int kE3 = 9;
+constexpr int kV = 12;
+constexpr int kSize = 15;
+} // namespace StateIndex
+
+} // namespace hno_vio
 #endif

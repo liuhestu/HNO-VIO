@@ -1,5 +1,5 @@
-#ifndef HNO_FEATURE_H
-#define HNO_FEATURE_H
+#ifndef HNO_VIO_FRONTEND_FEATURE_MANAGER_H
+#define HNO_VIO_FRONTEND_FEATURE_MANAGER_H
 
 #include <memory>
 #include <vector>
@@ -9,19 +9,16 @@
 
 #include "track/TrackKLT.h"
 #include "cam/CamBase.h"
-#include "hno_vio/HNOUpdater.h"
+#include "hno_vio/observer/Updater.h"
+#include "hno_vio/frontend/FeatureHealth.h"
+#include "hno_vio/frontend/LandmarkMap.h"
+#include "hno_vio/frontend/StereoTriangulator.h"
+#include "hno_vio/State.h"
 #include <opencv2/core/types.hpp>
 
-namespace hno_vio {
+namespace hno_vio::frontend {
 
-// 内部管理的特征点结构（简化版：直接维护当前估计的世界坐标）
-struct FeatureInfo {
-    Eigen::Vector3d p_w;     // 世界系坐标（基于最近一次可信双目观测）
-    int track_count;         // 成功跟踪帧计数
-    int fail_count;          // 连续失败计数
-};
-
-class HNOFeature {
+class FeatureManager {
 public:
     struct Options {
         Options()
@@ -72,15 +69,14 @@ public:
         int health_start_frame;
     };
 
-    HNOFeature(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
+    FeatureManager(std::vector<std::shared_ptr<ov_core::CamBase>> cams,
                std::vector<Eigen::Matrix4d> T_C_B,
                const Options& options = Options());
 
     // 核心处理函数
-    void feed_measurement(const ov_core::CameraData& message, 
-                          Eigen::Matrix3d R_est, Eigen::Vector3d p_est,
-                          Eigen::Matrix3d R_gt,  Eigen::Vector3d p_gt, // 兼容接口，GT仅可选
-                          std::vector<HNOObservation>& observations);
+    void processStereo(const ov_core::CameraData& message,
+                       const Pose& mapping_pose,
+                       std::vector<observer::VisualObservation>& observations);
 
     const std::map<size_t, Eigen::Vector3d> get_active_map() const;
     std::shared_ptr<ov_core::TrackKLT> get_tracker() { return tracker; }
@@ -93,27 +89,24 @@ private:
     std::vector<std::shared_ptr<ov_core::CamBase>> cameras;
     std::vector<Eigen::Matrix4d> T_C_B; // Cam to Body
 
-    // 核心数据库: ID -> FeatureInfo
-    std::map<size_t, FeatureInfo> feature_db;
-    
+    LandmarkMap landmark_map_;
+    StereoTriangulator triangulator_;
+    FeatureHealth feature_health_;
+
     // RANSAC 辅助
-    std::map<size_t, cv::Point2f> history_obs; 
+    std::map<size_t, cv::Point2f> history_obs;
     double last_median_disparity_ = std::numeric_limits<double>::infinity();
     int last_common_track_count_ = 0;
+    bool first_low_stable_logged_ = false;
+    bool first_zero_stable_logged_ = false;
 
-    // 双目三角化 (返回相机系坐标)
-    bool triangulate_stereo(const Eigen::Vector3d& uv_left, 
-                           const Eigen::Vector3d& uv_right, 
-                           Eigen::Vector3d& p_c_left,
-                           double* reproj_err_right = nullptr);
-                           
     // 将点投影并检查误差
-    bool check_reprojection(size_t id, const Eigen::Vector3d& p_w, 
+    bool check_reprojection(size_t id, const Eigen::Vector3d& p_w,
                             const Eigen::Matrix3d& R_wb, const Eigen::Vector3d& p_wb,
                             const Eigen::Vector3d& uv_meas_norm,
                             double reproj_thresh,
                             double* reproj_err = nullptr);
 };
 
-}
+} // namespace hno_vio::frontend
 #endif

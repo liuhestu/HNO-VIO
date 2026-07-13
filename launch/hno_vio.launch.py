@@ -57,7 +57,7 @@ def launch_setup(context, *args, **kwargs):
     path_gt = LaunchConfiguration("path_gt").perform(context)
     if not path_gt:
         path_gt = os.path.join(pkg_share, "ground_truth", "euroc_mav", f"{dataset}.txt")
-    
+
     # 合法性检查
     if run_preprocess and num_cams != 2:
         raise RuntimeError("run_preprocess=true requires num_cams=2 because RTAB-Map input is stereo.")
@@ -160,13 +160,17 @@ def launch_setup(context, *args, **kwargs):
             play_cmd.extend(play_topics.split())
         play_process = ExecuteProcess(cmd=play_cmd, output="screen")
         actions.append(TimerAction(period=3.0, actions=[play_process]))
-        if run_preprocess:
-            actions.append(RegisterEventHandler(
-                OnProcessExit(
-                    target_action=play_process,
-                    on_exit=[EmitEvent(event=Shutdown(reason="input bag playback completed"))],
-                )
-            ))
+        actions.append(RegisterEventHandler(
+            OnProcessExit(
+                target_action=play_process,
+                on_exit=[
+                    TimerAction(
+                        period=2.0,
+                        actions=[EmitEvent(event=Shutdown(reason="input bag playback completed"))],
+                    )
+                ],
+            )
+        ))
 
     return actions
 
@@ -198,7 +202,7 @@ def generate_launch_description():
         DeclareLaunchArgument("rviz", default_value="true"),
         DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("odom_output_path", default_value=""),
-        
+
         # 话题
         DeclareLaunchArgument("odom_frame", default_value="odom"),
         DeclareLaunchArgument("base_frame", default_value="base_link"),

@@ -1,8 +1,8 @@
-#include "hno_vio/HNOPropagator.h"
+#include "hno_vio/observer/Propagator.h"
 
 using namespace hno_vio;
 
-HNOPropagator::HNOPropagator() {
+observer::Propagator::Propagator() {
     // 权重初始化
     rho << 0.5, 0.3, 0.2;
 
@@ -12,7 +12,7 @@ HNOPropagator::HNOPropagator() {
     Cov_nx *= 1e-4;
 }
 
-void HNOPropagator::setNoiseParams(const NoiseParams& params) {
+void observer::Propagator::setNoiseParams(const NoiseParams& params) {
     double var_acc = params.noise_acc * params.noise_acc;
     double var_gyro = params.noise_gyro * params.noise_gyro;
 
@@ -24,19 +24,19 @@ void HNOPropagator::setNoiseParams(const NoiseParams& params) {
     std::cout << "HNO Noise Params Set: Var_Acc=" << var_acc << " Var_Gyr=" << var_gyro << std::endl;
 }
 
-Eigen::Matrix3d HNOPropagator::skew(const Eigen::Vector3d& v_hat) {
+Eigen::Matrix3d observer::Propagator::skew(const Eigen::Vector3d& v_hat) {
     Eigen::Matrix3d S;
-    S << 0, -v_hat(2), v_hat(1), 
-        v_hat(2), 0, -v_hat(0), 
+    S << 0, -v_hat(2), v_hat(1),
+        v_hat(2), 0, -v_hat(0),
         -v_hat(1), v_hat(0), 0;
     return S;
 }
 
-void HNOPropagator::propagate(std::shared_ptr<HNOState> state, 
-                              const Eigen::Vector3d& omega_m, 
-                              const Eigen::Vector3d& acc_m, 
+void observer::Propagator::propagate(std::shared_ptr<State> state,
+                              const Eigen::Vector3d& omega_m,
+                              const Eigen::Vector3d& acc_m,
                               double dt) {
-    
+
     // state.h中定义的e放在private域，这里需要重新定义
     Eigen::Vector3d e[3];
     e[0] << 1,0,0; e[1] << 0,1,0; e[2] << 0,0,1;
@@ -64,19 +64,19 @@ void HNOPropagator::propagate(std::shared_ptr<HNOState> state,
     // // [新增] 在线零偏估计 (Heuristic Bias Update)
     // // 类似于 Mahony 滤波器的积分项：零偏是误差的积分
     // // k_bias 不需要很大，只需要能跟上漂移的速度即可 (例如 0.01 ~ 0.1)
-    
+
     // double k_bias_g = 0.1; // 陀螺仪零偏增益
     // // double k_bias_a = 0.01; // 加速度计零偏增益 (通常很难估准，建议先只估陀螺仪)
 
     // // 将惯性系的误差 sigma_R 投影回机体系
     // Eigen::Vector3d sigma_R_body = R_hat_B2I.transpose() * sigma_R;
-    
+
     // // 更新陀螺仪零偏 (负反馈)
     // // 注意方向：sigma_R 是修正量。如果我们需要正向修正 R，说明之前的 w 算小了？
     // // 这里的符号通常需要调试，但在 HNO 架构下，sigma_R_body 被加到了 w 上。
     // // 如果 bias 导致 w 偏大，我们需要把 bias 调大。
     // state->bg += -k_bias_g * sigma_R_body * dt;
-    
+
     // // 限制零偏范围 (防止发散)
     // if (state->bg.norm() > 0.5) state->bg.setZero(); // 保护措施
     // // =======================================================
@@ -101,7 +101,7 @@ void HNOPropagator::propagate(std::shared_ptr<HNOState> state,
     // 6(d) de_hat[i] = Sigma_R * e_hat[i]
     Eigen::Vector3d de_hat[3];
     for(int i=0; i<3; i++) de_hat[i] = Sigma_R * e_hat[i];
-    
+
     // 4. 更新状态p, v, e1, e2, e3
     // 对于高频数据，欧拉积分通常是足够的
     state->p_hat += dp * dt;
@@ -134,12 +134,12 @@ void HNOPropagator::propagate(std::shared_ptr<HNOState> state,
 
 
     // 6. 协方差传播 计算A(t), 公式(10)
-    Eigen::Matrix<double, 15, 15> A; 
+    Eigen::Matrix<double, 15, 15> A;
     A.setZero();
     // Diagonal Blocks: -omega× (Body Error dynamics)
     for(int k=0; k<5; k++) A.block<3,3>(3*k, 3*k) = -skew(omega);
 
-    A.block<3,3>(0, 12) = Eigen::Matrix3d::Identity(); 
+    A.block<3,3>(0, 12) = Eigen::Matrix3d::Identity();
     A.block<3,3>(12, 3) = gravity(0) * Eigen::Matrix3d::Identity();
     A.block<3,3>(12, 6) = gravity(1) * Eigen::Matrix3d::Identity();
     A.block<3,3>(12, 9) = gravity(2) * Eigen::Matrix3d::Identity();
@@ -175,7 +175,7 @@ void HNOPropagator::propagate(std::shared_ptr<HNOState> state,
     // 计算 V(t)
     // 维度验证: (15x6) * (6x6) * (6x15) = (15x15)
     Eigen::Matrix<double, 15, 15> Vt = Gt * Cov_nx * Gt.transpose();
-    
+
     // 为了数值稳定性，可以在对角线加上极小的正数（Regularization）
     // Vt += 1e-12 * Eigen::Matrix<double, 15, 15>::Identity();
 
@@ -187,9 +187,9 @@ void HNOPropagator::propagate(std::shared_ptr<HNOState> state,
     state->P = 0.5 * (state->P + state->P.transpose());
     }
 
-Eigen::Matrix<double, 15, 15> HNOPropagator::RK4(const Eigen::Matrix<double, 15, 15>& A, 
-                                                 const Eigen::Matrix<double, 15, 15>& P, 
-                                                 const Eigen::Matrix<double, 15, 15>& Vt, 
+Eigen::Matrix<double, 15, 15> observer::Propagator::RK4(const Eigen::Matrix<double, 15, 15>& A,
+                                                 const Eigen::Matrix<double, 15, 15>& P,
+                                                 const Eigen::Matrix<double, 15, 15>& Vt,
                                                  double dt) {
     // 定义导数函数 f(P) = A*P + P*A^T + V
     // 利用 P 的对称性，(AP)^T = P^T A^T = P A^T

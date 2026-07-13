@@ -1,18 +1,18 @@
-#include "hno_vio/HNOInitializer.h"
+#include "hno_vio/Initializer.h"
 #include <iostream>
 #include <numeric>
 
 namespace hno_vio {
 
-HNOInitializer::HNOInitializer() {}
+Initializer::Initializer() {}
 
-void HNOInitializer::setOptions(size_t window_size_in, double max_acc_variance_in, double max_gyro_variance_in) {
+void Initializer::setOptions(size_t window_size_in, double max_acc_variance_in, double max_gyro_variance_in) {
     window_size = window_size_in;
     max_acc_variance = max_acc_variance_in;
     max_gyro_variance = max_gyro_variance_in;
 }
 
-void HNOInitializer::feedImuData(const ov_core::ImuData& msg) {
+void Initializer::feedImuData(const ov_core::ImuData& msg) {
     imu_buffer.push_back(msg);
     // 滑动窗口：如果超过大小，丢弃最旧的数据
     if (imu_buffer.size() > window_size) {
@@ -20,26 +20,26 @@ void HNOInitializer::feedImuData(const ov_core::ImuData& msg) {
     }
 }
 
-bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timestamp) {
+bool Initializer::initialize(std::shared_ptr<State> state, double& timestamp) {
     // 1. 数据充足性检查
-    if(imu_buffer.size() < window_size) return false; 
-    
+    if(imu_buffer.size() < window_size) return false;
+
     // 2. 计算均值
     Eigen::Vector3d sum_acc = Eigen::Vector3d::Zero();
     Eigen::Vector3d sum_gyro = Eigen::Vector3d::Zero();
-    
+
     for(const auto& d : imu_buffer) {
         sum_acc += d.am;
-        sum_gyro += d.wm; 
+        sum_gyro += d.wm;
     }
-    
+
     Eigen::Vector3d ave_acc = sum_acc / imu_buffer.size();
-    Eigen::Vector3d ave_gyro = sum_gyro / imu_buffer.size(); 
-    
+    Eigen::Vector3d ave_gyro = sum_gyro / imu_buffer.size();
+
     // 3. 计算静止方差
     Eigen::Vector3d var_acc = Eigen::Vector3d::Zero();
     Eigen::Vector3d var_gyro = Eigen::Vector3d::Zero();
-    
+
     for(const auto& d : imu_buffer) {
         var_acc += (d.am - ave_acc).cwiseAbs2();
         var_gyro += (d.wm - ave_gyro).cwiseAbs2();
@@ -62,7 +62,7 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
     // 4. 零偏初始化
     // 陀螺仪零偏直接取均值 (因为静止时真实角速度为0)
     Eigen::Vector3d bg0 = ave_gyro;
-    
+
     // 静态初始化通常无法分离重力和加速度计零偏，设为0
     Eigen::Vector3d ba0 = Eigen::Vector3d::Zero();
 
@@ -84,11 +84,11 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
     // Debug print
     std::cout << "[HNOInit] Average Acc: " << ave_acc.transpose() << std::endl;
     std::cout << "[HNOInit] Acc Dir: " << acc_dir.transpose() << std::endl;
-    
+
     // Quaternion::FromTwoVectors(u, v) creates rotation that maps u to v
     // We want R * acc_dir = z_axis  => is matching FromTwoVectors definition
     Eigen::Quaterniond R0_q_B2I = Eigen::Quaterniond::FromTwoVectors(acc_dir, z_axis);
-    
+
     // Debug print RPY
     Eigen::Vector3d rpy_init = R0_q_B2I.toRotationMatrix().eulerAngles(0, 1, 2);
     std::cout << "[HNOInit] Init RPY (rad): " << rpy_init.transpose() << std::endl;
@@ -97,19 +97,19 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
     // 我们可能需要加上一个设定好的初始偏航 (Yaw)
     // 通常我们假设初始 Yaw 为 0, 但 FromTwoVectors 产生的旋转可能包含任意 Yaw
     // 这里我们简单地使用 FromTwoVectors 的结果，它会找到"最小旋转"
-    
-    Eigen::Matrix3d R0_B2I = R0_q_B2I.toRotationMatrix(); 
 
-    
+    Eigen::Matrix3d R0_B2I = R0_q_B2I.toRotationMatrix();
+
+
     // 6. 填充状态
-    state->initialize(R0_B2I, 
+    state->initialize(R0_B2I,
                       Eigen::Vector3d::Zero(), // p0
                       Eigen::Vector3d::Zero(), // v0
-                      bg0, 
+                      bg0,
                       ba0);
-    
+
     timestamp = imu_buffer.back().timestamp;
-    
+
     std::cout << "[HNOInit] Initialized Success!" << std::endl;
     std::cout << "  Init Rotation (RPY): " << R0_B2I.eulerAngles(2,1,0).transpose() * 180.0/M_PI << std::endl;
     std::cout << "  Init Gyro Bias: " << bg0.transpose() << std::endl;
@@ -118,7 +118,7 @@ bool HNOInitializer::initialize(std::shared_ptr<HNOState> state, double& timesta
     // 清空缓存
     imu_buffer.clear();
     stationary_warn_count = 0;
-    
+
     return true;
 }
 
