@@ -1,5 +1,4 @@
 import os
-import shutil
 from datetime import datetime, timezone, timedelta
 
 from ament_index_python.packages import get_package_share_directory
@@ -24,9 +23,6 @@ def normalize_rosbag2_metadata(bag_path):
     fixed = text.replace("offered_qos_profiles: []", "offered_qos_profiles: ''")
     if fixed == text:
         return
-    backup_path = metadata_path + ".bak_rosbags"
-    if not os.path.exists(backup_path):
-        shutil.copy2(metadata_path, backup_path)
     with open(metadata_path, "w", encoding="utf-8") as f:
         f.write(fixed)
 
@@ -160,7 +156,11 @@ def launch_setup(context, *args, **kwargs):
 
     ##  自动播放 rosbag
     if play_bag:
-        play_cmd = ["ros2", "bag", "play", bag_path, "--clock", "--rate", bag_rate]
+        play_cmd = [
+            "ros2", "bag", "play", bag_path,
+            "--clock", "--rate", bag_rate,
+            "--disable-keyboard-controls",
+        ]
         if float(bag_start) > 0.0:
             play_cmd.extend(["--start-offset", bag_start])
         if play_topics.strip():
@@ -187,9 +187,9 @@ def generate_launch_description():
     default_results = "/home/sharpa/hno_vio_clean/src/hno_vio/results"
     return LaunchDescription([
         # 输入数据集参数
-        DeclareLaunchArgument("dataset", default_value="V1_01_easy"),
-        DeclareLaunchArgument("bag_path", default_value="/home/sharpa/datasets/euroc/ros2db/V1_01_easy_db"),
-        DeclareLaunchArgument("bag_rate", default_value="1.5"),
+        DeclareLaunchArgument("dataset", default_value="V2_02_medium"),
+        DeclareLaunchArgument("bag_path", default_value=["/home/sharpa/datasets/euroc/ros2db/",LaunchConfiguration("dataset"),"_db",],),
+        DeclareLaunchArgument("bag_rate", default_value="0.5"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),
 

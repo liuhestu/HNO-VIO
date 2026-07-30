@@ -87,7 +87,11 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(DIRECTORY launch config ground_truth tools
+install(DIRECTORY launch config ground_truth
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY tools
   DESTINATION share/${PROJECT_NAME}
   USE_SOURCE_PERMISSIONS
 )
