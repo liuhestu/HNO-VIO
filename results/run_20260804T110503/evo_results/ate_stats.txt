@@ -1,0 +1,14 @@
+
+APE w.r.t. translation part (m)
+(with SE(3) Umeyama alignment)
+
+
+                        rmse      mean    median       std       min  \
+odom_raw.txt        0.445029  0.344891  0.317092  0.281249  0.048905   
+odom_optimized.txt  0.132307  0.120014  0.109486  0.055695  0.038713   
+
+                         max         sse  
+odom_raw.txt          2.2346  442.842357  
+odom_optimized.txt  0.712477   10.205553  
+
+Plots saved to /home/sharpa/hno_vio_clean/src/hno_vio/results/run_20260804T110503/evo_results/ate_plot.pdf

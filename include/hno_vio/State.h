@@ -65,6 +65,35 @@ public:
     // Order: [Pos(0-2), e1(3-5), e2(6-8), e3(9-11), Vel(12-14)]
     Eigen::Matrix<double, 15, 15> P;
 
+    Eigen::Matrix3d eMatrix() const {
+        Eigen::Matrix3d E;
+        E.col(0) = e_hat[0];
+        E.col(1) = e_hat[1];
+        E.col(2) = e_hat[2];
+        return E;
+    }
+
+    void setEMatrix(const Eigen::Matrix3d& E) {
+        e_hat[0] = E.col(0);
+        e_hat[1] = E.col(1);
+        e_hat[2] = E.col(2);
+    }
+
+    void fixEBasis() {
+        setEMatrix(Eigen::Matrix3d::Identity());
+    }
+
+    static Eigen::Matrix3d projectToSO3(const Eigen::Matrix3d& matrix) {
+        Eigen::JacobiSVD<Eigen::Matrix3d> svd(
+            matrix, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        Eigen::Matrix3d correction = Eigen::Matrix3d::Identity();
+        correction(2, 2) =
+            (svd.matrixU() * svd.matrixV().transpose()).determinant() < 0.0
+                ? -1.0
+                : 1.0;
+        return svd.matrixU() * correction * svd.matrixV().transpose();
+    }
+
 
     void initialize(const Eigen::Matrix3d& R0_B2I, const Eigen::Vector3d& p0_I, const Eigen::Vector3d& v0_I,
                     const Eigen::Vector3d& bg0, const Eigen::Vector3d& ba0) {
@@ -92,17 +121,7 @@ public:
 
 
         // 2. 强制 e_hat 正交化
-        Eigen::Matrix3d E;
-        E.col(0) = e_hat[0];
-        E.col(1) = e_hat[1];
-        E.col(2) = e_hat[2];
-
-        Eigen::JacobiSVD<Eigen::Matrix3d> svd_E(E, Eigen::ComputeFullU | Eigen::ComputeFullV);
-        Eigen::Matrix3d E_orth = svd_E.matrixU() * svd_E.matrixV().transpose();
-
-        e_hat[0] = E_orth.col(0);
-        e_hat[1] = E_orth.col(1);
-        e_hat[2] = E_orth.col(2);
+        setEMatrix(projectToSO3(eMatrix()));
     }
 };
 

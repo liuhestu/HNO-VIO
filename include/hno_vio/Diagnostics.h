@@ -29,10 +29,28 @@ struct UpdaterDiagnostics {
     double max_rejected_chi2 = 0.0;
     double max_position_delta = 0.0;
     double max_rotation_delta = 0.0;
+    double visual_delta_r = 0.0;
+    double visual_delta_p = 0.0;
+    double visual_delta_v = 0.0;
+    double visual_delta_e = 0.0;
+    double projection_correction = 0.0;
+    Eigen::Matrix3d e_before = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d e_raw = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d e_projected = Eigen::Matrix3d::Identity();
     bool low_observation = false;
     bool skipped_for_low_observations = false;
     bool large_delta_warning = false;
     bool update_applied = false;
+};
+
+struct PropagationDiagnostics {
+    Eigen::Vector3d sigma_r_raw = Eigen::Vector3d::Zero();
+    Eigen::Vector3d sigma_r_applied = Eigen::Vector3d::Zero();
+    double sigma_r_raw_max = 0.0;
+    double sigma_r_applied_max = 0.0;
+    double sigma_r_raw_integral = 0.0;
+    double sigma_r_applied_integral = 0.0;
+    int sample_count = 0;
 };
 
 struct ZuptDiagnostics {
@@ -80,6 +98,7 @@ struct PipelineDiagnostics {
     std::string stage;
     FeatureDiagnostics frontend;
     UpdaterDiagnostics updater;
+    PropagationDiagnostics propagation;
     ZuptDiagnostics zupt;
 };
 

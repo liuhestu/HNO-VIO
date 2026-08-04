@@ -38,13 +38,45 @@ Eigen::Matrix3d observer::Updater::project_pi(const Eigen::Vector3d& x) {
 bool observer::Updater::update(std::shared_ptr<State> state,
                                const std::vector<VisualObservation>& observations,
                                UpdaterDiagnostics* diagnostics) {
+    const Eigen::Matrix3d R_before = state->R_hat_B2I;
+    const Eigen::Vector3d p_before = state->p_hat;
+    const Eigen::Vector3d v_before = state->v_hat;
+    const Eigen::Matrix3d E_before = state->eMatrix();
     int N = observations.size();
     if (diagnostics) {
         *diagnostics = UpdaterDiagnostics{};
         diagnostics->total_observations = N;
         diagnostics->low_observation_streak = low_observation_streak_;
+        diagnostics->e_before = E_before;
+        diagnostics->e_raw = E_before;
+        diagnostics->e_projected = E_before;
     }
-    if(N == 0) return false;
+    const auto finalize_state = [&]() {
+        const Eigen::Matrix3d E_raw = state->eMatrix();
+        const double visual_delta_r = std::abs(Eigen::AngleAxisd(
+            R_before.transpose() * state->R_hat_B2I).angle());
+        const double visual_delta_p = (state->p_hat - p_before).norm();
+        const double visual_delta_v = (state->v_hat - v_before).norm();
+        const double visual_delta_e = (E_raw - E_before).norm();
+        if (options_.enforce_structure_after_update) {
+            state->enforce_structure();
+        }
+        const Eigen::Matrix3d E_projected = state->eMatrix();
+        if (diagnostics) {
+            diagnostics->visual_delta_r = visual_delta_r;
+            diagnostics->visual_delta_p = visual_delta_p;
+            diagnostics->visual_delta_v = visual_delta_v;
+            diagnostics->visual_delta_e = visual_delta_e;
+            diagnostics->projection_correction =
+                (E_projected - E_raw).norm();
+            diagnostics->e_raw = E_raw;
+            diagnostics->e_projected = E_projected;
+        }
+    };
+    if(N == 0) {
+        finalize_state();
+        return false;
+    }
 
     if(N < options_.min_observations) {
         ++low_observation_streak_;
@@ -54,6 +86,7 @@ bool observer::Updater::update(std::shared_ptr<State> state,
         }
         if(low_observation_streak_ >= options_.low_observation_hold_frames) {
             if (diagnostics) diagnostics->skipped_for_low_observations = true;
+            finalize_state();
             return false;
         }
     } else {
@@ -236,9 +269,7 @@ bool observer::Updater::update(std::shared_ptr<State> state,
         }
     }
 
-    if (options_.enforce_structure_after_update) {
-        state->enforce_structure();
-    }
+    finalize_state();
 
     if (diagnostics) {
         diagnostics->chi2_passed_observations = chi2_passed;

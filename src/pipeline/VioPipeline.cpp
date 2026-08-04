@@ -11,11 +11,14 @@ VioPipeline::VioPipeline(std::vector<std::shared_ptr<ov_core::CamBase>> cameras,
                          const VioPipelineOptions& options)
     : committed_state_(std::make_shared<State>()),
       feature_manager_(cameras, camera_to_body, options.frontend),
-      zupt_options_(options.zupt) {
+      zupt_options_(options.zupt),
+      experiment_fix_e_hat_(options.experiment_fix_e_hat) {
     initializer_.setOptions(options.initializer_window_size,
                             options.initializer_acc_variance,
                             options.initializer_gyro_variance);
     propagator_.setNoiseParams(options.noise);
+    propagator_.setExperimentOptions(options.experiment_fix_e_hat,
+                                     options.experiment_force_sigma_r_zero);
     updater_.setOptions(options.updater);
     std::map<size_t, Eigen::Matrix4d> extrinsics;
     for (size_t i = 0; i < camera_to_body.size(); ++i) {
@@ -33,6 +36,7 @@ std::optional<PipelineResult> VioPipeline::processImu(const ov_core::ImuData& im
     if (!initialized_) {
         initializer_.feedImuData(imu);
         if (initializer_.initialize(committed_state_, committed_time_)) {
+            if (experiment_fix_e_hat_) committed_state_->fixEBasis();
             initialized_ = true;
             prediction_state_ = *committed_state_;
             prediction_time_ = committed_time_;
@@ -68,17 +72,36 @@ std::optional<PipelineResult> VioPipeline::processImu(const ov_core::ImuData& im
 
 bool VioPipeline::propagateState(State& state,
                                  double start_time,
-                                 double end_time) {
+                                 double end_time,
+                                 PropagationDiagnostics* diagnostics) {
     const auto segment = imu_buffer_.integrationSegment(start_time, end_time);
     if (!segment) return false;
+    if (diagnostics) *diagnostics = PropagationDiagnostics{};
     auto propagated = std::make_shared<State>(state);
     for (size_t i = 1; i < segment->size(); ++i) {
         const double dt = segment->at(i).timestamp - segment->at(i - 1).timestamp;
         if (dt > 1e-9) {
+            PropagationDiagnostics step_diagnostics;
             propagator_.propagate(propagated,
                                   segment->at(i).wm,
                                   segment->at(i).am,
-                                  dt);
+                                  dt,
+                                  diagnostics ? &step_diagnostics : nullptr);
+            if (diagnostics) {
+                diagnostics->sigma_r_raw = step_diagnostics.sigma_r_raw;
+                diagnostics->sigma_r_applied = step_diagnostics.sigma_r_applied;
+                diagnostics->sigma_r_raw_max =
+                    std::max(diagnostics->sigma_r_raw_max,
+                             step_diagnostics.sigma_r_raw_max);
+                diagnostics->sigma_r_applied_max =
+                    std::max(diagnostics->sigma_r_applied_max,
+                             step_diagnostics.sigma_r_applied_max);
+                diagnostics->sigma_r_raw_integral +=
+                    step_diagnostics.sigma_r_raw_integral;
+                diagnostics->sigma_r_applied_integral +=
+                    step_diagnostics.sigma_r_applied_integral;
+                diagnostics->sample_count += step_diagnostics.sample_count;
+            }
         }
     }
     state = *propagated;
@@ -120,7 +143,9 @@ std::optional<PipelineResult> VioPipeline::processStereo(
     if (!canProcessStereo(stereo.timestamp)) return std::nullopt;
 
     auto camera_state = std::make_shared<State>(*committed_state_);
-    if (!propagateState(*camera_state, committed_time_, stereo.timestamp)) {
+    PropagationDiagnostics propagation_diagnostics;
+    if (!propagateState(*camera_state, committed_time_, stereo.timestamp,
+                        &propagation_diagnostics)) {
         return std::nullopt;
     }
 
@@ -163,6 +188,9 @@ std::optional<PipelineResult> VioPipeline::processStereo(
         }
     }
 
+    if (experiment_fix_e_hat_) {
+        camera_state->fixEBasis();
+    }
     *committed_state_ = *camera_state;
     committed_time_ = stereo.timestamp;
     imu_buffer_.discardBefore(committed_time_, true);
@@ -189,6 +217,7 @@ std::optional<PipelineResult> VioPipeline::processStereo(
     result.diagnostics.stage = "camera_committed";
     result.diagnostics.frontend = frontend_diagnostics;
     result.diagnostics.updater = updater_diagnostics;
+    result.diagnostics.propagation = propagation_diagnostics;
     result.diagnostics.zupt.accelerometer_variance = acc_variance;
     result.diagnostics.zupt.gyroscope_variance = gyro_variance;
     result.diagnostics.zupt.stationary_detected = stationary;

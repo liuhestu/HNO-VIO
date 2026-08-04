@@ -41,6 +41,8 @@ struct VioPipelineOptions {
     frontend::FeatureManager::Options frontend;
     observer::Updater::Options updater;
     ZuptOptions zupt;
+    bool experiment_fix_e_hat = false;
+    bool experiment_force_sigma_r_zero = false;
 };
 
 struct PipelineResult {
@@ -79,7 +81,10 @@ private:
     void resetZuptDetector();
     Pose selectMappingPose(const std::optional<Pose>& raw_gt_pose,
                            const State& camera_state);
-    bool propagateState(State& state, double start_time, double end_time);
+    bool propagateState(State& state,
+                        double start_time,
+                        double end_time,
+                        PropagationDiagnostics* diagnostics = nullptr);
     void rebuildPrediction();
 
     // Camera-corrected state is authoritative. IMU prediction is always rebuilt
@@ -100,6 +105,7 @@ private:
     bool zupt_active_ = false;
     bool initialized_ = false;
     int frame_index_ = 0;
+    bool experiment_fix_e_hat_ = false;
 
     bool has_gt_mapping_alignment_ = false;
     Eigen::Matrix3d R_estimator_gt_ = Eigen::Matrix3d::Identity();

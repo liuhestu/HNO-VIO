@@ -70,8 +70,12 @@ private:
     std::string topic_cam0_ = "/cam0/image_raw";
     std::string topic_cam1_ = "/cam1/image_raw";
     int num_cams_ = 2;
+    int experiment_max_frames_ = 0;
     bool use_gt_mapping_ = false;
     bool export_odom_ = false;
+    bool experiment_fix_e_hat_ = false;
+    bool experiment_force_sigma_r_zero_ = false;
+    bool experiment_complete_ = false;
     bool frontend_print_ = false;
     bool essential_print_ = true;
     bool updater_print_ = false;

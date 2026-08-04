@@ -1,0 +1,13 @@
+run_id,condition,repeat,e_nonconvergence_s,e_nonorthogonality_s,r_s,p_s,v_s,visual_dp_s,visual_dv_s,visual_de_s,instability_s,e_first_s,downstream_first_s,ordered_e_r_downstream
+baseline/run_1,baseline,1,46.650000000000006,0.05,11.8,4.2,3.5,4.05,4.15,19.5,18.900000000000002,0.05,3.5,False
+baseline/run_2,baseline,2,,0.05,12.05,4.2,3.7,4.05,4.25,30.0,20.3,0.05,3.7,False
+baseline/run_3,baseline,3,,0.05,8.8,4.3,3.6500000000000004,4.1000000000000005,4.25,,17.2,0.05,3.6500000000000004,False
+fixed_e/run_1,fixed_e,1,,0.05,,15.3,,4.2,5.45,3.6,,0.05,3.6,False
+fixed_e/run_2,fixed_e,2,,0.05,,9.8,3.8000000000000003,4.25,10.5,3.25,,0.05,3.25,False
+fixed_e/run_3,fixed_e,3,,0.05,29.75,12.55,12.25,4.2,4.6000000000000005,0.75,,0.05,0.75,False
+no_projection/run_1,no_projection,1,,0.05,8.35,4.4,3.8000000000000003,4.1000000000000005,4.25,16.6,16.6,0.05,3.8000000000000003,False
+no_projection/run_2,no_projection,2,,0.05,14.3,12.25,22.6,3.9000000000000004,3.9000000000000004,13.450000000000001,27.200000000000003,0.05,3.9000000000000004,False
+no_projection/run_3,no_projection,3,,0.05,8.35,4.4,3.85,4.1000000000000005,4.25,16.6,16.5,0.05,3.85,False
+sigma_zero/run_1,sigma_zero,1,3.75,0.05,,5.25,14.3,3.9000000000000004,10.9,6.15,,0.05,3.9000000000000004,False
+sigma_zero/run_2,sigma_zero,2,5.7,0.05,,21.85,,3.5,3.5,,,0.05,3.5,False
+sigma_zero/run_3,sigma_zero,3,3.45,0.05,,4.15,3.45,4.1000000000000005,4.3,4.8500000000000005,,0.05,3.45,False

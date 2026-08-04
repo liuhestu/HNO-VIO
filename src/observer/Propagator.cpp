@@ -24,6 +24,12 @@ void observer::Propagator::setNoiseParams(const NoiseParams& params) {
     std::cout << "HNO Noise Params Set: Var_Acc=" << var_acc << " Var_Gyr=" << var_gyro << std::endl;
 }
 
+void observer::Propagator::setExperimentOptions(bool fix_e_hat,
+                                                bool force_sigma_r_zero) {
+    experiment_fix_e_hat_ = fix_e_hat;
+    experiment_force_sigma_r_zero_ = force_sigma_r_zero;
+}
+
 Eigen::Matrix3d observer::Propagator::skew(const Eigen::Vector3d& v_hat) {
     Eigen::Matrix3d S;
     S << 0, -v_hat(2), v_hat(1),
@@ -35,7 +41,12 @@ Eigen::Matrix3d observer::Propagator::skew(const Eigen::Vector3d& v_hat) {
 void observer::Propagator::propagate(std::shared_ptr<State> state,
                               const Eigen::Vector3d& omega_m,
                               const Eigen::Vector3d& acc_m,
-                              double dt) {
+                              double dt,
+                              PropagationDiagnostics* diagnostics) {
+
+    if (experiment_fix_e_hat_) {
+        state->fixEBasis();
+    }
 
     // state.h中定义的e放在private域，这里需要重新定义
     Eigen::Vector3d e[3];
@@ -52,11 +63,22 @@ void observer::Propagator::propagate(std::shared_ptr<State> state,
     Eigen::Vector3d accel = acc_m - state->ba;
 
     // 2. 公式(7) sigma_R = k_R/2 * Sum(rho[i] * e_hat[i] x e[i])
-    Eigen::Vector3d sigma_R = Eigen::Vector3d::Zero();
+    Eigen::Vector3d sigma_R_raw = Eigen::Vector3d::Zero();
     for(int i=0; i<3; i++) {
-        sigma_R += rho[i] * e_hat[i].cross(e[i]);
+        sigma_R_raw += rho[i] * e_hat[i].cross(e[i]);
     }
-    sigma_R *= (0.5 * k_R);
+    sigma_R_raw *= (0.5 * k_R);
+    const Eigen::Vector3d sigma_R =
+        experiment_force_sigma_r_zero_ ? Eigen::Vector3d::Zero() : sigma_R_raw;
+    if (diagnostics) {
+        diagnostics->sigma_r_raw = sigma_R_raw;
+        diagnostics->sigma_r_applied = sigma_R;
+        diagnostics->sigma_r_raw_max = sigma_R_raw.norm();
+        diagnostics->sigma_r_applied_max = sigma_R.norm();
+        diagnostics->sigma_r_raw_integral = sigma_R_raw.norm() * dt;
+        diagnostics->sigma_r_applied_integral = sigma_R.norm() * dt;
+        diagnostics->sample_count = 1;
+    }
 
 
 

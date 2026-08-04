@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <stdexcept>
 
 namespace hno_vio::ros {
 namespace {
@@ -56,6 +57,12 @@ HnoVioNode::HnoVioNode(const rclcpp::Node::SharedPtr& node,
         context.base_frame = base_frame_;
         context.num_cams = num_cams_;
         context.use_gt_mapping = use_gt_mapping_;
+        context.update_enforce_structure =
+            pipeline_options_.updater.enforce_structure_after_update;
+        context.experiment_fix_e_hat = experiment_fix_e_hat_;
+        context.experiment_force_sigma_r_zero =
+            experiment_force_sigma_r_zero_;
+        context.experiment_max_frames = experiment_max_frames_;
         if (!odom_export_->open(odom_output_path_, context)) {
             RCLCPP_ERROR(node_->get_logger(), "Failed to open odom output: %s",
                          odom_output_path_.c_str());
@@ -192,6 +199,20 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     zupt.activation_speed = declareOrGet<double>(node_, "zupt_activation_speed", zupt.activation_speed);
 
     path_gt_ = declareOrGet<std::string>(node_, "path_gt", "");
+    experiment_fix_e_hat_ =
+        declareOrGet<bool>(node_, "experiment_fix_e_hat", false);
+    experiment_force_sigma_r_zero_ =
+        declareOrGet<bool>(node_, "experiment_force_sigma_r_zero", false);
+    experiment_max_frames_ =
+        std::max(0, declareOrGet<int>(node_, "experiment_max_frames", 0));
+    if (experiment_fix_e_hat_ && experiment_force_sigma_r_zero_) {
+        throw std::invalid_argument(
+            "experiment_fix_e_hat and experiment_force_sigma_r_zero "
+            "must not be enabled together");
+    }
+    pipeline_options_.experiment_fix_e_hat = experiment_fix_e_hat_;
+    pipeline_options_.experiment_force_sigma_r_zero =
+        experiment_force_sigma_r_zero_;
     use_gt_mapping_ = declareOrGet<bool>(node_, "use_gt_mapping", false);
     export_odom_ = declareOrGet<bool>(node_, "export_odom", false);
     frontend_print_ = declareOrGet<bool>(node_, "frontend_print", false);
@@ -241,6 +262,7 @@ void HnoVioNode::publishLatestPrediction(const pipeline::PipelineResult& result)
 
 std::optional<pipeline::PipelineResult> HnoVioNode::tryProcessReadyCameras() {
     std::optional<pipeline::PipelineResult> latest_result;
+    if (experiment_complete_) return latest_result;
     while (!pending_cameras_.empty() && pipeline_->initialized()) {
         auto next = pending_cameras_.begin();
         if (next->first <= pipeline_->committedTime() + 1e-9) {
@@ -264,9 +286,22 @@ std::optional<pipeline::PipelineResult> HnoVioNode::tryProcessReadyCameras() {
         const Pose estimated_pose = Pose::FromState(result->state);
         const std::optional<Pose> aligned_ground_truth =
             gt_mapping_->publish(result->timestamp, estimated_pose);
-        if (export_odom_) odom_export_->write(result->timestamp, result->state);
+        if (export_odom_) {
+            odom_export_->write(result->timestamp, result->state,
+                                result->diagnostics);
+        }
         diagnostics_->report(result->diagnostics, estimated_pose, aligned_ground_truth);
         latest_result = result;
+        if (experiment_max_frames_ > 0 &&
+            result->diagnostics.frame_index >= experiment_max_frames_) {
+            experiment_complete_ = true;
+            pending_cameras_.clear();
+            RCLCPP_INFO(node_->get_logger(),
+                        "Reached experiment_max_frames=%d; shutting down.",
+                        experiment_max_frames_);
+            rclcpp::shutdown();
+            break;
+        }
     }
     return latest_result;
 }

@@ -42,6 +42,15 @@ def launch_setup(context, *args, **kwargs):
     bag_rate = LaunchConfiguration("bag_rate").perform(context)
     bag_start = LaunchConfiguration("bag_start").perform(context)
     play_topics = LaunchConfiguration("play_topics").perform(context)
+    experiment_fix_e_hat = as_bool(
+        LaunchConfiguration("experiment_fix_e_hat").perform(context)
+    )
+    experiment_force_sigma_r_zero = as_bool(
+        LaunchConfiguration("experiment_force_sigma_r_zero").perform(context)
+    )
+    experiment_max_frames = int(
+        LaunchConfiguration("experiment_max_frames").perform(context)
+    )
 
     # 自动补全默认路径
     config_path = LaunchConfiguration("config_path").perform(context)
@@ -57,6 +66,13 @@ def launch_setup(context, *args, **kwargs):
     # 合法性检查
     if run_preprocess and num_cams != 2:
         raise RuntimeError("run_preprocess=true requires num_cams=2 because RTAB-Map input is stereo.")
+    if experiment_fix_e_hat and experiment_force_sigma_r_zero:
+        raise RuntimeError(
+            "experiment_fix_e_hat and experiment_force_sigma_r_zero "
+            "cannot both be true."
+        )
+    if experiment_max_frames < 0:
+        raise RuntimeError("experiment_max_frames must be non-negative.")
     if play_bag:
         normalize_rosbag2_metadata(bag_path)
 
@@ -75,7 +91,7 @@ def launch_setup(context, *args, **kwargs):
     # 节点启动区
     actions = []
     ## 启动 HNO-VIO 主节点
-    actions.append(Node(
+    vio_node = Node(
         package="hno_vio",
         executable="run_hno_vio",
         name="run_hno_vio",
@@ -95,6 +111,9 @@ def launch_setup(context, *args, **kwargs):
             "update_enforce_structure": as_bool(
                 LaunchConfiguration("update_enforce_structure").perform(context)
             ),
+            "experiment_fix_e_hat": experiment_fix_e_hat,
+            "experiment_force_sigma_r_zero": experiment_force_sigma_r_zero,
+            "experiment_max_frames": experiment_max_frames,
             "frontend_print": as_bool(LaunchConfiguration("frontend_print").perform(context)),
             "essential_print": as_bool(LaunchConfiguration("essential_print").perform(context)),
             "updater_print": as_bool(LaunchConfiguration("updater_print").perform(context)),
@@ -108,7 +127,17 @@ def launch_setup(context, *args, **kwargs):
             "topic_cam0": LaunchConfiguration("topic_cam0").perform(context),
             "topic_cam1": LaunchConfiguration("topic_cam1").perform(context),
         }],
-    ))
+    )
+    actions.append(vio_node)
+    if experiment_max_frames > 0:
+        actions.append(RegisterEventHandler(
+            OnProcessExit(
+                target_action=vio_node,
+                on_exit=[EmitEvent(event=Shutdown(
+                    reason="experiment frame limit reached"
+                ))],
+            )
+        ))
 
     ## 启动 RTAB-Map 预处理节点
     if run_preprocess:
@@ -189,7 +218,7 @@ def generate_launch_description():
         # 输入数据集参数
         DeclareLaunchArgument("dataset", default_value="V2_02_medium"),
         DeclareLaunchArgument("bag_path", default_value=["/home/sharpa/datasets/euroc/ros2db/",LaunchConfiguration("dataset"),"_db",],),
-        DeclareLaunchArgument("bag_rate", default_value="0.5"),
+        DeclareLaunchArgument("bag_rate", default_value="1.0"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),
 
@@ -206,6 +235,9 @@ def generate_launch_description():
         DeclareLaunchArgument("use_gt_mapping", default_value="false"),
         DeclareLaunchArgument("try_zupt", default_value="true"),
         DeclareLaunchArgument("update_enforce_structure", default_value="true"),
+        DeclareLaunchArgument("experiment_fix_e_hat", default_value="false"),
+        DeclareLaunchArgument("experiment_force_sigma_r_zero", default_value="true"),
+        DeclareLaunchArgument("experiment_max_frames", default_value="0"),
         DeclareLaunchArgument("export_odom", default_value="true"),
         DeclareLaunchArgument("run_preprocess", default_value="true"),
         DeclareLaunchArgument("rviz", default_value="true"),

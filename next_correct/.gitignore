@@ -1,0 +1,3 @@
+# Full trajectories, logs, manifests, and checksums are local experiment data.
+data/**
+!data/.gitkeep
