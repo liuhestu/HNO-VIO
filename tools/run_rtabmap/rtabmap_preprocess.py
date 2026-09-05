@@ -103,7 +103,7 @@ def camera_info(stamp, frame_id, width, height, K, P):
 class RtabmapPreprocess(Node):
     def __init__(self):
         super().__init__("rtabmap_preprocess")
-        self.declare_parameter("camera_config", "/home/sharpa/hno_vio_clean/src/hno_vio/config/euroc_mav/kalibr_imucam_chain.yaml")
+        self.declare_parameter("camera_config", "/home/he/hno_vio_ws/src/hno_vio/config/euroc_mav/kalibr_imucam_chain.yaml")
         self.declare_parameter("left_topic", "/cam0/image_raw")
         self.declare_parameter("right_topic", "/cam1/image_raw")
         self.declare_parameter("base_frame", "base_link")

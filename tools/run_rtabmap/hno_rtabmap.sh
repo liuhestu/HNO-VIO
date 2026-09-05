@@ -76,12 +76,17 @@ source_if_exists() {
 
 set +u
 source_if_exists /opt/ros/humble/setup.bash
-source_if_exists /home/sharpa/ros2_ws/install/local_setup.bash
 source_if_exists "${WORKSPACE_ROOT}/install/local_setup.bash"
 set -u
 
-# The locally built rtabmap_ros links against the RTAB-Map core build tree.
-RTABMAP_CORE_LIB_DIR="${RTABMAP_CORE_LIB_DIR:-/home/sharpa/rtabmap/build/bin}"
+# Use EVO from the isolated HNO-VIO environment without changing ROS Python.
+HNO_VIO_VENV="${HNO_VIO_VENV:-/home/he/.venvs/hnovio}"
+if [[ -d "${HNO_VIO_VENV}/bin" ]]; then
+  export PATH="${HNO_VIO_VENV}/bin:${PATH}"
+fi
+
+# Prefer the RTAB-Map core libraries installed with ROS2 Humble.
+RTABMAP_CORE_LIB_DIR="${RTABMAP_CORE_LIB_DIR:-/opt/ros/humble/lib}"
 if [[ -d "${RTABMAP_CORE_LIB_DIR}" ]]; then
   export LD_LIBRARY_PATH="${RTABMAP_CORE_LIB_DIR}:${LD_LIBRARY_PATH:-}"
 fi
@@ -164,9 +169,13 @@ echo "offline_dir=${OFFLINE_DIR}" | tee -a "${LOG_DIR}/run.log"
 echo "ros_domain_id=${ROS_DOMAIN_ID}" | tee -a "${LOG_DIR}/run.log"
 
 require_command ros2
-require_command evo_ape
-require_command evo_res
-require_command evo_traj
+for evo_command in evo_ape evo_res evo_traj; do
+  if ! command -v "${evo_command}" >/dev/null 2>&1; then
+    echo "required EVO command not found: ${evo_command}" >&2
+    echo "Expected it under ${HNO_VIO_VENV}/bin; set HNO_VIO_VENV to override." >&2
+    exit 1
+  fi
+done
 require_package rtabmap_sync
 require_package rtabmap_slam
 require_package rtabmap_msgs

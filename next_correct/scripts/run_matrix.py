@@ -66,7 +66,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--bag-path",
         type=Path,
-        default=Path("/home/sharpa/datasets/euroc/ros2db/V1_02_medium_db"),
+        default=Path("/home/he/datasets/euroc/V1_02_medium_db"),
     )
     parser.add_argument("--package-root", type=Path, default=default_package)
     parser.add_argument("--workspace-root", type=Path, default=default_workspace)

@@ -18,7 +18,7 @@ results/run_YYYYmmddTHHMMSS/
 Run the backend:
 
 ```bash
-cd /home/sharpa/hno_vio_clean
+cd /home/he/hno_vio_ws
 src/hno_vio/tools/run_rtabmap/hno_rtabmap.sh \
   src/hno_vio/results/run_YYYYmmddTHHMMSS/vio_results/rtabmap_input_db3
 ```
@@ -26,6 +26,9 @@ src/hno_vio/tools/run_rtabmap/hno_rtabmap.sh \
 This is a one-command pipeline. It starts stereo synchronization and
 RTAB-Map, records the output bag, plays the complete input bag, exports the
 optimized graph trajectory, and runs evo. No keyboard interaction is needed.
+The script automatically uses EVO from `/home/he/.venvs/hnovio`; set
+`HNO_VIO_VENV` if that environment is stored elsewhere. ROS Python tools
+continue to use `/usr/bin/python3`.
 For EuRoC `V1_01_easy`, leave the command running for several minutes until
 it prints `completed:`.
 
@@ -62,7 +65,8 @@ results/run_YYYYmmddTHHMMSS/
 Re-run only the EVO analysis for an existing run:
 
 ```bash
-cd /home/sharpa/hno_vio_clean/src/hno_vio
+cd /home/he/hno_vio_ws/src/hno_vio
+hnovio
 python3 tools/run_rtabmap/eval_and_analysis.py \
   results/run_YYYYmmddTHHMMSS
 ```

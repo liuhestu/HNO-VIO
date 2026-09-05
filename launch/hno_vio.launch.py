@@ -213,11 +213,11 @@ def launch_setup(context, *args, **kwargs):
 
 # 参数声明区
 def generate_launch_description():
-    default_results = "/home/sharpa/hno_vio_clean/src/hno_vio/results"
+    default_results = "/home/he/hno_vio_ws/src/hno_vio/results"
     return LaunchDescription([
         # 输入数据集参数
         DeclareLaunchArgument("dataset", default_value="V2_02_medium"),
-        DeclareLaunchArgument("bag_path", default_value=["/home/sharpa/datasets/euroc/ros2db/",LaunchConfiguration("dataset"),"_db",],),
+        DeclareLaunchArgument("bag_path", default_value=["/home/he/datasets/euroc/",LaunchConfiguration("dataset"),"_db",],),
         DeclareLaunchArgument("bag_rate", default_value="1.0"),
         DeclareLaunchArgument("bag_start", default_value="0.0"),
         DeclareLaunchArgument("play_topics", default_value="/imu0 /cam0/image_raw /cam1/image_raw"),

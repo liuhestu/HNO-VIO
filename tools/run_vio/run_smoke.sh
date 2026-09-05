@@ -9,6 +9,11 @@ LOG_DIR="${SMOKE_ROOT}/logs"
 SUMMARY="${SMOKE_ROOT}/summary.txt"
 GT_TRAJECTORY="${PKG_ROOT}/ground_truth/euroc_mav/V1_01_easy.txt"
 LAUNCH_TIMEOUT="${HNO_VIO_SMOKE_TIMEOUT:-300}"
+HNO_VIO_VENV="${HNO_VIO_VENV:-/home/he/.venvs/hnovio}"
+
+if [[ -d "${HNO_VIO_VENV}/bin" ]]; then
+    export PATH="${HNO_VIO_VENV}/bin:${PATH}"
+fi
 
 GT_STRICT_MEAN=0.021
 GT_STRICT_RMSE=0.040
@@ -173,6 +178,12 @@ set +u
 # shellcheck disable=SC1090
 source "${ROS_SETUP}"
 set -u
+
+if ! command -v evo_ape >/dev/null 2>&1; then
+    echo "required EVO command not found: evo_ape" >&2
+    echo "Expected it under ${HNO_VIO_VENV}/bin; set HNO_VIO_VENV to override." >&2
+    exit 1
+fi
 
 rm -rf "${SMOKE_ROOT}"
 mkdir -p "${LOG_DIR}"
