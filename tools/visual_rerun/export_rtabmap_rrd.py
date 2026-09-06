@@ -3,6 +3,7 @@
 
 import argparse
 import copy
+import io
 import json
 import logging
 import os
@@ -14,9 +15,13 @@ from pathlib import Path
 
 import numpy as np
 import rerun as rr
+import rerun.blueprint as rrb
 from evo.core import lie_algebra, sync
 from evo.tools import file_interface
+from PIL import Image
 from plyfile import PlyData
+from scipy.spatial import cKDTree
+from scipy.spatial.transform import Rotation
 
 
 LOGGER = logging.getLogger("hno_visual_rerun")
@@ -36,14 +41,37 @@ def parse_args():
     parser.add_argument(
         "--voxel",
         type=float,
-        default=0.05,
-        help="RTAB-Map cloud voxel size in meters (default: 0.05)",
+        default=0.03,
+        help="RTAB-Map cloud voxel size in meters (default: 0.03)",
     )
     parser.add_argument(
         "--point-radius",
         type=float,
-        default=0.025,
-        help="Rerun point radius in meters (default: 0.025)",
+        default=0.006,
+        help="Rerun point radius in meters (default: 0.006)",
+    )
+    parser.add_argument(
+        "--image-rate",
+        type=float,
+        default=10.0,
+        help="Maximum logged rate per rectified camera in Hz (default: 10)",
+    )
+    parser.add_argument(
+        "--map-rate",
+        type=float,
+        default=2.0,
+        help="Progressive point-cloud update rate in Hz (default: 2)",
+    )
+    parser.add_argument(
+        "--jpeg-quality",
+        type=int,
+        default=75,
+        help="JPEG quality for camera panels (default: 75)",
+    )
+    parser.add_argument(
+        "--no-images",
+        action="store_true",
+        help="Do not include rectified camera images from the RTAB-Map input bag",
     )
     parser.add_argument(
         "--no-open",
@@ -193,32 +221,52 @@ def log_static_trajectory(recording, name, trajectory):
         rr.LineStrips3D(
             [trajectory.positions_xyz],
             colors=TRAJECTORY_COLORS[name],
-            radii=0.012,
+            radii=0.004,
             labels=[name],
         ),
         static=True,
     )
 
 
-def log_timeline_trajectory(recording, name, trajectory):
-    entity_path = f"world/current/{name}"
+def log_timeline_trajectory(recording, trajectory):
+    entity_path = "world/current/optimized"
     recording.log(
         f"{entity_path}/marker",
         rr.Points3D(
             [[0.0, 0.0, 0.0]],
-            colors=TRAJECTORY_COLORS[name],
-            radii=0.06,
-            labels=[name],
+            colors=TRAJECTORY_COLORS["optimized"],
+            radii=0.035,
+            labels=["optimized"],
         ),
         static=True,
     )
-    for timestamp, position, quaternion_wxyz in zip(
-        trajectory.timestamps,
-        trajectory.positions_xyz,
-        trajectory.orientations_quat_wxyz,
+    recording.log(
+        "plots/orientation/roll",
+        rr.SeriesLines(colors=[255, 100, 100], names="roll"),
+        static=True,
+    )
+    recording.log(
+        "plots/orientation/pitch",
+        rr.SeriesLines(colors=[100, 220, 120], names="pitch"),
+        static=True,
+    )
+    recording.log(
+        "plots/orientation/yaw",
+        rr.SeriesLines(colors=[80, 170, 255], names="yaw"),
+        static=True,
+    )
+    quaternions_xyzw = np.roll(trajectory.orientations_quat_wxyz, -1, axis=1)
+    angles_deg = np.rad2deg(
+        np.unwrap(Rotation.from_quat(quaternions_xyzw).as_euler("xyz"), axis=0)
+    )
+    for index, (timestamp, position, quaternion_xyzw) in enumerate(
+        zip(
+            trajectory.timestamps,
+            trajectory.positions_xyz,
+            quaternions_xyzw,
+        )
     ):
         recording.set_time("timestamp", timestamp=float(timestamp))
-        quaternion_xyzw = np.roll(quaternion_wxyz, -1)
         recording.log(
             entity_path,
             rr.Transform3D(
@@ -226,21 +274,184 @@ def log_timeline_trajectory(recording, name, trajectory):
                 quaternion=rr.Quaternion(xyzw=quaternion_xyzw),
             ),
         )
+        recording.log(
+            "world/trajectory/optimized",
+            rr.LineStrips3D(
+                [trajectory.positions_xyz[: index + 1]],
+                colors=TRAJECTORY_COLORS["optimized"],
+                radii=0.006,
+                labels=["optimized"],
+            ),
+        )
+        roll, pitch, yaw = angles_deg[index]
+        recording.log("plots/orientation/roll", rr.Scalars(roll))
+        recording.log("plots/orientation/pitch", rr.Scalars(pitch))
+        recording.log("plots/orientation/yaw", rr.Scalars(yaw))
+
+
+def log_progressive_cloud(
+    recording, points, colors, trajectory, point_radius, map_rate
+):
+    nearest_pose = cKDTree(trajectory.positions_xyz).query(points, workers=-1)[1]
+    point_timestamps = trajectory.timestamps[nearest_pose]
+    start_timestamp = float(trajectory.timestamps[0])
+    batch_ids = np.floor((point_timestamps - start_timestamp) * map_rate).astype(
+        np.int64
+    )
+    unique_batches = np.unique(batch_ids)
+    for batch_id in unique_batches:
+        selection = batch_ids == batch_id
+        timestamp = start_timestamp + float(batch_id) / map_rate
+        recording.set_time("timestamp", timestamp=float(timestamp))
+        recording.log(
+            f"world/map/batches/{batch_id:04d}",
+            rr.Points3D(
+                points[selection], colors=colors[selection], radii=point_radius
+            ),
+        )
+    LOGGER.info(
+        "logged progressive cloud: points=%d time_batches=%d rate<=%.3fHz",
+        len(points),
+        len(unique_batches),
+        map_rate,
+    )
+
+
+def message_time_seconds(message):
+    return float(message.header.stamp.sec) + float(message.header.stamp.nanosec) * 1e-9
+
+
+def encode_mono_jpeg(message, quality):
+    if message.encoding not in ("mono8", "8UC1"):
+        raise ValueError(f"unsupported rectified image encoding: {message.encoding}")
+    pixels = np.frombuffer(message.data, dtype=np.uint8)
+    expected = int(message.height) * int(message.step)
+    if pixels.size < expected:
+        raise ValueError(
+            f"short image buffer: got {pixels.size} bytes, expected at least {expected}"
+        )
+    pixels = pixels[:expected].reshape(int(message.height), int(message.step))
+    pixels = np.ascontiguousarray(pixels[:, : int(message.width)])
+    encoded = io.BytesIO()
+    Image.fromarray(pixels).save(
+        encoded, format="JPEG", quality=quality, optimize=True
+    )
+    return encoded.getvalue()
+
+
+def log_camera_images(recording, bag_path, image_rate, jpeg_quality):
+    try:
+        import rosbag2_py
+        from rclpy.serialization import deserialize_message
+        from sensor_msgs.msg import Image as RosImage
+    except ImportError as error:
+        raise RuntimeError(
+            "ROS 2 Python modules are required to include camera images; "
+            "source /opt/ros/humble/setup.bash or use --no-images"
+        ) from error
+
+    topics = {
+        "/cam0/image_rect": "cameras/left/image",
+        "/cam1/image_rect": "cameras/right/image",
+    }
+    reader = rosbag2_py.SequentialReader()
+    reader.open(
+        rosbag2_py.StorageOptions(uri=str(bag_path), storage_id="sqlite3"),
+        rosbag2_py.ConverterOptions(
+            input_serialization_format="cdr", output_serialization_format="cdr"
+        ),
+    )
+    reader.set_filter(rosbag2_py.StorageFilter(topics=list(topics)))
+    minimum_interval = 1.0 / image_rate
+    last_timestamp = {topic: float("-inf") for topic in topics}
+    counts = {topic: 0 for topic in topics}
+    while reader.has_next():
+        topic, serialized, _ = reader.read_next()
+        message = deserialize_message(serialized, RosImage)
+        timestamp = message_time_seconds(message)
+        if timestamp - last_timestamp[topic] + 1e-9 < minimum_interval:
+            continue
+        last_timestamp[topic] = timestamp
+        counts[topic] += 1
+        recording.set_time("timestamp", timestamp=timestamp)
+        recording.log(
+            topics[topic],
+            rr.EncodedImage(
+                contents=encode_mono_jpeg(message, jpeg_quality),
+                media_type="image/jpeg",
+            ),
+        )
+    LOGGER.info(
+        "logged rectified images: left=%d right=%d rate<=%.3fHz quality=%d",
+        counts["/cam0/image_rect"],
+        counts["/cam1/image_rect"],
+        image_rate,
+        jpeg_quality,
+    )
+
+
+def send_dashboard_blueprint(recording):
+    main_view = rrb.Spatial3DView(
+        name="SLAM map",
+        origin="world",
+        contents=[
+            "world/map/**",
+            "world/trajectory/optimized",
+            "world/current/optimized/**",
+            "world/trajectories/ground_truth",
+            "world/trajectories/raw",
+        ],
+        line_grid=True,
+    )
+    orientation_view = rrb.TimeSeriesView(
+        name="Roll / Pitch / Yaw (deg)",
+        origin="plots/orientation",
+        contents="plots/orientation/**",
+    )
+    left_view = rrb.Spatial2DView(
+        name="Left rectified", origin="cameras/left", contents="cameras/left/**"
+    )
+    right_view = rrb.Spatial2DView(
+        name="Right rectified", origin="cameras/right", contents="cameras/right/**"
+    )
+    recording.send_blueprint(
+        rrb.Blueprint(
+            rrb.Horizontal(
+                rrb.Vertical(main_view, orientation_view, row_shares=[3, 1]),
+                rrb.Vertical(left_view, right_view),
+                column_shares=[3, 1],
+            ),
+            rrb.TimePanel(timeline="timestamp", playback_speed=1.0, expanded=True),
+            collapse_panels=True,
+        ),
+        make_active=True,
+        make_default=True,
+    )
 
 
 def write_recording(
-    output, run_name, points, colors, raw, optimized, ground_truth, point_radius
+    output,
+    run_name,
+    points,
+    colors,
+    raw,
+    optimized,
+    ground_truth,
+    point_radius,
+    image_bag,
+    image_rate,
+    map_rate,
+    jpeg_quality,
 ):
     if output.exists():
         output.unlink()
     recording = rr.RecordingStream("hno_vio_rtabmap", recording_id=run_name)
     recording.save(output)
     try:
+        send_dashboard_blueprint(recording)
         recording.log("world", rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
-        recording.log(
-            "world/rtabmap_cloud",
-            rr.Points3D(points, colors=colors, radii=point_radius),
-            static=True,
+        log_progressive_cloud(
+            recording, points, colors, optimized, point_radius, map_rate
         )
         trajectories = {
             "ground_truth": ground_truth,
@@ -249,7 +460,9 @@ def write_recording(
         }
         for name, trajectory in trajectories.items():
             log_static_trajectory(recording, name, trajectory)
-            log_timeline_trajectory(recording, name, trajectory)
+        log_timeline_trajectory(recording, optimized)
+        if image_bag is not None:
+            log_camera_images(recording, image_bag, image_rate, jpeg_quality)
         recording.flush()
     finally:
         recording.disconnect()
@@ -262,6 +475,12 @@ def main():
         raise ValueError("--voxel must be greater than zero")
     if args.point_radius <= 0.0:
         raise ValueError("--point-radius must be greater than zero")
+    if args.image_rate <= 0.0:
+        raise ValueError("--image-rate must be greater than zero")
+    if args.map_rate <= 0.0:
+        raise ValueError("--map-rate must be greater than zero")
+    if not 1 <= args.jpeg_quality <= 100:
+        raise ValueError("--jpeg-quality must be between 1 and 100")
 
     run_dir = Path(args.run_dir).expanduser().resolve()
     if not run_dir.is_dir():
@@ -292,6 +511,9 @@ def main():
     )
     require_file(raw_path, "raw odometry trajectory")
     require_file(ground_truth_path, "ground truth trajectory")
+    image_bag = run_dir / "vio_results" / "rtabmap_input_db3"
+    if not args.no_images:
+        require_file(image_bag / "metadata.yaml", "RTAB-Map input bag metadata")
 
     output = (
         Path(args.output).expanduser().resolve()
@@ -337,6 +559,10 @@ def main():
             optimized_aligned,
             ground_truth,
             args.point_radius,
+            None if args.no_images else image_bag,
+            args.image_rate,
+            args.map_rate,
+            args.jpeg_quality,
         )
 
     LOGGER.info("Rerun recording created: %s (%d bytes)", output, output.stat().st_size)
