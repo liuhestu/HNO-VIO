@@ -1,7 +1,11 @@
 rtabmap.db
+results/run_*/
+smoke_results/
 params_eval/
 logs/
 rtabmap_input_db3/
 rtabmap_output_db3/
+visual_results/
+*.rrd
 ape_optimized.zip
 ape_raw.zip

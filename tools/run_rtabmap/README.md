@@ -62,6 +62,18 @@ results/run_YYYYmmddTHHMMSS/
 `GetMap2.data.graph.poses`.
 `rtabmap.db` is kept for database viewer and graph debugging.
 
+Convert the database and trajectories to a Rerun recording:
+
+```bash
+cd /home/he/hno_vio_ws/src/hno_vio
+tools/visual_rerun/visual_rerun.sh \
+  results/run_YYYYmmddTHHMMSS
+```
+
+This writes `visual_results/rtabmap.rrd` under the same run directory and
+opens it in the Rerun Viewer. See `tools/visual_rerun/README.md` for headless
+and point-cloud resolution options.
+
 Re-run only the EVO analysis for an existing run:
 
 ```bash
