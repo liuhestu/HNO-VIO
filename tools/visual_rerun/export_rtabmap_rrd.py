@@ -63,6 +63,12 @@ def parse_args():
         help="Progressive point-cloud update rate in Hz (default: 2)",
     )
     parser.add_argument(
+        "--trajectory-rate",
+        type=float,
+        default=5.0,
+        help="Progressive trajectory update rate in Hz (default: 5)",
+    )
+    parser.add_argument(
         "--jpeg-quality",
         type=int,
         default=75,
@@ -215,78 +221,108 @@ def align_to_reference(trajectory, reference, name):
     return aligned, rotation, translation
 
 
-def log_static_trajectory(recording, name, trajectory):
-    recording.log(
-        f"world/trajectories/{name}",
-        rr.LineStrips3D(
-            [trajectory.positions_xyz],
-            colors=TRAJECTORY_COLORS[name],
-            radii=0.004,
-            labels=[name],
-        ),
-        static=True,
-    )
+def sampled_indices(timestamps, rate):
+    interval = 1.0 / rate
+    indices = []
+    last_timestamp = float("-inf")
+    for index, timestamp in enumerate(timestamps):
+        if float(timestamp) - last_timestamp + 1e-9 >= interval:
+            indices.append(index)
+            last_timestamp = float(timestamp)
+    if indices[-1] != len(timestamps) - 1:
+        indices.append(len(timestamps) - 1)
+    return np.asarray(indices, dtype=np.int64)
 
 
-def log_timeline_trajectory(recording, trajectory):
-    entity_path = "world/current/optimized"
+def log_timeline_trajectory(recording, name, trajectory, rate):
+    trajectory_path = f"world/trajectories/{name}"
+    current_path = f"{trajectory_path}/current"
     recording.log(
-        f"{entity_path}/marker",
+        f"{current_path}/marker",
         rr.Points3D(
             [[0.0, 0.0, 0.0]],
-            colors=TRAJECTORY_COLORS["optimized"],
-            radii=0.035,
-            labels=["optimized"],
+            colors=TRAJECTORY_COLORS[name],
+            radii=0.025 if name != "optimized" else 0.035,
+            show_labels=False,
         ),
         static=True,
     )
-    recording.log(
-        "plots/orientation/roll",
-        rr.SeriesLines(colors=[255, 100, 100], names="roll"),
-        static=True,
+    if name == "optimized":
+        recording.log(
+            f"{current_path}/axes",
+            rr.Arrows3D(
+                origins=np.zeros((3, 3)),
+                vectors=np.eye(3) * 0.25,
+                colors=[[255, 60, 60], [60, 220, 80], [60, 140, 255]],
+                radii=0.008,
+                show_labels=False,
+            ),
+            static=True,
+        )
+        recording.log(
+            "plots/orientation/roll",
+            rr.SeriesLines(colors=[255, 100, 100], names="roll"),
+            static=True,
+        )
+        recording.log(
+            "plots/orientation/pitch",
+            rr.SeriesLines(colors=[100, 220, 120], names="pitch"),
+            static=True,
+        )
+        recording.log(
+            "plots/orientation/yaw",
+            rr.SeriesLines(colors=[80, 170, 255], names="yaw"),
+            static=True,
+        )
+
+    indices = sampled_indices(trajectory.timestamps, rate)
+    timestamps = trajectory.timestamps[indices]
+    positions = trajectory.positions_xyz[indices]
+    quaternions_xyzw = np.roll(
+        trajectory.orientations_quat_wxyz[indices], -1, axis=1
     )
-    recording.log(
-        "plots/orientation/pitch",
-        rr.SeriesLines(colors=[100, 220, 120], names="pitch"),
-        static=True,
-    )
-    recording.log(
-        "plots/orientation/yaw",
-        rr.SeriesLines(colors=[80, 170, 255], names="yaw"),
-        static=True,
-    )
-    quaternions_xyzw = np.roll(trajectory.orientations_quat_wxyz, -1, axis=1)
-    angles_deg = np.rad2deg(
-        np.unwrap(Rotation.from_quat(quaternions_xyzw).as_euler("xyz"), axis=0)
-    )
-    for index, (timestamp, position, quaternion_xyzw) in enumerate(
+    angles_deg = None
+    if name == "optimized":
+        angles_deg = np.rad2deg(
+            np.unwrap(
+                Rotation.from_quat(quaternions_xyzw).as_euler("xyz"), axis=0
+            )
+        )
+    for sample_index, (timestamp, position, quaternion_xyzw) in enumerate(
         zip(
-            trajectory.timestamps,
-            trajectory.positions_xyz,
+            timestamps,
+            positions,
             quaternions_xyzw,
         )
     ):
         recording.set_time("timestamp", timestamp=float(timestamp))
         recording.log(
-            entity_path,
+            current_path,
             rr.Transform3D(
                 translation=position,
                 quaternion=rr.Quaternion(xyzw=quaternion_xyzw),
             ),
         )
         recording.log(
-            "world/trajectory/optimized",
+            trajectory_path,
             rr.LineStrips3D(
-                [trajectory.positions_xyz[: index + 1]],
-                colors=TRAJECTORY_COLORS["optimized"],
-                radii=0.006,
-                labels=["optimized"],
+                [positions[: sample_index + 1]],
+                colors=TRAJECTORY_COLORS[name],
+                radii=0.006 if name == "optimized" else 0.003,
+                show_labels=False,
             ),
         )
-        roll, pitch, yaw = angles_deg[index]
-        recording.log("plots/orientation/roll", rr.Scalars(roll))
-        recording.log("plots/orientation/pitch", rr.Scalars(pitch))
-        recording.log("plots/orientation/yaw", rr.Scalars(yaw))
+        if angles_deg is not None:
+            roll, pitch, yaw = angles_deg[sample_index]
+            recording.log("plots/orientation/roll", rr.Scalars(roll))
+            recording.log("plots/orientation/pitch", rr.Scalars(pitch))
+            recording.log("plots/orientation/yaw", rr.Scalars(yaw))
+    LOGGER.info(
+        "logged progressive trajectory: name=%s poses=%d rate<=%.3fHz",
+        name,
+        len(indices),
+        rate,
+    )
 
 
 def log_progressive_cloud(
@@ -396,10 +432,7 @@ def send_dashboard_blueprint(recording):
         origin="world",
         contents=[
             "world/map/**",
-            "world/trajectory/optimized",
-            "world/current/optimized/**",
-            "world/trajectories/ground_truth",
-            "world/trajectories/raw",
+            "world/trajectories/**",
         ],
         line_grid=True,
     )
@@ -441,6 +474,7 @@ def write_recording(
     image_bag,
     image_rate,
     map_rate,
+    trajectory_rate,
     jpeg_quality,
 ):
     if output.exists():
@@ -459,8 +493,7 @@ def write_recording(
             "optimized": optimized,
         }
         for name, trajectory in trajectories.items():
-            log_static_trajectory(recording, name, trajectory)
-        log_timeline_trajectory(recording, optimized)
+            log_timeline_trajectory(recording, name, trajectory, trajectory_rate)
         if image_bag is not None:
             log_camera_images(recording, image_bag, image_rate, jpeg_quality)
         recording.flush()
@@ -479,6 +512,8 @@ def main():
         raise ValueError("--image-rate must be greater than zero")
     if args.map_rate <= 0.0:
         raise ValueError("--map-rate must be greater than zero")
+    if args.trajectory_rate <= 0.0:
+        raise ValueError("--trajectory-rate must be greater than zero")
     if not 1 <= args.jpeg_quality <= 100:
         raise ValueError("--jpeg-quality must be between 1 and 100")
 
@@ -562,6 +597,7 @@ def main():
             None if args.no_images else image_bag,
             args.image_rate,
             args.map_rate,
+            args.trajectory_rate,
             args.jpeg_quality,
         )
 
