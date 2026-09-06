@@ -27,7 +27,9 @@ results/run_YYYYmmddTHHMMSS/visual_results/rtabmap.rrd
 ```
 
 Use `--no-open` for headless conversion, `--voxel METERS` to change the
-default 3 cm cloud resolution, or `--output PATH` to override only the RRD
-location. `conversion.log` always remains under the run's `visual_results/`
+default 5 cm cloud resolution, `--point-radius METERS` to change the rendered
+point size, or `--output PATH` to override only the RRD location. The default
+point radius is 2.5 cm, which keeps the scene compact while making surfaces
+easier to see. `conversion.log` always remains under the run's `visual_results/`
 directory. Set `HNO_VIO_VENV` if the Python environment is not located at
 `/home/he/.venvs/hnovio`.

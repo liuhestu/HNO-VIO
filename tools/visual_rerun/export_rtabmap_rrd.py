@@ -36,8 +36,14 @@ def parse_args():
     parser.add_argument(
         "--voxel",
         type=float,
-        default=0.03,
-        help="RTAB-Map cloud voxel size in meters (default: 0.03)",
+        default=0.05,
+        help="RTAB-Map cloud voxel size in meters (default: 0.05)",
+    )
+    parser.add_argument(
+        "--point-radius",
+        type=float,
+        default=0.025,
+        help="Rerun point radius in meters (default: 0.025)",
     )
     parser.add_argument(
         "--no-open",
@@ -222,7 +228,9 @@ def log_timeline_trajectory(recording, name, trajectory):
         )
 
 
-def write_recording(output, run_name, points, colors, raw, optimized, ground_truth):
+def write_recording(
+    output, run_name, points, colors, raw, optimized, ground_truth, point_radius
+):
     if output.exists():
         output.unlink()
     recording = rr.RecordingStream("hno_vio_rtabmap", recording_id=run_name)
@@ -231,7 +239,7 @@ def write_recording(output, run_name, points, colors, raw, optimized, ground_tru
         recording.log("world", rr.ViewCoordinates.RIGHT_HAND_Z_UP, static=True)
         recording.log(
             "world/rtabmap_cloud",
-            rr.Points3D(points, colors=colors, radii=0.01),
+            rr.Points3D(points, colors=colors, radii=point_radius),
             static=True,
         )
         trajectories = {
@@ -252,6 +260,8 @@ def main():
     args = parse_args()
     if args.voxel <= 0.0:
         raise ValueError("--voxel must be greater than zero")
+    if args.point_radius <= 0.0:
+        raise ValueError("--point-radius must be greater than zero")
 
     run_dir = Path(args.run_dir).expanduser().resolve()
     if not run_dir.is_dir():
@@ -326,6 +336,7 @@ def main():
             raw_aligned,
             optimized_aligned,
             ground_truth,
+            args.point_radius,
         )
 
     LOGGER.info("Rerun recording created: %s (%d bytes)", output, output.stat().st_size)
