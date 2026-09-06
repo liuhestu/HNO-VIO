@@ -24,10 +24,10 @@ void observer::Propagator::setNoiseParams(const NoiseParams& params) {
     std::cout << "HNO Noise Params Set: Var_Acc=" << var_acc << " Var_Gyr=" << var_gyro << std::endl;
 }
 
-void observer::Propagator::setExperimentOptions(bool fix_e_hat,
-                                                bool force_sigma_r_zero) {
-    experiment_fix_e_hat_ = fix_e_hat;
-    experiment_force_sigma_r_zero_ = force_sigma_r_zero;
+void observer::Propagator::setBehaviorOptions(bool fix_e_hat,
+                                              bool sigma_r_zero) {
+    fix_e_hat_ = fix_e_hat;
+    sigma_r_zero_ = sigma_r_zero;
 }
 
 Eigen::Matrix3d observer::Propagator::skew(const Eigen::Vector3d& v_hat) {
@@ -44,7 +44,7 @@ void observer::Propagator::propagate(std::shared_ptr<State> state,
                               double dt,
                               PropagationDiagnostics* diagnostics) {
 
-    if (experiment_fix_e_hat_) {
+    if (fix_e_hat_) {
         state->fixEBasis();
     }
 
@@ -69,7 +69,7 @@ void observer::Propagator::propagate(std::shared_ptr<State> state,
     }
     sigma_R_raw *= (0.5 * k_R);
     const Eigen::Vector3d sigma_R =
-        experiment_force_sigma_r_zero_ ? Eigen::Vector3d::Zero() : sigma_R_raw;
+        sigma_r_zero_ ? Eigen::Vector3d::Zero() : sigma_R_raw;
     if (diagnostics) {
         diagnostics->sigma_r_raw = sigma_R_raw;
         diagnostics->sigma_r_applied = sigma_R;

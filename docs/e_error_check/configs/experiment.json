@@ -1,0 +1,37 @@
+{
+  "dataset": "V1_02_medium",
+  "bag_rate": 1.0,
+  "use_gt_mapping": false,
+  "conditions": {
+    "baseline": {
+      "fix_e_hat": false,
+      "sigma_r_zero": false,
+      "update_enforce_structure": true,
+      "repetitions": 3
+    },
+    "fixed_e": {
+      "fix_e_hat": true,
+      "sigma_r_zero": false,
+      "update_enforce_structure": true,
+      "repetitions": 3
+    },
+    "sigma_zero": {
+      "fix_e_hat": false,
+      "sigma_r_zero": true,
+      "update_enforce_structure": true,
+      "repetitions": 3
+    },
+    "no_projection": {
+      "fix_e_hat": false,
+      "sigma_r_zero": false,
+      "update_enforce_structure": false,
+      "repetitions": 3
+    }
+  },
+  "analysis": {
+    "resample_hz": 20.0,
+    "sustained_event_frames": 5,
+    "increment_window_seconds": 0.5,
+    "maximum_lag_seconds": 2.0
+  }
+}

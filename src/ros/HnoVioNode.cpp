@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <stdexcept>
 
 namespace hno_vio::ros {
 namespace {
@@ -41,7 +40,6 @@ HnoVioNode::HnoVioNode(const rclcpp::Node::SharedPtr& node,
     diagnostics_options.frontend_print = frontend_print_;
     diagnostics_options.essential_print = essential_print_;
     diagnostics_options.updater_print = updater_print_;
-    diagnostics_options.zupt_print = zupt_print_;
     diagnostics_options.pipeline_print = pipeline_print_;
     diagnostics_ = std::make_unique<Diagnostics>(diagnostics_options);
 
@@ -59,10 +57,8 @@ HnoVioNode::HnoVioNode(const rclcpp::Node::SharedPtr& node,
         context.use_gt_mapping = use_gt_mapping_;
         context.update_enforce_structure =
             pipeline_options_.updater.enforce_structure_after_update;
-        context.experiment_fix_e_hat = experiment_fix_e_hat_;
-        context.experiment_force_sigma_r_zero =
-            experiment_force_sigma_r_zero_;
-        context.experiment_max_frames = experiment_max_frames_;
+        context.fix_e_hat = fix_e_hat_;
+        context.sigma_r_zero = sigma_r_zero_;
         if (!odom_export_->open(odom_output_path_, context)) {
             RCLCPP_ERROR(node_->get_logger(), "Failed to open odom output: %s",
                          odom_output_path_.c_str());
@@ -169,7 +165,6 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     parser.parse_config("update_min_observations", updater.min_observations, false);
     parser.parse_config("update_low_observation_hold_frames", updater.low_observation_hold_frames, false);
     parser.parse_config("update_warn_delta_ratio", updater.warn_delta_ratio, false);
-    parser.parse_config("zupt_velocity_noise", updater.zupt_velocity_noise, false);
     updater.pixel_noise = declareOrGet<double>(node_, "update_pixel_noise", updater.pixel_noise);
     updater.focal_length = declareOrGet<double>(node_, "update_focal_length", updater.focal_length);
     updater.chi2_gate = declareOrGet<double>(node_, "update_chi2_gate", updater.chi2_gate);
@@ -179,46 +174,17 @@ void HnoVioNode::loadParameters(const std::string& config_path) {
     updater.low_observation_hold_frames = declareOrGet<int>(node_, "update_low_observation_hold_frames", updater.low_observation_hold_frames);
     updater.warn_delta_ratio = declareOrGet<double>(node_, "update_warn_delta_ratio", updater.warn_delta_ratio);
     updater.enforce_structure_after_update = declareOrGet<bool>(node_, "update_enforce_structure", updater.enforce_structure_after_update);
-    updater.zupt_velocity_noise = declareOrGet<double>(node_, "zupt_velocity_noise", updater.zupt_velocity_noise);
-
-    auto& zupt = pipeline_options_.zupt;
-    parser.parse_config("zupt_max_disparity", zupt.max_disparity, false);
-    parser.parse_config("zupt_imu_window_size", zupt.imu_window_size, false);
-    parser.parse_config("zupt_min_tracks", zupt.min_tracks, false);
-    parser.parse_config("zupt_hold_frames", zupt.hold_frames, false);
-    parser.parse_config("zupt_acc_var_threshold", zupt.acc_variance_threshold, false);
-    parser.parse_config("zupt_gyro_var_threshold", zupt.gyro_variance_threshold, false);
-    parser.parse_config("zupt_activation_speed", zupt.activation_speed, false);
-    zupt.enabled = declareOrGet<bool>(node_, "try_zupt", zupt.enabled);
-    zupt.max_disparity = declareOrGet<double>(node_, "zupt_max_disparity", zupt.max_disparity);
-    zupt.imu_window_size = declareOrGet<int>(node_, "zupt_imu_window_size", zupt.imu_window_size);
-    zupt.min_tracks = declareOrGet<int>(node_, "zupt_min_tracks", zupt.min_tracks);
-    zupt.hold_frames = declareOrGet<int>(node_, "zupt_hold_frames", zupt.hold_frames);
-    zupt.acc_variance_threshold = declareOrGet<double>(node_, "zupt_acc_var_threshold", zupt.acc_variance_threshold);
-    zupt.gyro_variance_threshold = declareOrGet<double>(node_, "zupt_gyro_var_threshold", zupt.gyro_variance_threshold);
-    zupt.activation_speed = declareOrGet<double>(node_, "zupt_activation_speed", zupt.activation_speed);
 
     path_gt_ = declareOrGet<std::string>(node_, "path_gt", "");
-    experiment_fix_e_hat_ =
-        declareOrGet<bool>(node_, "experiment_fix_e_hat", false);
-    experiment_force_sigma_r_zero_ =
-        declareOrGet<bool>(node_, "experiment_force_sigma_r_zero", false);
-    experiment_max_frames_ =
-        std::max(0, declareOrGet<int>(node_, "experiment_max_frames", 0));
-    if (experiment_fix_e_hat_ && experiment_force_sigma_r_zero_) {
-        throw std::invalid_argument(
-            "experiment_fix_e_hat and experiment_force_sigma_r_zero "
-            "must not be enabled together");
-    }
-    pipeline_options_.experiment_fix_e_hat = experiment_fix_e_hat_;
-    pipeline_options_.experiment_force_sigma_r_zero =
-        experiment_force_sigma_r_zero_;
+    fix_e_hat_ = declareOrGet<bool>(node_, "fix_e_hat", false);
+    sigma_r_zero_ = declareOrGet<bool>(node_, "sigma_r_zero", false);
+    pipeline_options_.fix_e_hat = fix_e_hat_;
+    pipeline_options_.sigma_r_zero = sigma_r_zero_;
     use_gt_mapping_ = declareOrGet<bool>(node_, "use_gt_mapping", false);
     export_odom_ = declareOrGet<bool>(node_, "export_odom", false);
     frontend_print_ = declareOrGet<bool>(node_, "frontend_print", false);
     essential_print_ = declareOrGet<bool>(node_, "essential_print", true);
     updater_print_ = declareOrGet<bool>(node_, "updater_print", false);
-    zupt_print_ = declareOrGet<bool>(node_, "ZUPT_print", false);
     pipeline_print_ = declareOrGet<bool>(node_, "pipeline_print", false);
     odom_output_path_ = declareOrGet<std::string>(node_, "odom_output_path", "");
     dataset_ = declareOrGet<std::string>(node_, "dataset", "");
@@ -262,7 +228,6 @@ void HnoVioNode::publishLatestPrediction(const pipeline::PipelineResult& result)
 
 std::optional<pipeline::PipelineResult> HnoVioNode::tryProcessReadyCameras() {
     std::optional<pipeline::PipelineResult> latest_result;
-    if (experiment_complete_) return latest_result;
     while (!pending_cameras_.empty() && pipeline_->initialized()) {
         auto next = pending_cameras_.begin();
         if (next->first <= pipeline_->committedTime() + 1e-9) {
@@ -287,21 +252,10 @@ std::optional<pipeline::PipelineResult> HnoVioNode::tryProcessReadyCameras() {
         const std::optional<Pose> aligned_ground_truth =
             gt_mapping_->publish(result->timestamp, estimated_pose);
         if (export_odom_) {
-            odom_export_->write(result->timestamp, result->state,
-                                result->diagnostics);
+            odom_export_->write(result->timestamp, result->state);
         }
         diagnostics_->report(result->diagnostics, estimated_pose, aligned_ground_truth);
         latest_result = result;
-        if (experiment_max_frames_ > 0 &&
-            result->diagnostics.frame_index >= experiment_max_frames_) {
-            experiment_complete_ = true;
-            pending_cameras_.clear();
-            RCLCPP_INFO(node_->get_logger(),
-                        "Reached experiment_max_frames=%d; shutting down.",
-                        experiment_max_frames_);
-            rclcpp::shutdown();
-            break;
-        }
     }
     return latest_result;
 }

@@ -57,7 +57,6 @@ add_library(hno_vio_lib
   src/Diagnostics.cpp
   src/observer/Propagator.cpp
   src/observer/Updater.cpp
-  src/observer/ZuptUpdater.cpp
   src/frontend/FeatureManager.cpp
   src/frontend/StereoTriangulator.cpp
   src/frontend/LandmarkMap.cpp

@@ -12,16 +12,6 @@ init_window_size: 250
 init_imu_thresh: 1.5
 init_gyro_thresh: 0.01
 
-# Zero-velocity detection and update tuning. Enabling ZUPT is a launch option.
-zupt_max_disparity: 0.5
-zupt_imu_window_size: 40
-zupt_min_tracks: 20
-zupt_hold_frames: 3
-zupt_acc_var_threshold: 0.05
-zupt_gyro_var_threshold: 1.0e-4
-zupt_activation_speed: 0.2
-zupt_velocity_noise: 0.05
-
 # Frontend tracking, landmark, and health tuning.
 feature_tracker_num_pts: 160
 feature_tracker_fast_threshold: 20

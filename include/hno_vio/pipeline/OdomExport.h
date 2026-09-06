@@ -4,7 +4,6 @@
 #include <fstream>
 #include <string>
 
-#include "hno_vio/Diagnostics.h"
 #include "hno_vio/State.h"
 
 namespace hno_vio::pipeline {
@@ -21,9 +20,8 @@ struct RunContext {
     int num_cams = 2;
     bool use_gt_mapping = false;
     bool update_enforce_structure = true;
-    bool experiment_fix_e_hat = false;
-    bool experiment_force_sigma_r_zero = false;
-    int experiment_max_frames = 0;
+    bool fix_e_hat = false;
+    bool sigma_r_zero = false;
 };
 
 class OdomExport {
@@ -32,11 +30,9 @@ public:
     ~OdomExport();
 
     bool open(const std::string& csv_path, const RunContext& context);
-    void write(double timestamp,
-               const State& state,
-               const PipelineDiagnostics& diagnostics);
+    void write(double timestamp, const State& state);
     bool enabled() const {
-        return csv_.is_open() && tum_.is_open() && diagnostics_csv_.is_open();
+        return csv_.is_open() && tum_.is_open();
     }
 
 private:
@@ -45,14 +41,9 @@ private:
 
     std::ofstream csv_;
     std::ofstream tum_;
-    std::ofstream diagnostics_csv_;
     std::string csv_path_;
     std::string tum_path_;
-    std::string diagnostics_csv_path_;
     double last_timestamp_ = -1.0;
-    bool update_enforce_structure_ = true;
-    bool experiment_fix_e_hat_ = false;
-    bool experiment_force_sigma_r_zero_ = false;
 };
 
 } // namespace hno_vio::pipeline

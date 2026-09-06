@@ -1048,7 +1048,7 @@ def write_report(
         lines.append(f"| {LABELS[condition]} | {counts[condition]} | {expected[condition]} |")
     lines.extend([
         "",
-        "所有正式组固定使用 V1_02 estimated-live mapping、`bag_rate=1.0`、关闭 ZUPT。GT 只用于计算误差，不参与建图。",
+        "所有正式组固定使用 V1_02 estimated-live mapping、`bag_rate=1.0`。GT 只用于计算误差，不参与建图。",
         "",
         "## 核心判定",
         "",

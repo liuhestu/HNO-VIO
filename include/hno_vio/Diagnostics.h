@@ -12,7 +12,6 @@ struct DiagnosticsOptions {
     bool frontend_print = false;
     bool essential_print = true;
     bool updater_print = false;
-    bool zupt_print = false;
     bool pipeline_print = false;
 };
 
@@ -53,16 +52,6 @@ struct PropagationDiagnostics {
     int sample_count = 0;
 };
 
-struct ZuptDiagnostics {
-    double accelerometer_variance = 0.0;
-    double gyroscope_variance = 0.0;
-    bool stationary_detected = false;
-    bool active = false;
-    int stationary_streak = 0;
-    bool update_applied = false;
-    double velocity_residual_norm = 0.0;
-};
-
 struct FeatureDiagnostics {
     int tracked_count = 0;
     int common_track_count = 0;
@@ -94,12 +83,10 @@ struct PipelineDiagnostics {
     int frame_index = 0;
     int observation_count = 0;
     bool visual_update_applied = false;
-    bool zupt_update_applied = false;
     std::string stage;
     FeatureDiagnostics frontend;
     UpdaterDiagnostics updater;
     PropagationDiagnostics propagation;
-    ZuptDiagnostics zupt;
 };
 
 class Diagnostics {

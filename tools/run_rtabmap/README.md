@@ -20,7 +20,7 @@ Run the backend:
 ```bash
 cd /home/he/hno_vio_ws
 src/hno_vio/tools/run_rtabmap/hno_rtabmap.sh \
-  src/hno_vio/results/run_YYYYmmddTHHMMSS/vio_results/rtabmap_input_db3
+  src/hno_vio/results/run_YYYYmmddTHHMMSS
 ```
 
 This is a one-command pipeline. It starts stereo synchronization and

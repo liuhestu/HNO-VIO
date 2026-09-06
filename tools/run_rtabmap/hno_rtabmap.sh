@@ -2,7 +2,7 @@
 #
 # 用法（在 hno_vio 包目录执行）：
 #   bash tools/run_rtabmap/hno_rtabmap.sh \
-#     results/run_YYYYmmddTHHMMSS/vio_results/rtabmap_input_db3
+#     results/run_YYYYmmddTHHMMSS
 #
 # 脚本会自动启动双目同步和 RTAB-Map、完整回放输入 bag、记录输出、
 # 导出优化轨迹并运行 evo 评估。执行期间无需按键，看到 completed: 即完成。
@@ -12,7 +12,7 @@ set -euo pipefail
 usage() {
   cat <<EOF
 Usage:
-  $0 /path/to/run_YYYYmmddTHHMMSS/vio_results/rtabmap_input_db3
+  $0 /path/to/run_YYYYmmddTHHMMSS
 EOF
 }
 
@@ -24,18 +24,17 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKSPACE_ROOT="$(cd "${SCRIPT_DIR}/../../../.." && pwd)"
 HNO_PKG="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-INPUT_BAG="$(realpath "$1")"
+if [[ ! -d "$1" ]]; then
+  echo "missing run directory: $1" >&2
+  exit 2
+fi
+RUN_DIR="$(realpath "$1")"
+VIO_RESULTS_DIR="${RUN_DIR}/vio_results"
+INPUT_BAG="${VIO_RESULTS_DIR}/rtabmap_input_db3"
 
 if [[ ! -d "${INPUT_BAG}" || ! -s "${INPUT_BAG}/metadata.yaml" ]]; then
   echo "missing rtabmap_input_db3: ${INPUT_BAG}" >&2
   echo "Generate it first with: ros2 launch hno_vio hno_vio.launch.py run_preprocess:=true" >&2
-  exit 2
-fi
-
-VIO_RESULTS_DIR="$(dirname "${INPUT_BAG}")"
-RUN_DIR="$(dirname "${VIO_RESULTS_DIR}")"
-if [[ "$(basename "${VIO_RESULTS_DIR}")" != "vio_results" ]]; then
-  echo "input bag must be under a vio_results directory: ${INPUT_BAG}" >&2
   exit 2
 fi
 

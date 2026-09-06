@@ -23,7 +23,7 @@ public:
 
     // 设置噪声参数，预计算 Cov_nx
     void setNoiseParams(const NoiseParams& params);
-    void setExperimentOptions(bool fix_e_hat, bool force_sigma_r_zero);
+    void setBehaviorOptions(bool fix_e_hat, bool sigma_r_zero);
 
     // 4阶龙格-库塔法积分
     Eigen::Matrix<double, 15, 15> RK4(const Eigen::Matrix<double, 15, 15>& A,
@@ -44,8 +44,8 @@ private:
     double k_R = 20.0;
     Eigen::Vector3d rho; // Weights for the 3 axes
     Eigen::Vector3d gravity = Eigen::Vector3d(0, 0, -9.81);
-    bool experiment_fix_e_hat_ = false;
-    bool experiment_force_sigma_r_zero_ = false;
+    bool fix_e_hat_ = false;
+    bool sigma_r_zero_ = false;
 
     // 原始IMU噪声协方差
     Eigen::Matrix<double, 6, 6> Cov_nx;

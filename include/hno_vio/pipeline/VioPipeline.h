@@ -1,7 +1,6 @@
 #ifndef HNO_VIO_PIPELINE_VIO_PIPELINE_H
 #define HNO_VIO_PIPELINE_VIO_PIPELINE_H
 
-#include <deque>
 #include <map>
 #include <memory>
 #include <optional>
@@ -17,21 +16,9 @@
 #include "hno_vio/frontend/FeatureManager.h"
 #include "hno_vio/observer/Propagator.h"
 #include "hno_vio/observer/Updater.h"
-#include "hno_vio/observer/ZuptUpdater.h"
 #include "hno_vio/pipeline/ImuBuffer.h"
 
 namespace hno_vio::pipeline {
-
-struct ZuptOptions {
-    bool enabled = false;
-    int imu_window_size = 40;
-    int min_tracks = 20;
-    int hold_frames = 3;
-    double max_disparity = 0.5;
-    double acc_variance_threshold = 0.05;
-    double gyro_variance_threshold = 1e-4;
-    double activation_speed = 0.2;
-};
 
 struct VioPipelineOptions {
     size_t initializer_window_size = 250;
@@ -40,9 +27,8 @@ struct VioPipelineOptions {
     observer::Propagator::NoiseParams noise;
     frontend::FeatureManager::Options frontend;
     observer::Updater::Options updater;
-    ZuptOptions zupt;
-    bool experiment_fix_e_hat = false;
-    bool experiment_force_sigma_r_zero = false;
+    bool fix_e_hat = false;
+    bool sigma_r_zero = false;
 };
 
 struct PipelineResult {
@@ -50,7 +36,6 @@ struct PipelineResult {
     State state;
     bool camera_frame = false;
     bool visual_update_applied = false;
-    bool zupt_update_applied = false;
     int observation_count = 0;
     std::map<size_t, Eigen::Vector3d> active_landmarks;
     std::shared_ptr<ov_core::TrackKLT> tracker;
@@ -75,10 +60,6 @@ public:
     double committedTime() const { return committed_time_; }
 
 private:
-    bool checkZuptStationary(double timestamp,
-                             double& acc_variance,
-                             double& gyro_variance) const;
-    void resetZuptDetector();
     Pose selectMappingPose(const std::optional<Pose>& raw_gt_pose,
                            const State& camera_state);
     bool propagateState(State& state,
@@ -97,15 +78,10 @@ private:
     ImuBuffer imu_buffer_;
     observer::Propagator propagator_;
     observer::Updater updater_;
-    observer::ZuptUpdater zupt_updater_;
     frontend::FeatureManager feature_manager_;
-    ZuptOptions zupt_options_;
-    std::deque<ov_core::ImuData> zupt_imu_window_;
-    int zupt_stationary_streak_ = 0;
-    bool zupt_active_ = false;
     bool initialized_ = false;
     int frame_index_ = 0;
-    bool experiment_fix_e_hat_ = false;
+    bool fix_e_hat_ = false;
 
     bool has_gt_mapping_alignment_ = false;
     Eigen::Matrix3d R_estimator_gt_ = Eigen::Matrix3d::Identity();

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository is a ROS 2 Humble `ament_cmake` package for HNO visual-inertial odometry. Core C++ code lives in `src/`, with public headers in `include/hno_vio/`. The reconstructed architecture is split into `frontend/` for tracking and landmark health, `observer/` for propagation and visual/ZUPT updates, `pipeline/` for sensor buffering and estimator orchestration, and `ros/` for node, publishing, GT, and export integration. `Diagnostics.cpp` owns periodic runtime logging; algorithm modules populate diagnostic snapshots instead of formatting recurring logs themselves.
+This repository is a ROS 2 Humble `ament_cmake` package for HNO visual-inertial odometry. Core C++ code lives in `src/`, with public headers in `include/hno_vio/`. The reconstructed architecture is split into `frontend/` for tracking and landmark health, `observer/` for propagation and visual updates, `pipeline/` for sensor buffering and estimator orchestration, and `ros/` for node, publishing, GT, and export integration. `Diagnostics.cpp` owns periodic runtime logging; algorithm modules populate diagnostic snapshots instead of formatting recurring logs themselves.
 
 Launch entry points are in `launch/`, and runtime calibration/estimator settings are split under `config/euroc_mav/` and `config/realsense/`. RTAB-Map and evaluation utilities are in `tools/run_rtabmap/`; the full VIO regression entry point is in `tools/run_vio/`. `thirdparty/openvins_core/` contains vendored OpenVINS-derived support code. Ground-truth trajectories are stored in `ground_truth/euroc_mav/`. Generated experiment output belongs under `results/` or `smoke_results/` and should not be treated as source.
 
@@ -35,12 +35,12 @@ ros2 launch hno_vio hno_vio.launch.py run_preprocess:=false rviz:=false
 For RTAB-Map postprocessing, first generate a `results/run_*/vio_results/rtabmap_input_db3` bag, then run:
 
 ```bash
-tools/run_rtabmap/hno_rtabmap.sh results/run_YYYYmmddTHHMMSS/vio_results/rtabmap_input_db3
+tools/run_rtabmap/hno_rtabmap.sh results/run_YYYYmmddTHHMMSS
 ```
 
 ## Coding Style & Naming Conventions
 
-Use C++17 for package code. Match the existing style: four-space indentation, PascalCase class names such as `VioPipeline` and `FeatureManager`, and descriptive snake_case ROS parameters and Python variables. Preserve the existing `ZUPT_print` capitalization because it is a public launch/ROS parameter. Keep ROS-facing names stable unless migration notes and launch/config updates are included. Prefer small, focused changes in `src/` and `include/`; avoid editing `thirdparty/` except for deliberate vendor fixes.
+Use C++17 for package code. Match the existing style: four-space indentation, PascalCase class names such as `VioPipeline` and `FeatureManager`, and descriptive snake_case ROS parameters and Python variables. Keep ROS-facing names stable unless migration notes and launch/config updates are included. Prefer small, focused changes in `src/` and `include/`; avoid editing `thirdparty/` except for deliberate vendor fixes.
 
 ## Testing Guidelines
 
@@ -54,6 +54,6 @@ Recent commits use short imperative summaries, often in Chinese, for example `æ•
 
 Use estimator YAML files for numeric tuning and launch arguments for behavior switches. Parameter precedence is C++ fallback, then YAML numeric value, then an explicit ROS parameter override. In the Euroc estimator config, `relative_config_imu` is a compatibility entry and is not currently consumed by the HNO pipeline; IMU noise retains the existing C++ fallback and parser behavior unless a task explicitly changes that contract. Keep Realsense and Euroc calibration/config changes isolated to the correct dataset family.
 
-Diagnostics are throttled to every 30 committed camera frames. Defaults are `essential_print:=true`, `frontend_print:=false`, `updater_print:=false`, `ZUPT_print:=false`, and `pipeline_print:=false`. One-time anomaly messages remain unconditional. Keep RViz launch-managed: `rviz:=true` starts it as a ROS launch `Node`, and `rviz:=false` does not start it. Do not detach RViz or other launch children unless explicitly requested.
+Diagnostics are throttled to every 30 committed camera frames. Defaults are `essential_print:=true`, `frontend_print:=false`, `updater_print:=false`, and `pipeline_print:=false`. One-time anomaly messages remain unconditional. Keep RViz launch-managed: `rviz:=true` starts it as a ROS launch `Node`, and `rviz:=false` does not start it. Do not detach RViz or other launch children unless explicitly requested.
 
 Do not commit new run artifacts from `results/` or `smoke_results/` unless explicitly required. When adding launch parameters, update defaults in `launch/hno_vio.launch.py` and document any required bag topics or frame names.

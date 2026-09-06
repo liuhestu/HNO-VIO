@@ -14,7 +14,6 @@ void Diagnostics::report(const PipelineDiagnostics& diagnostics,
                          const std::optional<Pose>& aligned_ground_truth) {
     const FeatureDiagnostics& frontend = diagnostics.frontend;
     const UpdaterDiagnostics& updater = diagnostics.updater;
-    const ZuptDiagnostics& zupt = diagnostics.zupt;
 
     /* 一次性异常提示 */
     if (frontend.health_guard_active &&
@@ -90,7 +89,6 @@ void Diagnostics::report(const PipelineDiagnostics& diagnostics,
                   << " prediction " << diagnostics.prediction_timestamp
                   << " obs " << diagnostics.observation_count
                   << " visual " << (diagnostics.visual_update_applied ? "applied" : "not_applied")
-                  << " zupt " << (diagnostics.zupt_update_applied ? "applied" : "not_applied")
                   << std::endl;
     }
     if (options_.frontend_print) {
@@ -130,16 +128,6 @@ void Diagnostics::report(const PipelineDiagnostics& diagnostics,
                   << " low_streak " << updater.low_observation_streak
                   << " low_skip " << (updater.skipped_for_low_observations ? "true" : "false")
                   << " applied " << updater.applied_observations
-                  << std::endl;
-    }
-    if (options_.zupt_print) {
-        std::cout << "[Diagnostics][ZUPT] acc_var " << zupt.accelerometer_variance
-                  << " gyro_var " << zupt.gyroscope_variance
-                  << " stationary " << (zupt.stationary_detected ? "true" : "false")
-                  << " active " << (zupt.active ? "true" : "false")
-                  << " streak " << zupt.stationary_streak
-                  << " velocity_residual " << zupt.velocity_residual_norm
-                  << " applied " << (zupt.update_applied ? "true" : "false")
                   << std::endl;
     }
 }

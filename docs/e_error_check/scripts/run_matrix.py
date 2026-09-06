@@ -19,23 +19,23 @@ import numpy as np
 
 CONDITIONS = {
     "baseline": {
-        "experiment_fix_e_hat": False,
-        "experiment_force_sigma_r_zero": False,
+        "fix_e_hat": False,
+        "sigma_r_zero": False,
         "update_enforce_structure": True,
     },
     "fixed_e": {
-        "experiment_fix_e_hat": True,
-        "experiment_force_sigma_r_zero": False,
+        "fix_e_hat": True,
+        "sigma_r_zero": False,
         "update_enforce_structure": True,
     },
     "sigma_zero": {
-        "experiment_fix_e_hat": False,
-        "experiment_force_sigma_r_zero": True,
+        "fix_e_hat": False,
+        "sigma_r_zero": True,
         "update_enforce_structure": True,
     },
     "no_projection": {
-        "experiment_fix_e_hat": False,
-        "experiment_force_sigma_r_zero": False,
+        "fix_e_hat": False,
+        "sigma_r_zero": False,
         "update_enforce_structure": False,
     },
 }
@@ -122,7 +122,6 @@ def launch_command(
     args: argparse.Namespace,
     condition_name: str,
     run_dir: Path,
-    max_frames: int,
 ) -> list[str]:
     condition = CONDITIONS[condition_name]
     value = lambda flag: "true" if flag else "false"
@@ -135,7 +134,6 @@ def launch_command(
         f"bag_path:={args.bag_path}",
         "bag_rate:=1.0",
         "use_gt_mapping:=false",
-        "try_zupt:=false",
         "run_preprocess:=false",
         "rviz:=false",
         "play_bag:=true",
@@ -143,13 +141,10 @@ def launch_command(
         "essential_print:=false",
         "frontend_print:=false",
         "updater_print:=false",
-        "ZUPT_print:=false",
         "pipeline_print:=false",
         f"update_enforce_structure:={value(condition['update_enforce_structure'])}",
-        f"experiment_fix_e_hat:={value(condition['experiment_fix_e_hat'])}",
-        "experiment_force_sigma_r_zero:="
-        f"{value(condition['experiment_force_sigma_r_zero'])}",
-        f"experiment_max_frames:={max_frames}",
+        f"fix_e_hat:={value(condition['fix_e_hat'])}",
+        f"sigma_r_zero:={value(condition['sigma_r_zero'])}",
         f"results_root:={run_dir}",
         f"odom_output_path:={run_dir / 'vio_results' / 'odom_raw.csv'}",
     ]
@@ -177,7 +172,6 @@ def checksums(run_dir: Path) -> dict[str, str]:
 def inspect_outputs(
     run_dir: Path,
     condition_name: str,
-    expected_rows: int | None,
     strict: bool,
 ) -> tuple[dict[str, bool | int | float], bool]:
     diagnostics_path = run_dir / "vio_results" / "e_diagnostics.csv"
@@ -226,7 +220,6 @@ def inspect_outputs(
         "diagnostics_rows": diag_rows,
         "odom_rows": odom_rows,
         "rows_match": diag_rows == odom_rows,
-        "expected_rows_match": expected_rows is None or diag_rows == expected_rows,
         "core_values_finite": bool(all(
             np.isfinite(table[column]).all() for column in finite_columns
         )),
@@ -281,7 +274,6 @@ def inspect_outputs(
             ),
         })
     non_blocking = set() if strict else {
-        "expected_rows_match",
         "core_values_finite",
         "state_finite",
     }
@@ -296,7 +288,6 @@ def run_one(
     args: argparse.Namespace,
     condition_name: str,
     repeat: int,
-    max_frames: int,
     binary_path: Path,
     source_commit: str,
     source_status: str,
@@ -312,12 +303,12 @@ def run_one(
             f"run directory already exists: {run_dir}; use --resume or move it aside"
         )
     (run_dir / "vio_results").mkdir(parents=True)
-    command = launch_command(args, condition_name, run_dir, max_frames)
+    command = launch_command(args, condition_name, run_dir)
     log_path = run_dir / "launch.log"
     started = iso_now()
     start_monotonic = time.monotonic()
     timed_out = False
-    print(f"[run] {condition_name} repeat={repeat} max_frames={max_frames}")
+    print(f"[run] {condition_name} repeat={repeat}")
     with log_path.open("w", encoding="utf-8") as log:
         process = subprocess.Popen(
             command,
@@ -341,15 +332,13 @@ def run_one(
     if diagnostics_path.is_file():
         with diagnostics_path.open("r", encoding="utf-8") as stream:
             row_count = max(0, sum(1 for _ in stream) - 1)
-    expected_rows = max_frames if max_frames > 0 else None
     output_checks, output_valid = inspect_outputs(
-        run_dir, condition_name, expected_rows, args.mode == "validation"
+        run_dir, condition_name, args.mode == "validation"
     )
     successful_completion = (
         exit_code == 0
         and row_count > 0
         and output_valid
-        and bool(output_checks.get("expected_rows_match", True))
         and bool(output_checks.get("state_finite", False))
     )
     recorded = row_count > 0 and output_valid and not timed_out
@@ -368,9 +357,7 @@ def run_one(
         "repeat": repeat,
         "parameters": {
             **CONDITIONS[condition_name],
-            "experiment_max_frames": max_frames,
             "bag_rate": 1.0,
-            "try_zupt": False,
             "use_gt_mapping": False,
         },
         "bag_path": str(args.bag_path.resolve()),
@@ -421,15 +408,11 @@ def main() -> int:
     )
     failures = 0
     for condition_name, repeat in matrix:
-        max_frames = 100 if args.mode == "validation" else (
-            900 if condition_name == "no_projection" else 0
-        )
         try:
             complete = run_one(
                 args,
                 condition_name,
                 repeat,
-                max_frames,
                 binary_path,
                 source_commit,
                 source_status,
